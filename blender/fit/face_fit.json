@@ -1,0 +1,229 @@
+{
+ "params": {
+  "head-scale-horiz-incr": 0.133,
+  "head-scale-vert-incr": 0.344,
+  "chin-width-incr": -0.155,
+  "chin-height-incr": 0.174,
+  "head-square": 0.42,
+  "l-cheek-bones-incr/r-cheek-bones-incr": -0.08,
+  "nose-scale-horiz-incr": 0.056,
+  "nose-scale-vert-incr": 0.295,
+  "nose-trans-up": -0.209,
+  "mouth-scale-horiz-incr": 0.222,
+  "mouth-scale-vert-incr": -0.295,
+  "mouth-trans-up": -0.119,
+  "eyebrows-trans-up": 0.026,
+  "l-eye-trans-out/r-eye-trans-out": -0.228,
+  "l-eye-height2-incr/r-eye-height2-incr": -0.06
+ },
+ "targets": [
+  {
+   "target": "chin-width-decr",
+   "value": 0.155
+  },
+  {
+   "target": "l-cheek-bones-decr",
+   "value": 0.08
+  },
+  {
+   "target": "r-cheek-bones-decr",
+   "value": 0.08
+  },
+  {
+   "target": "nose-trans-down",
+   "value": 0.209
+  },
+  {
+   "target": "mouth-scale-vert-decr",
+   "value": 0.295
+  },
+  {
+   "target": "mouth-trans-down",
+   "value": 0.119
+  },
+  {
+   "target": "l-eye-trans-in",
+   "value": 0.228
+  },
+  {
+   "target": "r-eye-trans-in",
+   "value": 0.228
+  },
+  {
+   "target": "l-eye-height2-decr",
+   "value": 0.06
+  },
+  {
+   "target": "r-eye-height2-decr",
+   "value": 0.06
+  },
+  {
+   "target": "head-scale-horiz-incr",
+   "value": 0.133
+  },
+  {
+   "target": "head-scale-vert-incr",
+   "value": 0.344
+  },
+  {
+   "target": "chin-height-incr",
+   "value": 0.174
+  },
+  {
+   "target": "head-square",
+   "value": 0.42
+  },
+  {
+   "target": "nose-scale-horiz-incr",
+   "value": 0.056
+  },
+  {
+   "target": "nose-scale-vert-incr",
+   "value": 0.295
+  },
+  {
+   "target": "mouth-scale-horiz-incr",
+   "value": 0.222
+  },
+  {
+   "target": "eyebrows-trans-up",
+   "value": 0.026
+  }
+ ],
+ "features": {
+  "face_w": {
+   "photo": 1.515,
+   "model": 1.507
+  },
+  "jaw_w": {
+   "photo": 1.229,
+   "model": 1.244
+  },
+  "chin_w": {
+   "photo": 0.307,
+   "model": 0.323
+  },
+  "nose_w": {
+   "photo": 0.511,
+   "model": 0.487
+  },
+  "mouth_w": {
+   "photo": 0.623,
+   "model": 0.612
+  },
+  "inner_eye": {
+   "photo": 0.371,
+   "model": 0.383
+  },
+  "eye_nose": {
+   "photo": 0.582,
+   "model": 0.562
+  },
+  "nose_mouth": {
+   "photo": 0.329,
+   "model": 0.309
+  },
+  "lip_chin": {
+   "photo": 0.523,
+   "model": 0.477
+  },
+  "lip_h": {
+   "photo": 0.187,
+   "model": 0.195
+  },
+  "eye_brow": {
+   "photo": 0.252,
+   "model": 0.203
+  },
+  "eye_open": {
+   "photo": 0.113,
+   "model": 0.104
+  }
+ },
+ "log": [
+  {
+   "iter": 0,
+   "rms": 0.044195866553369594,
+   "p": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "iter": 1,
+   "rms": 0.03209975644242976,
+   "p": [
+    0.008,
+    0.117,
+    -0.042,
+    0.148,
+    0.224,
+    -0.052,
+    0.045,
+    0.162,
+    -0.037,
+    0.126,
+    -0.13,
+    -0.138,
+    0.019,
+    -0.157,
+    -0.095
+   ]
+  },
+  {
+   "iter": 2,
+   "rms": 0.027945857469733788,
+   "p": [
+    0.086,
+    0.323,
+    -0.117,
+    0.135,
+    0.357,
+    -0.073,
+    0.032,
+    0.237,
+    -0.133,
+    0.205,
+    -0.2,
+    -0.165,
+    0.017,
+    -0.277,
+    -0.019
+   ]
+  },
+  {
+   "iter": "final",
+   "rms": 0.023808355225982836,
+   "p": [
+    0.133,
+    0.344,
+    -0.155,
+    0.174,
+    0.42,
+    -0.08,
+    0.056,
+    0.295,
+    -0.209,
+    0.222,
+    -0.295,
+    -0.119,
+    0.026,
+    -0.228,
+    -0.06
+   ]
+  }
+ ]
+}

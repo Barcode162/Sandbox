@@ -22,14 +22,34 @@ info["targets"] = [
     {"target": "torso-vshape-incr", "value": 0.3},
     {"target": "torso-muscle-pectoral-incr", "value": 0.4},
     {"target": "measure-shoulder-dist-incr", "value": 0.3},
+    {"target": "measure-neck-circ-decr", "value": 0.3},
+    {"target": "nose-scale-depth-incr", "value": 0.25},
+    # Face shape fitted to the front photo by scripts/face_fit.py (MediaPipe landmarks).
+    {"target": "chin-width-decr", "value": 0.155},
+    {"target": "l-cheek-bones-decr", "value": 0.08},
+    {"target": "r-cheek-bones-decr", "value": 0.08},
+    {"target": "nose-trans-down", "value": 0.209},
+    {"target": "mouth-scale-vert-decr", "value": 0.295},
+    {"target": "mouth-trans-down", "value": 0.119},
+    {"target": "l-eye-trans-in", "value": 0.228},
+    {"target": "r-eye-trans-in", "value": 0.228},
+    {"target": "l-eye-height2-decr", "value": 0.06},
+    {"target": "r-eye-height2-decr", "value": 0.06},
+    {"target": "head-scale-horiz-incr", "value": 0.133},
+    {"target": "head-scale-vert-incr", "value": 0.344},
+    {"target": "chin-height-incr", "value": 0.174},
+    {"target": "head-square", "value": 0.42},
+    {"target": "nose-scale-horiz-incr", "value": 0.056},
+    {"target": "nose-scale-vert-incr", "value": 0.295},
+    {"target": "mouth-scale-horiz-incr", "value": 0.222},
+    {"target": "eyebrows-trans-up", "value": 0.026},
 ]
 info["rig"] = "default"
 info["skin_mhmat"] = "young_caucasian_male/young_caucasian_male.mhmat"
 info["skin_material_type"] = "ENHANCED_SSS"
 info["eyes"] = "high-poly/high-poly.mhclo"
 info["eyes_material_type"] = "PROCEDURAL_EYES"
-info["eyes_material_settings"] = {"IrisMajorColor": [0.09, 0.11, 0.035, 1.0], "IrisMinorColor": [0.42, 0.2, 0.04, 1.0]}
-info["eyebrows"] = "eyebrow001/eyebrow001.mhclo"
+info["eyes_material_settings"] = {"IrisMajorColor": [0.07, 0.1, 0.03, 1.0], "IrisMinorColor": [0.3, 0.15, 0.03, 1.0]}
 info["eyelashes"] = "eyelashes01/eyelashes01.mhclo"
 info["teeth"] = "teeth_base/teeth_base.mhclo"
 info["tongue"] = "tongue01/tongue01.mhclo"
@@ -83,8 +103,8 @@ attr.data.foreach_set("value", np.clip(np.maximum(beard, chest), 0, 1).astype(np
 # ---------- Skin: warm tint + stubble shading driven by the mask ----------
 mat = body.material_slots[0].material
 grp_node = next(n for n in mat.node_tree.nodes if n.type == "GROUP")
-grp_node.inputs["colorMixIn"].default_value = (0.86, 0.62, 0.46, 1)
-grp_node.inputs["colorMixInStrength"].default_value = 0.3
+grp_node.inputs["colorMixIn"].default_value = (0.78, 0.55, 0.4, 1)
+grp_node.inputs["colorMixInStrength"].default_value = 0.55
 g = grp_node.node_tree
 nodes, links = g.nodes, g.links
 a = nodes.new("ShaderNodeAttribute"); a.attribute_name = "hair_mask"
@@ -143,10 +163,10 @@ scalp_ob.matrix_parent_inverse = (rig.matrix_world @ rig.data.bones["head"].matr
 hair_mat = bpy.data.materials.new("CurlyHair"); hair_mat.use_nodes = True
 hn = hair_mat.node_tree.nodes; hn.remove(hn["Principled BSDF"])
 hb = hn.new("ShaderNodeBsdfHairPrincipled"); hb.parametrization = "MELANIN"
-hb.inputs["Melanin"].default_value = 0.95
-hb.inputs["Melanin Redness"].default_value = 0.1
-hb.inputs["Roughness"].default_value = 0.2
-hb.inputs["Radial Roughness"].default_value = 0.3
+hb.inputs["Melanin"].default_value = 0.86
+hb.inputs["Melanin Redness"].default_value = 0.15
+hb.inputs["Roughness"].default_value = 0.16
+hb.inputs["Radial Roughness"].default_value = 0.25
 hb.inputs["Random Roughness"].default_value = 0.3
 hb.inputs["Random Color"].default_value = 0.15
 hair_mat.node_tree.links.new(hb.outputs[0], hn["Material Output"].inputs["Surface"])
@@ -159,7 +179,6 @@ lib = "/opt/blender/4.2/datafiles/assets/geometry_nodes/procedural_hair_node_ass
 with bpy.data.libraries.load(lib) as (src, dst):
     dst.node_groups = ["Frizz Hair Curves"]
 
-STRANDS = 30000
 ng = bpy.data.node_groups.new("CurlyHairGen", "GeometryNodeTree")
 ng.interface.new_socket("Geometry", in_out="INPUT", socket_type="NodeSocketGeometry")
 ng.interface.new_socket("Geometry", in_out="OUTPUT", socket_type="NodeSocketGeometry")
@@ -170,120 +189,39 @@ def grp(name, **vals):
     for k, v in vals.items():
         n.inputs[k].default_value = v
     return n
-# Strands are laid out in Python: roots scattered over the scalp, combed back and
-# down along the head, then pushed outside a head-sized ellipsoid so none pass
-# through the skull. Geometry nodes add the curls/frizz on top.
-rng = np.random.default_rng(3)
+# Wet wolf cut, groomed from guides combed across the real head surface.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from groom_wolfcut import groom
+from mathutils.bvhtree import BVHTree
+body.data.calc_loop_triangles()
+tri_all = np.array([tuple(lt.vertices) for lt in body.data.loop_triangles])
+keep = (co[tri_all][:, :, 2].min(1) > chin_z - 0.08) & in_body[tri_all].all(1)
+head_bvh = BVHTree.FromPolygons([tuple(v) for v in co], [tuple(t) for t in tri_all[keep]])
 sv = np.array([v.co for v in scalp_me.vertices])
 scalp_me.calc_loop_triangles()
-tris = np.array([tuple(lt.vertices) for lt in scalp_me.loop_triangles])
-A, B, C = sv[tris[:, 0]], sv[tris[:, 1]], sv[tris[:, 2]]
-fn = np.cross(B - A, C - A); fa = np.linalg.norm(fn, axis=1); fn /= fa[:, None] + 1e-12
-pick = rng.choice(len(tris), STRANDS, p=fa / fa.sum())
-u, v = rng.random(STRANDS), rng.random(STRANDS)
-flip = u + v > 1; u[flip], v[flip] = 1 - u[flip], 1 - v[flip]
-roots = A[pick] + (B[pick] - A[pick]) * u[:, None] + (C[pick] - A[pick]) * v[:, None]
-nrm = fn[pick]
+st = np.array([tuple(lt.vertices) for lt in scalp_me.loop_triangles])
 centre_xyz = np.array([0.0, (sv[:, 1].min() + sv[:, 1].max()) / 2, eye_z - 0.005])
 upper = sv[sv[:, 2] > eye_z]
 radii = np.array([np.abs(upper[:, 0]).max(), (upper[:, 1].max() - upper[:, 1].min()) / 2,
                   sv[:, 2].max() - centre_xyz[2]])
-nrm *= np.sign(((roots - centre_xyz) * nrm).sum(1))[:, None]  # make normals point outward
-
-comb = np.array([0.0, 0.8, -0.6]); comb /= np.linalg.norm(comb)
-
-face_pt = np.array([0.0, front - 0.15, mouth[2] - 0.08])
-
-def comb_paths(roots, nrm, length, pts):
-    # Front roots sweep up/back away from the face; back roots fall with gravity.
-    w = np.clip((front + 0.13 - roots[:, 1]) / 0.07, 0, 1)[:, None]
-    want = w * np.array([0.0, 1.0, 0.15]) + (1 - w) * comb
-    tang = want - (nrm * want).sum(1)[:, None] * nrm
-    bad = np.linalg.norm(tang, axis=1) < 1e-3; tang[bad] = (0, 1, 0)
-    tang /= np.linalg.norm(tang, axis=1)[:, None]
-    t = np.linspace(0, 1, pts)[None, :, None]
-    Ls = length[:, None, None]
-    grav = (0.45 * (1 - 0.6 * w))[:, :, None]
-    return (roots[:, None, :]
-            + nrm[:, None, :] * (0.012 * np.sqrt(t))             # lift off the scalp
-            + tang[:, None, :] * Ls * t                         # combed direction
-            + np.array([0, 0, -1.0]) * (grav * Ls * t ** 2))    # gravity
-
-# Wolf cut: guides set the layers (short crown, longer shaggy back/nape), a soft
-# wave, and an up/out flick at the ends. Strands hug their guide tightly toward
-# the tips so the hair reads as wet, brushed clumps.
-PTS, GUIDES = 48, 900
-gsel = rng.choice(STRANDS, GUIDES, replace=False)
-gr = roots[gsel]
-back = np.clip((gr[:, 1] - front - 0.06) / 0.10, 0, 1)        # 0 at front, 1 at back
-low = np.clip((hairline + 0.04 - gr[:, 2]) / 0.08, 0, 1)        # 1 near nape/sides
-g_len = (0.075 + 0.05 * back + 0.06 * low * back) * rng.uniform(0.8, 1.2, GUIDES)
-G = comb_paths(gr, nrm[gsel], g_len, PTS)
-T = np.gradient(G, axis=1); T /= np.linalg.norm(T, axis=2, keepdims=True)
-e1 = np.cross(T, nrm[gsel][:, None, :]); e1 /= np.linalg.norm(e1, axis=2, keepdims=True) + 1e-9
-tt = np.linspace(0, 1, PTS)[None, :]
-wave = 0.004 * np.sin(2 * np.pi * rng.uniform(1.0, 1.6, GUIDES)[:, None] * tt + rng.uniform(0, 6.3, GUIDES)[:, None])
-G = G + (wave * tt)[..., None] * e1
-# Wet + brushed: above the ears, guides are snapped onto the real head surface
-# (BVH of the body mesh) at a small, growing offset, so the hair lies on the skull.
-from mathutils.bvhtree import BVHTree
-body.data.calc_loop_triangles()
-tri_all = np.array([tuple(lt.vertices) for lt in body.data.loop_triangles])
-keep = (co[tri_all][:, :, 2].min(1) > chin_z - 0.06) & in_body[tri_all].all(1)
-head_bvh = BVHTree.FromPolygons([tuple(p) for p in co], [tuple(t) for t in tri_all[keep]])
-
-def hug(pts, offset, only_above=None, min_only=False):
-    flat = pts.reshape(-1, 3); off = np.broadcast_to(offset, pts.shape[:2]).reshape(-1)
-    sel = np.ones(len(flat), bool) if only_above is None else flat[:, 2] > only_above
-    out = flat.copy()
-    for i in np.where(sel)[0]:
-        loc, n, _, _ = head_bvh.find_nearest(flat[i])
-        if loc is None:
-            continue
-        n = np.array(n); loc = np.array(loc)
-        if np.dot(flat[i] - loc, n) < 0:
-            n = -n if np.dot(n, loc - centre_xyz) < 0 else n
-        h = np.dot(flat[i] - loc, n)
-        if min_only:
-            if h < off[i]:
-                out[i] = loc + n * off[i]
-        else:
-            out[i] = loc + n * off[i]
-    return out.reshape(pts.shape)
-
-G = hug(G, 0.004 + 0.012 * tt, only_above=centre_xyz[2] - 0.03)
-# End flick: the last ~25% bends outward from the head and a little up.
-out = G - centre_xyz; out /= np.linalg.norm(out, axis=2, keepdims=True)
-flick = np.clip((tt - 0.75) / 0.25, 0, 1) ** 2 * g_len[:, None] * rng.uniform(0.15, 0.35, GUIDES)[:, None]
-G = G + flick[..., None] * (0.8 * out + np.array([0, 0, 0.3]))
-
-from mathutils.kdtree import KDTree
-kd = KDTree(GUIDES)
-for i, rt in enumerate(gr):
-    kd.insert(rt, i)
-kd.balance()
-owner = np.array([kd.find(rt)[1] for rt in roots])
-spread = (roots - gr[owner])[:, None, :] * (1 - 0.9 * tt[..., None])
-jitter = rng.normal(0, 0.0006, (STRANDS, 1, 3)) * tt[..., None]
-P = G[owner] + spread + jitter
-t = tt[..., None]
-
-# Keep every strand point at least 3mm off the skin.
-P = hug(P, 0.003, min_only=True)
-t = tt[..., None]
-
-# Face guard: once a strand enters the face box, freeze the rest of it there.
+P = groom(head_bvh, sv, st, centre_xyz, radii, front, eye_z, chin_z)
+STRANDS, PTS = P.shape[:2]
+# Face guard: fringe may reach the brows, nothing goes lower in front of the face.
 inface = ((np.abs(P[..., 0]) < 0.07) & (P[..., 1] < front + 0.075)
-          & (P[..., 2] < hairline - 0.01) & (P[..., 2] > chin_z - 0.03))
+          & (P[..., 2] < eye_z + 0.016) & (P[..., 2] > chin_z - 0.03))
 hit = np.maximum.accumulate(inface, axis=1)
 first = np.where(hit.any(1), hit.argmax(1), PTS)
-idx = np.minimum(np.arange(PTS)[None, :], np.maximum(first - 1, 0)[:, None])
-P = np.take_along_axis(P, idx[..., None].repeat(3, axis=2), axis=1)
-
+# Strands that would cross the face are shortened (resampled up to that point),
+# not frozen, so they don't pile up into blobs at the brow line.
+cut = np.maximum(first - 1, 1).astype(float)
+src = np.linspace(0, 1, PTS)[None, :] * cut[:, None]
+i0 = np.floor(src).astype(int); i1 = np.minimum(i0 + 1, PTS - 1); f = (src - i0)[..., None]
+P = (np.take_along_axis(P, i0[..., None].repeat(3, axis=2), axis=1) * (1 - f)
+     + np.take_along_axis(P, i1[..., None].repeat(3, axis=2), axis=1) * f)
 curves = bpy.data.hair_curves.new("CurlyHair")
 curves.add_curves([PTS] * STRANDS)
 curves.position_data.foreach_set("vector", P.reshape(-1).astype(np.float32))
-frizz = grp("Frizz Hair Curves", **{"Factor": 1.0, "Distance": 0.0006, "Shape": 0.5, "Seed": 2})
+frizz = grp("Frizz Hair Curves", **{"Factor": 1.0, "Distance": 0.0002, "Shape": 0.5, "Seed": 2})
 L.new(gin.outputs[0], frizz.inputs["Geometry"])
 rad = N.new("GeometryNodeSetCurveRadius"); rad.inputs["Radius"].default_value = 0.0003
 L.new(frizz.outputs["Geometry"], rad.inputs["Curve"])
@@ -306,13 +244,15 @@ scalp_ob.hide_render = True
 lower = smooth(mouth[2] - 0.012, mouth[2] - 0.03, z)                     # chin + jaw
 jawline = smooth(0.035, 0.07, depth) * smooth(mouth[2] + 0.01, mouth[2] - 0.02, z)
 stache = (np.abs(x) < 0.03) * smooth(mouth[2] + 0.003, mouth[2] + 0.008, z)
-cheeks = 0.25
+cheeks = 0.08
 bmask = np.clip(beard, 0, 1) * in_body * np.clip(cheeks + lower + jawline + stache, 0, 1)
+body.data.attributes["hair_mask"].data.foreach_set("value", (0.6 * bmask).astype(np.float32))
 body.data.calc_loop_triangles()
 polys = np.array([tuple(lt.vertices) for lt in body.data.loop_triangles])
 A, B, C = co[polys[:, 0]], co[polys[:, 1]], co[polys[:, 2]]
 fn = np.cross(B - A, C - A); fa = np.linalg.norm(fn, axis=1); fn /= fa[:, None] + 1e-12
 w = fa * bmask[polys].mean(1)
+rng = np.random.default_rng(7)
 NB = 26000
 pick = rng.choice(len(polys), NB, p=w / w.sum())
 u, v = rng.random(NB), rng.random(NB); fl = u + v > 1; u[fl], v[fl] = 1 - u[fl], 1 - v[fl]
@@ -334,9 +274,49 @@ bng = bpy.data.node_groups.new("BeardRadius", "GeometryNodeTree")
 bng.interface.new_socket("Geometry", in_out="INPUT", socket_type="NodeSocketGeometry")
 bng.interface.new_socket("Geometry", in_out="OUTPUT", socket_type="NodeSocketGeometry")
 bi, bo = bng.nodes.new("NodeGroupInput"), bng.nodes.new("NodeGroupOutput")
-brad = bng.nodes.new("GeometryNodeSetCurveRadius"); brad.inputs["Radius"].default_value = 0.00007
+brad = bng.nodes.new("GeometryNodeSetCurveRadius"); brad.inputs["Radius"].default_value = 0.00009
 bng.links.new(bi.outputs[0], brad.inputs[0]); bng.links.new(brad.outputs[0], bo.inputs[0])
 beard_ob.modifiers.new("Radius", "NODES").node_group = bng
+
+# ---------- Eyebrows: thick, dark strand brows along the brow ridge ----------
+ex = abs(bone("eye.L")[0])
+ax = np.abs(x)
+tpos = np.clip((ax - 0.008) / 0.058, 0, 1)                       # 0 inner .. 1 tail
+centre_z = eye_z + 0.016 + 0.004 * np.sin(np.pi * np.clip(tpos * 1.15, 0, 1)) - 0.006 * tpos ** 2
+half = 0.0058 * (1 - 0.45 * tpos)
+browm = in_body * (depth < 0.045) * (ax > 0.008) * (ax < 0.066) * (np.abs(z - centre_z) < half)
+NBR = 3800
+rng = np.random.default_rng(11)
+brr = []
+while len(brr) < NBR:
+    tp = rng.random() ** 1.3
+    sx = 1 if rng.random() < 0.5 else -1
+    axr = 0.009 + 0.05 * tp
+    zc = eye_z + 0.0125 + 0.0022 * np.sin(np.pi * min(tp * 1.15, 1)) - 0.004 * tp ** 2
+    zr = zc + rng.uniform(-1, 1) * 0.0048 * (1 - 0.4 * tp)
+    hit = head_bvh.ray_cast(Vector((sx * axr, -0.6, zr)), Vector((0, 1, 0)))
+    if hit[0] is not None:
+        brr.append(np.array(hit[0]))
+bl = []
+for r in brr:
+    loc, n, _, _ = head_bvh.find_nearest(Vector(r)); n = np.array(n)
+    if n[1] > 0:
+        n = -n
+    tp = np.clip((abs(r[0]) - 0.009) / 0.05, 0, 1)
+    dirv = np.array([np.sign(r[0]) * (0.35 + 0.65 * tp), 0, 0.9 * (1 - tp) + 0.15])
+    dirv -= np.dot(dirv, n) * n; dirv /= np.linalg.norm(dirv)
+    L = rng.uniform(0.006, 0.0095)
+    tt5 = np.linspace(0, 1, 5)[:, None]
+    bl.append(np.array(loc) + n * (0.0004 + 0.0012 * tt5) + dirv * L * tt5)
+BR = np.array(bl)
+brc = bpy.data.hair_curves.new("Brows"); brc.add_curves([5] * NBR)
+brc.position_data.foreach_set("vector", BR.reshape(-1).astype(np.float32))
+brc.materials.append(hair_mat)
+brow_ob = bpy.data.objects.new("Brows", brc); bpy.context.collection.objects.link(brow_ob)
+brow_ob.parent, brow_ob.parent_type, brow_ob.parent_bone = rig, "BONE", "head"
+brow_ob.matrix_parent_inverse = scalp_ob.matrix_parent_inverse.copy()
+brng = bng.copy(); brng.nodes["Set Curve Radius"].inputs["Radius"].default_value = 0.00007
+brow_ob.modifiers.new("Radius", "NODES").node_group = brng
 
 # Darker brows to match the hair.
 for o in bpy.data.objects:
@@ -385,11 +365,12 @@ bpy.ops.wm.save_as_mainfile(filepath=os.path.join(ROOT, "me_base.blend"))
 shots = {
     "face": ((0.55, -1.25, height * 0.93), height * 0.925, 85),
     "side": ((-1.45, -0.05, height * 0.93), height * 0.925, 85),
+    "back": ((0.35, 1.5, height * 0.93), height * 0.9, 85),
     "front": ((0, -4.6, height * 0.55), height * 0.52, 60),
     "three_quarter": ((2.8, -3.6, height * 0.6), height * 0.52, 60),
 }
 for name, (loc, tz, lens) in shots.items():
-    if ONLY_FACE and name not in ("face", "side"):
+    if ONLY_FACE and name not in ("face", "side", "back"):
         continue
     cam.location, target.location.z, cam.data.lens = loc, tz, lens
     scene.render.filepath = os.path.join(ROOT, "renders", f"me_{name}.png")
