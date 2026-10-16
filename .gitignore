@@ -1,3 +1,5 @@
 *.blend1
 __pycache__/
 blender/fit/compare.png
+blender/fit/iter*.png
+blender/fit/tmp.png
