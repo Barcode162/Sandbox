@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hearthwake · Memory test</title>
+<style>
+  :root { --bg: #14110f; --card: #1f1a17; --ink: #f3e6d8; --quiet: #b9a99a; --accent: #e8a35c; --good: #8fc28a; --bad: #e57b6b; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.45 -apple-system, system-ui, sans-serif; }
+  main { max-width: 640px; margin: 0 auto; padding: calc(16px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom)); }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  p { color: var(--quiet); margin: 8px 0; }
+  .card { background: var(--card); border-radius: 12px; padding: 14px 16px; margin: 14px 0; }
+  .card h2 { font-size: 16px; margin: 0 0 4px; }
+  button { font: inherit; font-weight: 600; background: var(--accent); color: #1b120a; border: 0; border-radius: 10px;
+           padding: 12px 16px; margin: 8px 8px 0 0; }
+  button:disabled { opacity: .45; }
+  button.quiet { background: transparent; color: var(--ink); border: 1px solid #4a3f37; }
+  .result { font-variant-numeric: tabular-nums; margin-top: 8px; white-space: pre-wrap; }
+  .good { color: var(--good); } .bad { color: var(--bad); }
+  pre { white-space: pre-wrap; word-break: break-word; font-size: 12px; color: var(--quiet); margin: 8px 0 0; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Memory test</h1>
+  <p>Finds how much memory Safari gives a page on this phone, so the house knows its budget. Each test takes memory step by step
+     until Safari says no. <b>Safari may close or reload the page at the end: that's expected.</b> Just open this page again
+     and the result is waiting here.</p>
+
+  <div class="card">
+    <h2>1 · Game memory</h2>
+    <p>The engine's own memory (WebAssembly): models, the house's data, sounds.</p>
+    <button id="run-wasm">Run test 1</button>
+    <div class="result" id="out-wasm"></div>
+  </div>
+
+  <div class="card">
+    <h2>2 · Graphics memory</h2>
+    <p>Memory on the graphics side (WebGPU): textures, lightmaps, the path tracer's data.</p>
+    <button id="run-gpu">Run test 2</button>
+    <div class="result" id="out-gpu"></div>
+  </div>
+
+  <div class="card">
+    <h2>Send the results</h2>
+    <p>Copy them and paste them into the chat.</p>
+    <button id="copy">Copy results</button>
+    <button class="quiet" id="clear">Clear</button>
+    <pre id="info"></pre>
+  </div>
+  <p><a href="./">← Back to the house</a></p>
+</main>
+<script>
+(() => {
+  const KEY = 'hearthwake.memory.';
+  const STEP_MB = 64;
+  const capMB = Number((/[?&]cap=(\d+)/.exec(location.search) || [])[1] || 8192);  // tests here stop early
+  const $ = (id) => document.getElementById(id);
+  const load = (t) => { try { return JSON.parse(localStorage.getItem(KEY + t) || 'null'); } catch (e) { return null; } };
+  const save = (t, v) => { try { localStorage.setItem(KEY + t, JSON.stringify(v)); } catch (e) {} };
+  const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+  const info = { page: location.href.split('?')[0], when: new Date().toISOString(), agent: navigator.userAgent,
+                 screen: `${screen.width}x${screen.height} @${devicePixelRatio}x`, gpu: {} };
+
+  // A run that was still going when the page last closed: Safari closed it.
+  for (const t of ['wasm', 'gpu']) {
+    const r = load(t);
+    if (r && r.status === 'running') { r.status = 'closed'; r.note = 'Safari closed the page'; save(t, r); }
+  }
+
+  function show(t) {
+    const r = load(t), out = $('out-' + t);
+    window.memoryResults = { wasm: load('wasm'), gpu: load('gpu') };
+    if (!r) { out.textContent = 'Not run yet.'; out.className = 'result'; return; }
+    const what = {
+      running: `Running… ${r.mb} MB so far`,
+      closed: `Safari closed the page after ${r.mb} MB. Safe budget: about ${r.mb} MB.`,
+      refused: `Safari refused more after ${r.mb} MB (the page kept running).`,
+      done: `Reached the test's cap of ${r.mb} MB with no trouble.`,
+      error: `Stopped at ${r.mb} MB: ${r.note}`,
+    }[r.status] || JSON.stringify(r);
+    out.textContent = what;
+    out.className = 'result ' + (r.status === 'running' ? '' : r.status === 'error' ? 'bad' : 'good');
+  }
+
+  // Test 1: grow WebAssembly memory 64 MB at a time, touching every page.
+  async function runWasm() {
+    const r = { status: 'running', mb: 0, steps: [] };
+    save('wasm', r); show('wasm');
+    const pages = (mb) => mb * 16;  // 64 KB pages
+    let mem;
+    try { mem = new WebAssembly.Memory({ initial: pages(STEP_MB), maximum: 65536 }); }
+    catch (e) { Object.assign(r, { status: 'error', note: String(e) }); save('wasm', r); return show('wasm'); }
+    r.mb = STEP_MB; save('wasm', r);
+    while (r.mb < capMB) {
+      try { mem.grow(pages(STEP_MB)); }
+      catch (e) { r.status = 'refused'; r.note = String(e); break; }
+      const view = new Uint8Array(mem.buffer, r.mb * 1048576, STEP_MB * 1048576);
+      for (let i = 0; i < view.length; i += 4096) view[i] = 1;
+      r.mb += STEP_MB;
+      save('wasm', r); show('wasm');
+      await pause(60);
+    }
+    if (r.status === 'running') r.status = 'done';
+    save('wasm', r); show('wasm');
+  }
+
+  // Test 2: WebGPU buffers 64 MB at a time, each filled so it's really used.
+  async function runGpu() {
+    const r = { status: 'running', mb: 0 };
+    save('gpu', r); show('gpu');
+    try {
+      const adapter = await navigator.gpu?.requestAdapter();
+      if (!adapter) throw new Error('no WebGPU on this browser');
+      const device = await adapter.requestDevice({ requiredLimits: { maxBufferSize: adapter.limits.maxBufferSize } });
+      let lost = null;
+      device.lost.then((l) => { lost = l.message || l.reason || 'device lost'; });
+      const fill = new Uint8Array(STEP_MB * 1048576).fill(7);
+      const keep = [];
+      while (r.mb < capMB && !lost) {
+        device.pushErrorScope('out-of-memory');
+        const buf = device.createBuffer({ size: fill.length, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+        device.queue.writeBuffer(buf, 0, fill);
+        await device.queue.onSubmittedWorkDone();
+        const err = await device.popErrorScope();
+        if (err) { r.status = 'refused'; r.note = err.message; break; }
+        keep.push(buf);
+        r.mb += STEP_MB;
+        save('gpu', r); show('gpu');
+        await pause(60);
+      }
+      if (lost) { r.status = 'refused'; r.note = 'graphics device lost: ' + lost; }
+      if (r.status === 'running') r.status = 'done';
+      keep.forEach((b) => b.destroy());
+    } catch (e) { r.status = 'error'; r.note = String(e && e.message || e); }
+    save('gpu', r); show('gpu');
+  }
+
+  async function describeGpu() {
+    try {
+      const a = await navigator.gpu?.requestAdapter();
+      if (!a) { info.gpu = 'no WebGPU'; return; }
+      const l = a.limits;
+      info.gpu = { vendor: a.info?.vendor, architecture: a.info?.architecture, maxBufferSize: l.maxBufferSize,
+                   maxStorageBufferBindingSize: l.maxStorageBufferBindingSize, maxTextureDimension2D: l.maxTextureDimension2D,
+                   maxTextureArrayLayers: l.maxTextureArrayLayers, maxComputeInvocationsPerWorkgroup: l.maxComputeInvocationsPerWorkgroup,
+                   features: [...a.features].sort() };
+    } catch (e) { info.gpu = String(e); }
+    $('info').textContent = JSON.stringify(info, null, 1);
+  }
+
+  const report = () => JSON.stringify({ hearthwakeMemoryTest: 1, wasm: load('wasm'), gpu: load('gpu'), device: info });
+  const guard = (fn) => async () => { $('run-wasm').disabled = $('run-gpu').disabled = true;
+    try { await fn(); } finally { $('run-wasm').disabled = $('run-gpu').disabled = false; } };
+  $('run-wasm').onclick = guard(runWasm);
+  $('run-gpu').onclick = guard(runGpu);
+  $('copy').onclick = async () => {
+    try { await navigator.clipboard.writeText(report()); $('copy').textContent = 'Copied'; }
+    catch (e) { $('info').textContent = report(); $('copy').textContent = 'Select the text below'; }
+  };
+  $('clear').onclick = () => { localStorage.removeItem(KEY + 'wasm'); localStorage.removeItem(KEY + 'gpu'); show('wasm'); show('gpu'); };
+  show('wasm'); show('gpu'); describeGpu();
+  window.memoryTest = { runWasm, runGpu, report };
+})();
+</script>
+</body>
+</html>

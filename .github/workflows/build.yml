@@ -1,0 +1,61 @@
+# On every push: the engine's checks, the house built into site/, and the
+# house's smoke test in a software browser. On main (and on Sandbox's
+# hearthwake branch, its home for now) the site is published to the
+# gh-pages branch first, which GitHub Pages serves; the smoke test runs after.
+name: Build and publish
+on:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  EMSDK_VERSION: 6.0.13
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Emscripten (cached)
+        uses: actions/cache@v4
+        with:
+          path: emsdk
+          key: emsdk-${{ env.EMSDK_VERSION }}-v1
+      - name: Install Emscripten and Ninja
+        run: |
+          if [ ! -d emsdk ]; then git clone --depth 1 https://github.com/emscripten-core/emsdk.git; fi
+          ./emsdk/emsdk install $EMSDK_VERSION
+          ./emsdk/emsdk activate $EMSDK_VERSION
+          sudo apt-get install -y ninja-build >/dev/null
+      - name: Engine check
+        run: |
+          source ./emsdk/emsdk_env.sh
+          bash engine/test.sh
+      - name: Build the house
+        run: |
+          source ./emsdk/emsdk_env.sh
+          bash house/build.sh
+      - name: Publish to gh-pages
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/hearthwake'
+        run: |
+          cd site
+          git init -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Hearthwake, built from ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" gh-pages
+      - name: Install Playwright
+        run: |
+          npm i --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Smoke test (software WebGPU)
+        run: node house/tools/smoke.mjs
+      - name: Keep the pictures
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: shots
+          path: build/shots

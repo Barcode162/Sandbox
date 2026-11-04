@@ -1,0 +1,15 @@
+{
+  "id": "house",
+  "about": "Hearthwake M0: the empty main hall of Aldric's house at true size, lit by the hearth and the dawn window. M1 grows it into the whole house.",
+  "kinds": ["kinds/house.json"],
+  "air": {"ambient": [0.012, 0.012, 0.015], "fog": [0.02, 0.018, 0.017], "fogDensity": 0.01, "beams": 0.012},
+  "spawn": {"at": [0.6, 1.65, 1.7], "yaw": 0},
+  "lightGrid": {"min": [-3, 0, -3], "max": [3, 0, 3]},
+  "rooms": [{"id": "hall", "min": [-3, -0.2, -3], "max": [3, 2.8, 3]}],
+  "doorways": [],
+  "things": [
+    {"id": "hall", "kind": "hall-shell", "at": [0, 0, 0]},
+    {"id": "hearth", "kind": "hearth-glow", "at": [0, 0.45, -2.15]},
+    {"id": "window", "kind": "window-sky", "at": [3.05, 1.55, 0.5], "turn": 0}
+  ]
+}

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Hearthwake</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0b0908; overflow: hidden; -webkit-user-select: none; user-select: none; }
+  canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; touch-action: none; display: block; }
+  #tag { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); color: #f3e6d8; opacity: .72;
+         font: 12px/1.35 -apple-system, system-ui, sans-serif; pointer-events: none; text-shadow: 0 1px 2px #000; }
+  #links { position: fixed; right: 12px; top: calc(10px + env(safe-area-inset-top)); font: 12px -apple-system, system-ui, sans-serif; }
+  #links a { color: #f3e6d8; opacity: .6; text-decoration: none; }
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<div id="links"><a href="memory.html">Memory test</a></div>
+<div id="tag">Hearthwake · loading…</div>
+<script>
+  // The engine's way into this page (looped/host.h): a log and where
+  // remembered values go; every other part is left out on purpose.
+  window.loopedHost = { storagePrefix: 'hearthwake.', log: { add: function (level, text) { console.log(text); } } };
+  var tag = document.getElementById('tag');
+  var touch = 'ontouchstart' in window;
+  var hint = touch ? 'left thumb walks, right thumb looks' : 'W A S D to walk, drag to look';
+  if (!navigator.gpu) tag.textContent = 'This browser has no WebGPU. On iPhone: iOS 26 or later, Safari.';
+  var mem = /[?&]mem=1/.test(location.search);
+  setInterval(function () {
+    var s = window.houseState;
+    if (!s || !navigator.gpu) return;
+    if (s.error) { tag.textContent = 'Hearthwake · ' + s.error; return; }
+    tag.textContent = 'Hearthwake · M0 · ' + (s.ready ? hint : 'loading…') + (mem ? ' · heap ' + Math.round(s.heapMB) + ' MB' : '');
+  }, 500);
+</script>
+<script src="house.js"></script>
+</body>
+</html>

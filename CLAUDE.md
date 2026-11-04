@@ -14,7 +14,7 @@ look at on the phone. They never need to run a command.
 ## The layout
 
 - `engine/`: Looped on its own. Read `engine/README.md` first.
-- `house/`: the game (from M0 on).
+- `house/`: the game (`house/README.md`).
 - Bar3D (`Barcode162/3D`) is a separate project with its own copy of the
   engine. Never change it from here.
 
@@ -23,8 +23,10 @@ look at on the phone. They never need to run a command.
 1. The engine never includes game code: nothing in `engine/looped/`
    includes a file from outside it (`engine/tools/lint_engine.mjs`).
 2. Every engine change gets a line in `engine/CHANGES.md`.
-3. Commit only when the check passes (`bash engine/test.sh`, and the game's
-   checks once they exist). Never skip, weaken or delete a test to pass.
+3. Commit only when the checks pass: `bash engine/test.sh`, then
+   `bash house/build.sh` and `node house/tools/smoke.mjs`; look at the
+   pictures (`node house/tools/shots.mjs`) after a visual change. Never
+   skip, weaken or delete a test to pass.
 4. Work on a branch per job; `main` gets a finished, checked job.
 5. Never say something works or is live without checking it. The phone
    is the real test: this machine has no graphics card, so its pictures are
@@ -39,4 +41,4 @@ look at on the phone. They never need to run a command.
 
 - Emscripten 6.0.13 for the web build:
   `git clone --depth 1 https://github.com/emscripten-core/emsdk.git && ./emsdk/emsdk install 6.0.13 && ./emsdk/emsdk activate 6.0.13 && source ./emsdk/emsdk_env.sh`
-- Then `bash engine/test.sh`.
+- Then `bash engine/test.sh`; the house also needs cmake and ninja.

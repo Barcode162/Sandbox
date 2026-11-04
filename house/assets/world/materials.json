@@ -1,0 +1,125 @@
+{
+ "about": "Hearthwake's materials: look (linear colour, roughness, metal), feel (density kg/m3, friction, bounce) and sound (pitch Hz, decay s, absorb). Colours are measured-style averages; the realism rules in the plan set the roughness ranges.",
+ "materials": [
+  {
+   "id": "limestone",
+   "name": "rough-coursed limestone",
+   "color": [
+    0.3,
+    0.27,
+    0.22
+   ],
+   "roughness": 0.88,
+   "metallic": 0,
+   "density": 2300,
+   "friction": 0.7,
+   "bounce": 0.2,
+   "pitch": 400,
+   "decay": 0.05,
+   "absorb": 0.05
+  },
+  {
+   "id": "flagstone",
+   "name": "worn flagstone floor",
+   "color": [
+    0.2,
+    0.19,
+    0.17
+   ],
+   "roughness": 0.82,
+   "metallic": 0,
+   "density": 2400,
+   "friction": 0.7,
+   "bounce": 0.2,
+   "pitch": 420,
+   "decay": 0.05,
+   "absorb": 0.05
+  },
+  {
+   "id": "sooty-stone",
+   "name": "soot-blackened stone",
+   "color": [
+    0.035,
+    0.032,
+    0.03
+   ],
+   "roughness": 0.92,
+   "metallic": 0,
+   "density": 2300,
+   "friction": 0.7,
+   "bounce": 0.2,
+   "pitch": 380,
+   "decay": 0.05,
+   "absorb": 0.05
+  },
+  {
+   "id": "oak-beam",
+   "name": "old oak beam",
+   "color": [
+    0.1,
+    0.062,
+    0.036
+   ],
+   "roughness": 0.72,
+   "metallic": 0,
+   "density": 750,
+   "friction": 0.5,
+   "bounce": 0.3,
+   "pitch": 200,
+   "decay": 0.08,
+   "absorb": 0.1
+  },
+  {
+   "id": "oak-boards",
+   "name": "oak boards",
+   "color": [
+    0.14,
+    0.085,
+    0.05
+   ],
+   "roughness": 0.66,
+   "metallic": 0,
+   "density": 700,
+   "friction": 0.5,
+   "bounce": 0.3,
+   "pitch": 220,
+   "decay": 0.08,
+   "absorb": 0.1
+  },
+  {
+   "id": "limewash",
+   "name": "limewashed daub",
+   "color": [
+    0.62,
+    0.6,
+    0.55
+   ],
+   "roughness": 0.94,
+   "metallic": 0,
+   "density": 1500,
+   "friction": 0.6,
+   "bounce": 0.2,
+   "pitch": 300,
+   "decay": 0.05,
+   "absorb": 0.15
+  },
+  {
+   "id": "dawn-sky",
+   "name": "dawn sky through the window",
+   "color": [
+    0.55,
+    0.66,
+    0.85
+   ],
+   "roughness": 1.0,
+   "metallic": 0,
+   "density": 1,
+   "friction": 0.5,
+   "bounce": 0.1,
+   "pitch": 100,
+   "decay": 0.05,
+   "absorb": 1.0,
+   "glow": 1.0
+  }
+ ]
+}
