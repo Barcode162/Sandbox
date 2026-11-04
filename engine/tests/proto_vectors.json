@@ -1,0 +1,840 @@
+{
+ "proto": 1,
+ "note": "Golden vectors for docs/handbook/protocol.md. Checked by tools/proto_test.mjs (cloud/proto.js) and tools/native/proto_test.cpp (looped/netproto). Hex is the contract: check changes by hand against the spec tables.",
+ "binary": [
+  {
+   "name": "state basic",
+   "kind": "state",
+   "fields": {
+    "seq": 7,
+    "avatar": {
+     "x": 1.23,
+     "y": 1.65,
+     "z": -2.5,
+     "yaw": 1.5,
+     "pitch": -0.25,
+     "anim": 0,
+     "animTick": 0,
+     "held": 0,
+     "look": 3,
+     "flags": 0
+    },
+    "act": ""
+   },
+   "hex": "0107007b00a50006ff1e3d3cf600000000030000"
+  },
+  {
+   "name": "state negative yaw wraps, pitch clamps, flags",
+   "kind": "state",
+   "fields": {
+    "seq": 65535,
+    "avatar": {
+     "x": 1.23,
+     "y": 1.65,
+     "z": -2.5,
+     "yaw": -1,
+     "pitch": 2,
+     "anim": 5,
+     "animTick": 4464,
+     "held": 2,
+     "look": 3,
+     "flags": 9
+    },
+    "act": ""
+   },
+   "hex": "01ffff7b00a50006ff42d75c3d05701102030900"
+  },
+  {
+   "name": "state yaw just under 2pi rounds to 0",
+   "kind": "state",
+   "fields": {
+    "seq": 0,
+    "avatar": {
+     "x": 1.23,
+     "y": 1.65,
+     "z": -2.5,
+     "yaw": 6.28318,
+     "pitch": 0,
+     "anim": 0,
+     "animTick": 0,
+     "held": 0,
+     "look": 3,
+     "flags": 0
+    },
+    "act": ""
+   },
+   "hex": "0100007b00a50006ff0000000000000000030000"
+  },
+  {
+   "name": "state saturates far positions",
+   "kind": "state",
+   "fields": {
+    "seq": 1,
+    "avatar": {
+     "x": 400,
+     "y": -400,
+     "z": 0.004,
+     "yaw": 1.5,
+     "pitch": -0.25,
+     "anim": 0,
+     "animTick": 0,
+     "held": 0,
+     "look": 3,
+     "flags": 0
+    },
+    "act": ""
+   },
+   "hex": "010100ff7f008000001e3d3cf600000000030000"
+  },
+  {
+   "name": "state with activity TLV",
+   "kind": "state",
+   "fields": {
+    "seq": 300,
+    "avatar": {
+     "x": 1.23,
+     "y": 1.65,
+     "z": -2.5,
+     "yaw": 1.5,
+     "pitch": -0.25,
+     "anim": 2,
+     "animTick": 1234,
+     "held": 0,
+     "look": 3,
+     "flags": 0
+    },
+    "act": "0102abcd0300"
+   },
+   "hex": "012c017b00a50006ff1e3d3cf602d204000300060102abcd0300"
+  },
+  {
+   "name": "prop one glass",
+   "kind": "prop",
+   "fields": {
+    "props": [
+     {
+      "id": 4660,
+      "pos": [
+       -0.0625,
+       1.1,
+       0.5
+      ],
+      "quat": [
+       0,
+       0,
+       0,
+       1
+      ],
+      "vel": [
+       0.5,
+       -2.25,
+       0
+      ]
+     }
+    ]
+   },
+   "hex": "02013412c2ff4c04f401000208e032001fff0000"
+  },
+  {
+   "name": "prop rotated, negative largest, unnormalized",
+   "kind": "prop",
+   "fields": {
+    "props": [
+     {
+      "id": 1,
+      "pos": [
+       0,
+       0,
+       0
+      ],
+      "quat": [
+       0,
+       -0.7071068,
+       0,
+       -0.7071068
+      ],
+      "vel": [
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "id": 65535,
+      "pos": [
+       32.8,
+       -40,
+       0.0004
+      ],
+      "quat": [
+       0.2,
+       0.4,
+       -0.6,
+       0.8
+      ],
+      "vel": [
+       400,
+       0,
+       -0.01
+      ]
+     }
+    ]
+   },
+   "hex": "02020100000000000000ff030860000000000000ffffff7f0080000073204ce8ff7f0000ffff"
+  },
+  {
+   "name": "tick empty",
+   "kind": "tick",
+   "fields": {
+    "tick": 0,
+    "serverMs": 1760000000000.5,
+    "players": [],
+    "props": []
+   },
+   "hex": "8100000000000800cc829c79420000"
+  },
+  {
+   "name": "tick two players and a prop",
+   "kind": "tick",
+   "fields": {
+    "tick": 123456789,
+    "serverMs": 1760000123456.25,
+    "players": [
+     {
+      "slot": 0,
+      "avatar": {
+       "x": 1.23,
+       "y": 1.65,
+       "z": -2.5,
+       "yaw": 1.5,
+       "pitch": -0.25,
+       "anim": 0,
+       "animTick": 0,
+       "held": 0,
+       "look": 3,
+       "flags": 0
+      },
+      "act": ""
+     },
+     {
+      "slot": 15,
+      "avatar": {
+       "x": -3,
+       "y": 1.65,
+       "z": -2.5,
+       "yaw": 1.5,
+       "pitch": -0.25,
+       "anim": 0,
+       "animTick": 0,
+       "held": 0,
+       "look": 7,
+       "flags": 2
+      },
+      "act": "0500"
+     }
+    ],
+    "props": [
+     {
+      "id": 99,
+      "pos": [
+       1,
+       2,
+       3
+      ],
+      "quat": [
+       0.5,
+       0.5,
+       0.5,
+       0.5
+      ],
+      "vel": [
+       0,
+       0,
+       0
+      ]
+     }
+    ]
+   },
+   "hex": "8115cd5b07000424ea829c794202007b00a50006ff1e3d3cf6000000000300000fd4fea50006ff1e3d3cf6000000000702020500016300e803d007b80b69a79d36000000000000"
+  }
+ ],
+ "text": [
+  {
+   "name": "hello guest",
+   "dir": "toServer",
+   "letter": "H",
+   "body": {
+    "proto": 1,
+    "build": "c903e4f",
+    "name": "Josh",
+    "look": 3
+   },
+   "text": "H{\"proto\":1,\"build\":\"c903e4f\",\"name\":\"Josh\",\"look\":3}"
+  },
+  {
+   "name": "hello resume + ticket + unicode name",
+   "dir": "toServer",
+   "letter": "H",
+   "body": {
+    "proto": 1,
+    "build": "abc",
+    "name": "Zoë 🍺",
+    "look": 0,
+    "resume": "0123456789abcdef0123456789abcdef",
+    "ticket": "v1.abc.def"
+   },
+   "text": "H{\"proto\":1,\"build\":\"abc\",\"name\":\"Zoë 🍺\",\"look\":0,\"resume\":\"0123456789abcdef0123456789abcdef\",\"ticket\":\"v1.abc.def\"}"
+  },
+  {
+   "name": "intent with args",
+   "dir": "toServer",
+   "letter": "I",
+   "body": {
+    "i": 42,
+    "k": "claim",
+    "key": "seat.bar.3"
+   },
+   "text": "I{\"i\":42,\"k\":\"claim\",\"key\":\"seat.bar.3\"}"
+  },
+  {
+   "name": "events",
+   "dir": "toServer",
+   "letter": "E",
+   "body": {
+    "e": [
+     [
+      "note",
+      [
+       60,
+       0.8
+      ]
+     ],
+     [
+      "pedal",
+      [
+       1
+      ]
+     ],
+     [
+      "bell",
+      []
+     ]
+    ]
+   },
+   "text": "E{\"e\":[[\"note\",[60,0.8]],[\"pedal\",[1]],[\"bell\",[]]]}"
+  },
+  {
+   "name": "kv legacy",
+   "dir": "toServer",
+   "letter": "K",
+   "body": {
+    "w": {
+     "g3": [
+      1.5,
+      0,
+      -2,
+      0,
+      0,
+      0,
+      1
+     ],
+     "jb": [
+      2,
+      0
+     ]
+    }
+   },
+   "text": "K{\"w\":{\"g3\":[1.5,0,-2,0,0,0,1],\"jb\":[2,0]}}"
+  },
+  {
+   "name": "signal",
+   "dir": "toServer",
+   "letter": "G",
+   "body": {
+    "to": 4,
+    "data": {
+     "sdp": "v=0\r\n\"quoted\"\\",
+     "type": "offer"
+    }
+   },
+   "text": "G{\"to\":4,\"data\":{\"sdp\":\"v=0\\r\\n\\\"quoted\\\"\\\\\",\"type\":\"offer\"}}"
+  },
+  {
+   "name": "ping",
+   "dir": "toServer",
+   "letter": "P",
+   "body": {
+    "c": 12345.678
+   },
+   "text": "P{\"c\":12345.678}"
+  },
+  {
+   "name": "reauth",
+   "dir": "toServer",
+   "letter": "R",
+   "body": {
+    "ticket": "t"
+   },
+   "text": "R{\"ticket\":\"t\"}"
+  },
+  {
+   "name": "away",
+   "dir": "toServer",
+   "letter": "A",
+   "body": {
+    "on": 1
+   },
+   "text": "A{\"on\":1}"
+  },
+  {
+   "name": "welcome",
+   "dir": "toClient",
+   "letter": "W",
+   "body": {
+    "proto": 1,
+    "slot": 2,
+    "resume": "ffffffffffffffffffffffffffffffff",
+    "serverMs": 1760000000000,
+    "tick": 10,
+    "tickHz": 20,
+    "room": "main",
+    "roster": [
+     {
+      "slot": 0,
+      "name": "Ann",
+      "look": 1,
+      "acct": "ann",
+      "av": 3
+     },
+     {
+      "slot": 2,
+      "name": "Josh",
+      "look": 3,
+      "away": 0
+     }
+    ],
+    "claims": {
+     "seat.bar.3": 0
+    },
+    "sessions": {},
+    "kv": [
+     [
+      5,
+      "g3",
+      0,
+      [
+       1,
+       2,
+       3
+      ]
+     ]
+    ]
+   },
+   "text": "W{\"proto\":1,\"slot\":2,\"resume\":\"ffffffffffffffffffffffffffffffff\",\"serverMs\":1760000000000,\"tick\":10,\"tickHz\":20,\"room\":\"main\",\"roster\":[{\"slot\":0,\"name\":\"Ann\",\"look\":1,\"acct\":\"ann\",\"av\":3},{\"slot\":2,\"name\":\"Josh\",\"look\":3,\"away\":0}],\"claims\":{\"seat.bar.3\":0},\"sessions\":{},\"kv\":[[5,\"g3\",0,[1,2,3]]]}"
+  },
+  {
+   "name": "delta",
+   "dir": "toClient",
+   "letter": "D",
+   "body": {
+    "d": [
+     [
+      11,
+      "lights",
+      1,
+      0
+     ],
+     [
+      12,
+      "jukebox",
+      {
+       "song": 3,
+       "at": 1760000000000
+      },
+      -1
+     ]
+    ]
+   },
+   "text": "D{\"d\":[[11,\"lights\",1,0],[12,\"jukebox\",{\"song\":3,\"at\":1760000000000},-1]]}"
+  },
+  {
+   "name": "result taken",
+   "dir": "toClient",
+   "letter": "R",
+   "body": {
+    "r": 42,
+    "ok": 0,
+    "why": "taken",
+    "by": 0
+   },
+   "text": "R{\"r\":42,\"ok\":0,\"why\":\"taken\",\"by\":0}"
+  },
+  {
+   "name": "result ok",
+   "dir": "toClient",
+   "letter": "R",
+   "body": {
+    "r": 43,
+    "ok": 1,
+    "seq": 13
+   },
+   "text": "R{\"r\":43,\"ok\":1,\"seq\":13}"
+  },
+  {
+   "name": "events stamped",
+   "dir": "toClient",
+   "letter": "E",
+   "body": {
+    "e": [
+     [
+      100,
+      1,
+      1,
+      "note",
+      [
+       60,
+       0.8
+      ]
+     ],
+     [
+      101,
+      1,
+      2,
+      "pedal",
+      [
+       0
+      ]
+     ]
+    ]
+   },
+   "text": "E{\"e\":[[100,1,1,\"note\",[60,0.8]],[101,1,2,\"pedal\",[0]]]}"
+  },
+  {
+   "name": "kv echo",
+   "dir": "toClient",
+   "letter": "K",
+   "body": {
+    "w": [
+     [
+      6,
+      "jb",
+      2,
+      [
+       2,
+       0
+      ]
+     ]
+    ]
+   },
+   "text": "K{\"w\":[[6,\"jb\",2,[2,0]]]}"
+  },
+  {
+   "name": "join",
+   "dir": "toClient",
+   "letter": "J",
+   "body": {
+    "slot": 5,
+    "name": "Bob",
+    "look": 2
+   },
+   "text": "J{\"slot\":5,\"name\":\"Bob\",\"look\":2}"
+  },
+  {
+   "name": "leave",
+   "dir": "toClient",
+   "letter": "L",
+   "body": {
+    "slot": 5,
+    "why": "left"
+   },
+   "text": "L{\"slot\":5,\"why\":\"left\"}"
+  },
+  {
+   "name": "profile",
+   "dir": "toClient",
+   "letter": "F",
+   "body": {
+    "slot": 5,
+    "name": "Bob",
+    "acct": "bob",
+    "av": 2,
+    "badges": [
+     "bartender"
+    ],
+    "role": "owner"
+   },
+   "text": "F{\"slot\":5,\"name\":\"Bob\",\"acct\":\"bob\",\"av\":2,\"badges\":[\"bartender\"],\"role\":\"owner\"}"
+  },
+  {
+   "name": "signal from",
+   "dir": "toClient",
+   "letter": "G",
+   "body": {
+    "from": 4,
+    "data": {
+     "candidate": "x"
+    }
+   },
+   "text": "G{\"from\":4,\"data\":{\"candidate\":\"x\"}}"
+  },
+  {
+   "name": "pong",
+   "dir": "toClient",
+   "letter": "P",
+   "body": {
+    "c": 12345.678,
+    "s": 1760000000000.25
+   },
+   "text": "P{\"c\":12345.678,\"s\":1760000000000.25}"
+  }
+ ],
+ "bad": [
+  {
+   "name": "empty binary",
+   "kind": "binary",
+   "hex": ""
+  },
+  {
+   "name": "unknown binary type",
+   "kind": "binary",
+   "hex": "7f07007b00a50006ff1e3d3cf600000000030000"
+  },
+  {
+   "name": "state truncated",
+   "kind": "binary",
+   "hex": "0107007b00a50006ff1e3d3cf6000000000300"
+  },
+  {
+   "name": "state trailing byte",
+   "kind": "binary",
+   "hex": "0107007b00a50006ff1e3d3cf60000000003000000"
+  },
+  {
+   "name": "state flags high bits",
+   "kind": "binary",
+   "hex": "0107007b00a50006ff1e3d3cf60000000003f000"
+  },
+  {
+   "name": "state activity length 255",
+   "kind": "binary",
+   "hex": "0107007b00a50006ff1e3d3cf6000000000300ff"
+  },
+  {
+   "name": "state activity TLV overruns",
+   "kind": "binary",
+   "hex": "0107007b00a50006ff1e3d3cf6000000000300020105"
+  },
+  {
+   "name": "state pitch out of range",
+   "kind": "binary",
+   "hex": "0107007b00a50006ff1e3dff7f00000000030000"
+  },
+  {
+   "name": "prop count 0",
+   "kind": "binary",
+   "hex": "0200"
+  },
+  {
+   "name": "prop count 9",
+   "kind": "binary",
+   "hex": "02093412c2ff4c04f401000208e032001fff00003412c2ff4c04f401000208e032001fff00003412c2ff4c04f401000208e032001fff00003412c2ff4c04f401000208e032001fff00003412c2ff4c04f401000208e032001fff00003412c2ff4c04f401000208e032001fff00003412c2ff4c04f401000208e032001fff00003412c2ff4c04f401000208e032001fff00003412c2ff4c04f401000208e032001fff0000"
+  },
+  {
+   "name": "prop invalid quaternion (sum > 1)",
+   "kind": "binary",
+   "hex": "02010000000000000000ffffffff000000000000"
+  },
+  {
+   "name": "tick serverMs NaN",
+   "kind": "binary",
+   "hex": "8101000000000000000000f87f0000"
+  },
+  {
+   "name": "tick 200 players",
+   "kind": "binary",
+   "hex": "8115cd5b07000424ea829c7942c800"
+  },
+  {
+   "name": "tick slot 16",
+   "kind": "binary",
+   "hex": "8115cd5b07000424ea829c794201107b00a50006ff1e3d3cf60000000003000000"
+  },
+  {
+   "name": "tick repeated slot",
+   "kind": "binary",
+   "hex": "8115cd5b07000424ea829c794202037b00a50006ff1e3d3cf600000000030000037b00a50006ff1e3d3cf60000000003000000"
+  },
+  {
+   "name": "tick truncated header",
+   "kind": "binary",
+   "hex": "8115cd5b07"
+  },
+  {
+   "name": "tick 255 props",
+   "kind": "binary",
+   "hex": "8115cd5b07000424ea829c794200ff"
+  },
+  {
+   "name": "text empty",
+   "kind": "text",
+   "dir": "toServer",
+   "text": ""
+  },
+  {
+   "name": "text unknown letter",
+   "kind": "text",
+   "dir": "toServer",
+   "text": "Z{\"a\":1}"
+  },
+  {
+   "name": "text letter for the other direction",
+   "kind": "text",
+   "dir": "toServer",
+   "text": "W{\"slot\":1}"
+  },
+  {
+   "name": "malformed JSON",
+   "kind": "text",
+   "dir": "toServer",
+   "text": "P{\"c\":1"
+  },
+  {
+   "name": "NaN in JSON",
+   "kind": "text",
+   "dir": "toServer",
+   "text": "P{\"c\":NaN}"
+  },
+  {
+   "name": "infinite number",
+   "kind": "text",
+   "dir": "toServer",
+   "text": "P{\"c\":1e999}"
+  },
+  {
+   "name": "body not an object",
+   "kind": "text",
+   "dir": "toServer",
+   "text": "P[1,2]"
+  },
+  {
+   "name": "missing required key",
+   "kind": "text",
+   "dir": "toServer",
+   "text": "H{\"proto\":1,\"build\":\"x\",\"look\":0}"
+  },
+  {
+   "name": "wrong type",
+   "kind": "text",
+   "dir": "toServer",
+   "text": "A{\"on\":\"yes\"}"
+  },
+  {
+   "name": "away 2",
+   "kind": "text",
+   "dir": "toServer",
+   "text": "A{\"on\":2}"
+  },
+  {
+   "name": "name too long (25 bytes)",
+   "kind": "text",
+   "dir": "toServer",
+   "text": "H{\"proto\":1,\"build\":\"x\",\"name\":\"abcdefghijklmnopqrstuvwxy\",\"look\":0}"
+  },
+  {
+   "name": "name 24 bytes but 13 chars of 2 bytes",
+   "kind": "text",
+   "dir": "toServer",
+   "text": "H{\"proto\":1,\"build\":\"x\",\"name\":\"ééééééééééééé\",\"look\":0}"
+  },
+  {
+   "name": "resume not hex",
+   "kind": "text",
+   "dir": "toServer",
+   "text": "H{\"proto\":1,\"build\":\"x\",\"name\":\"a\",\"look\":0,\"resume\":\"zz23456789abcdef0123456789abcdef\"}"
+  },
+  {
+   "name": "slot 16",
+   "kind": "text",
+   "dir": "toServer",
+   "text": "G{\"to\":16,\"data\":1}"
+  },
+  {
+   "name": "fractional int",
+   "kind": "text",
+   "dir": "toServer",
+   "text": "I{\"i\":1.5,\"k\":\"claim\"}"
+  },
+  {
+   "name": "event args not numbers",
+   "kind": "text",
+   "dir": "toServer",
+   "text": "E{\"e\":[[\"note\",[\"x\"]]]}"
+  },
+  {
+   "name": "33 events",
+   "kind": "text",
+   "dir": "toServer",
+   "text": "E{\"e\":[[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]],[\"b\",[]]]}"
+  },
+  {
+   "name": "kv bad key",
+   "kind": "text",
+   "dir": "toServer",
+   "text": "K{\"w\":{\"a b\":[1]}}"
+  },
+  {
+   "name": "deep nesting",
+   "kind": "text",
+   "dir": "toServer",
+   "text": "G{\"to\":1,\"data\":[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]}"
+  },
+  {
+   "name": "text over 4096 bytes",
+   "kind": "text",
+   "dir": "toServer",
+   "text": "R{\"ticket\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+  },
+  {
+   "name": "welcome missing roster",
+   "kind": "text",
+   "dir": "toClient",
+   "text": "W{\"proto\":1,\"slot\":0,\"resume\":\"ffffffffffffffffffffffffffffffff\",\"serverMs\":1,\"tick\":0,\"tickHz\":20,\"room\":\"main\",\"claims\":{},\"sessions\":{}}"
+  },
+  {
+   "name": "result ok 2",
+   "kind": "text",
+   "dir": "toClient",
+   "text": "R{\"r\":1,\"ok\":2}"
+  },
+  {
+   "name": "events wrong arity",
+   "kind": "text",
+   "dir": "toClient",
+   "text": "E{\"e\":[[1,2,\"note\",[1]]]}"
+  },
+  {
+   "name": "delta by 16",
+   "kind": "text",
+   "dir": "toClient",
+   "text": "D{\"d\":[[1,\"lights\",1,16]]}"
+  },
+  {
+   "name": "pong missing s",
+   "kind": "text",
+   "dir": "toClient",
+   "text": "P{\"c\":1}"
+  },
+  {
+   "name": "unterminated string",
+   "kind": "text",
+   "dir": "toClient",
+   "text": "L{\"slot\":1,\"why\":\"abc}"
+  },
+  {
+   "name": "trailing garbage after JSON",
+   "kind": "text",
+   "dir": "toClient",
+   "text": "L{\"slot\":1}x"
+  }
+ ]
+}

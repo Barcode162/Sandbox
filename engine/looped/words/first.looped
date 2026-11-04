@@ -1,0 +1,160 @@
+# Looped's first words (J116.2; the language: looped/words/words.h).
+#
+# Every word is a small script made of other words (request 2026-10-27
+# #10, #11). Its first line says what kind of word it is; the lines under
+# it are its meaning; `like:` links it to words it's close to (for hints,
+# and the map of words). Change a word here and everything made with it
+# changes. The engine itself gives only the roots: the settings (lumens,
+# colour, brightness, amount, every, speed), the units, the shapes (wave,
+# noise, flicker, thump) and what a thing can be made of (a model, a box,
+# a light).
+
+# ---- Things that give light ----
+
+word light: a thing
+  gives light: 100 lumens, 2700 K, a ball 5 cm across
+  like: lamp, glow, shine
+
+word bulb: a thing, a kind of light
+  made of a box 6 by 6 by 9 cm
+  glows warm white
+  gives light: 200 lumens, 2700 K, a ball 6 cm across
+  like: lamp, light, globe
+
+word flame: a thing, a kind of light
+  gives light: 12 lumens, 1800 K, a ball 1 cm across
+  flickering
+  like: fire, candle, blaze
+
+word candle: a thing
+  made of the model candle.glb
+  has a flame 9 cm above it
+  like: flame, wax, wick
+
+word pendant lamp: a thing
+  made of the model pendant_lamp.glb
+  has a bulb 80 cm below it
+  like: lamp, shade, ceiling light
+
+word neon tube: a thing
+  made of a box 100 by 3 by 3 cm
+  glows pink
+  gives light: 120 lumens, colour 1 0.25 0.6, a tube 1 m long
+  buzzing
+  like: neon, sign, tube
+
+word sign: a thing
+  made of a box 100 by 3 by 30 cm
+  glows blue
+  gives light: 150 lumens, colour 0.3 0.8 1, a panel 1 by 0.3 m, from one side
+  like: neon, poster, signboard
+
+# ---- Things that don't ----
+
+word table: a thing
+  made of the model round_table.glb
+  like: desk, counter
+
+word stool: a thing
+  made of the model table_stool.glb
+  like: seat, chair, bench
+
+# ---- Describing a light ----
+
+word warm: describes a light
+  colour down 300 K
+  like: cozy, cosy, golden, amber, sunset, fire
+
+word cool: describes a light
+  colour up 1500 K
+  like: cold, daylight, crisp
+
+word white: describes a light
+  colour 4000 K
+  like: plain, clean
+
+word red: describes a light
+  colour 1 0.15 0.1
+  like: crimson, scarlet
+
+word pink: describes a light
+  colour 1 0.25 0.6
+  like: magenta, rose
+
+word blue: describes a light
+  colour 0.3 0.6 1
+  like: azure, sky, navy
+
+word green: describes a light
+  colour 0.3 1 0.4
+  like: lime, emerald
+
+word bright: describes a light
+  lumens times 2
+  like: strong, vivid, intense
+
+word dim: describes a light
+  lumens times 0.4
+  like: faint, low, weak, soft
+
+word soft: describes a light
+  size times 3
+  like: gentle, diffuse, hazy
+
+# ---- Describing a doing ----
+
+word fast: describes a doing
+  every times 0.5
+  like: quick, rapid, hurried
+
+word slow: describes a doing
+  every times 2
+  like: lazy, calm, leisurely
+
+word gently: describes a doing
+  amount times 0.5
+  like: softly, lightly, subtly
+
+word wildly: describes a doing
+  amount times 2
+  like: strongly, madly, hard
+
+# ---- How much ----
+
+word very: an amount
+  times 2
+  like: really, extremely
+
+word a little: an amount
+  times 0.5
+  like: slightly, somewhat
+
+word slightly: an amount
+  times 0.5
+
+# ---- Doings (what a light does over time) ----
+
+word flicker (flickers, flickering): a doing
+  settings: amount 30%, every 0.5 s, speed 1
+  brightness times 1 + amount * flicker(period every, speed speed)
+  like: shimmer, waver, gutter
+
+word buzz (buzzes, buzzing): a doing
+  settings: amount 12%, every 2 s, speed 0.8
+  brightness times 1 + amount * flicker(period every, speed speed)
+  like: hum, fizz
+
+word breathe (breathes, breathing): a doing
+  settings: amount 6%, every 8 s, speed 0.5
+  brightness times 1 + amount * noise(period every, speed speed)
+  like: pulse, swell
+
+word wave (waves, waving): a doing
+  settings: amount 18%, every 5 s
+  brightness times 1 + amount * wave(period every)
+  like: sway, ripple
+
+word pulse (pulses, pulsing): a doing
+  settings: amount 70%, every 1 beat, fade 7
+  brightness times 1 - amount / 3 + amount * thump(period every, fade fade)
+  like: beat, throb, thump

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<!-- The place viewer (J86): Looped on its own. Files are found from the bar's folder (the models, the textures). -->
+<base href="../">
+<title>Looped · Place viewer</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0b0908; overflow: hidden; }
+  canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; touch-action: none; display: block; }
+  #tag { position: fixed; left: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); color: #f3e6d8; opacity: .7;
+         font: 12px/1.3 -apple-system, system-ui, sans-serif; pointer-events: none; }
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<div id="tag">Looped · drag to look around, pinch to come closer</div>
+<script>
+  // The engine's way into this page (looped/host.h): only a log; every
+  // other part is missing on purpose (the engine runs without them).
+  window.loopedHost = { storagePrefix: 'looped.viewer.', log: { add: function (level, text) { console.log(text); } } };
+  var m = /[?&]place=([a-z0-9-]+)/.exec(location.search);
+  document.getElementById('tag').textContent = 'Looped · ' + (m ? m[1] : 'showroom') + ' · drag to look around, pinch to come closer';
+  if (!navigator.gpu) document.getElementById('tag').textContent = 'This browser has no WebGPU.';
+</script>
+<script src="looped/viewer.js"></script>
+</body>
+</html>
