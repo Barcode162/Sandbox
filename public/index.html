@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Wildlands</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="hud" hidden>
+  <div id="stats">
+    <div id="hpbar"><i></i><span></span></div>
+    <div id="sub"><span id="coins">🪙 0</span><span id="clock">☀️</span><span id="gear"></span></div>
+  </div>
+  <div id="right">
+    <canvas id="mini" width="140" height="140"></canvas>
+    <div id="event" hidden></div>
+    <div id="quests"></div>
+  </div>
+  <div id="chatlog"></div>
+  <input id="chatin" maxlength="200" placeholder="Enter to chat" autocomplete="off">
+  <div id="toasts"></div>
+  <div id="btns">
+    <button data-p="inv" title="Inventory (E)">🎒</button><button data-p="craft" title="Crafting (C)">🔨</button>
+    <button data-p="quests" title="Bounties (Q)">📜</button><button data-p="skills" title="Skills">⭐</button>
+    <button data-p="shop" id="shopbtn" title="Trader" hidden>🛒</button><button data-p="players" title="Players">👥</button>
+    <button id="chatbtn" title="Chat">💬</button><button id="mute" title="Sound">🔊</button><button data-p="help" title="Help">❔</button>
+  </div>
+  <div id="hotbar"></div>
+  <div id="joy"><i></i></div>
+  <button id="actbtn">⚔️</button>
+</div>
+<div id="panel" hidden><div id="tabs"></div><button id="pclose">✕</button><div id="pbody"></div></div>
+<div id="bigmap" hidden><canvas id="bigcv"></canvas></div>
+<div id="dead" hidden><div><h2>You died</h2><p id="deadmsg"></p><button id="respawn">Respawn</button></div></div>
+<div id="login">
+  <div class="card">
+    <h1>🌲 Wildlands</h1>
+    <p>Gather, craft, build and fight in a shared sandbox world.</p>
+    <input id="name" maxlength="16" placeholder="Your name" autocomplete="off">
+    <button id="playOnline">Play Online</button>
+    <button id="playSolo" class="alt">Play Solo</button>
+    <p id="loginmsg"></p>
+  </div>
+</div>
+<script src="shared/defs.js"></script>
+<script src="shared/sim.js"></script>
+<script src="client.js"></script>
+</body>
+</html>

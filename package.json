@@ -1,0 +1,15 @@
+{
+  "name": "wildlands",
+  "version": "1.0.0",
+  "description": "Wildlands - a browser sandbox MMORPG",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/smoke.js",
+    "build:solo": "node tools/build-solo.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
