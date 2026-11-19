@@ -1,0 +1,54 @@
+name: Build Bounce Helper APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "bounce-helper/**"
+      - ".github/workflows/bounce-helper.yml"
+  pull_request:
+    paths:
+      - "bounce-helper/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bounce-helper
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Test and build release APK
+        run: |
+          chmod +x gradlew
+          ./gradlew testDebugUnitTest assembleRelease -PversionCode=${{ github.run_number }}
+          cp app/build/outputs/apk/release/app-release.apk BounceHelper.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BounceHelper-apk
+          path: bounce-helper/BounceHelper.apk
+
+      - name: Publish release
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: bounce-helper-v1.0.${{ github.run_number }}
+          name: Bounce Helper 1.0.${{ github.run_number }}
+          make_latest: true
+          files: bounce-helper/BounceHelper.apk
+          body: |
+            Download **BounceHelper.apk** below on the Android phone and open it. Android 8.0+.
+            Then open Bounce Helper and follow the steps on screen.

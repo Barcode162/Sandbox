@@ -1,0 +1,108 @@
+package com.barcode162.bouncehelper
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import kotlin.math.abs
+
+class TrackerTest {
+
+    private val screenW = 1080f
+    private val screenH = 2160f
+    private val div = 4
+    private val fw = (screenW / div).toInt()
+    private val fh = (screenH / div).toInt()
+    private val radius = 40f
+    private val paddleY = 1800f
+
+    /** Paint one downscaled frame: blue background, optional dark border walls, red shark. */
+    private fun render(x: Float, y: Float, wallL: Float, wallR: Float, wallT: Float): Frame {
+        val px = ByteArray(fw * fh * 4)
+        for (j in 0 until fh) for (i in 0 until fw) {
+            val sx = (i + 0.5f) * div; val sy = (j + 0.5f) * div
+            val k = (j * fw + i) * 4
+            val inShark = (sx - x) * (sx - x) + (sy - y) * (sy - y) <= radius * radius
+            val inWall = sx < wallL || sx > wallR || sy < wallT
+            val c = when {
+                inShark -> intArrayOf(220, 40, 40)
+                inWall -> intArrayOf(30, 30, 30)
+                else -> intArrayOf(30, 90, 200)
+            }
+            px[k] = c[0].toByte(); px[k + 1] = c[1].toByte(); px[k + 2] = c[2].toByte(); px[k + 3] = -1
+        }
+        return Frame(fw, fh, px, screenW / fw, screenH / fh)
+    }
+
+    /** Exact landing x by stepping the true physics until the shark reaches the paddle. */
+    private fun trueLanding(x0: Float, y0: Float, vx0: Float, vy0: Float, l: Float, r: Float, t: Float): Float {
+        var x = x0; var y = y0; var vx = vx0; var vy = vy0
+        val dt = 0.0002f
+        val land = paddleY - radius
+        while (!(vy > 0 && y >= land)) {
+            x += vx * dt; y += vy * dt
+            if (x < l + radius) { x = 2 * (l + radius) - x; vx = -vx }
+            if (x > r - radius) { x = 2 * (r - radius) - x; vx = -vx }
+            if (y < t + radius) { y = 2 * (t + radius) - y; vy = -vy }
+        }
+        return x
+    }
+
+    private fun runScenario(wallL: Float, wallR: Float, wallT: Float, vx0: Float, vy0: Float): Pair<Int, Float> {
+        val tr = Tracker().apply {
+            sharkColor = 0xDC2828; tolerance = 60; paddleY = this@TrackerTest.paddleY
+            screenW = this@TrackerTest.screenW; screenH = this@TrackerTest.screenH
+        }
+        var x = 500f; var y = 600f; var vx = vx0; var vy = vy0
+        val dt = 1f / 60f
+        var t = 0L
+        var checked = 0
+        var worst = 0f
+        var framesSinceBounce = 0
+        repeat(60 * 12) { frame ->
+            val res = tr.process(render(x, y, wallL, wallR, wallT), t)
+            // After the first ~4 s (walls learned), whenever the shark is heading down and has
+            // been flying straight for a few frames, the prediction must be right.
+            if (frame > 240 && vy > 0 && framesSinceBounce > 5 && y < paddleY - 200) {
+                assertNotNull(res.landingX)
+                val err = abs(res.landingX!! - trueLanding(x, y, vx, vy, wallL, wallR, wallT))
+                worst = maxOf(worst, err)
+                checked++
+            }
+            // advance true physics (perfect pong reflections, paddle always catches)
+            x += vx * dt; y += vy * dt; t += (dt * 1e9).toLong(); framesSinceBounce++
+            if (x < wallL + radius) { x = 2 * (wallL + radius) - x; vx = -vx; framesSinceBounce = 0 }
+            if (x > wallR - radius) { x = 2 * (wallR - radius) - x; vx = -vx; framesSinceBounce = 0 }
+            if (y < wallT + radius) { y = 2 * (wallT + radius) - y; vy = -vy; framesSinceBounce = 0 }
+            if (y > paddleY - radius && vy > 0) { y = 2 * (paddleY - radius) - y; vy = -vy * 1.02f; vx *= 1.02f; framesSinceBounce = 0 }
+        }
+        return checked to worst
+    }
+
+    @Test fun predictsLandingWithScreenEdgeWalls() {
+        val (checked, worst) = runScenario(0f, screenW, 0f, 900f, 1300f)
+        assertTrue("checked $checked frames", checked > 50)
+        assertTrue("worst error $worst px", worst < 40f)
+    }
+
+    @Test fun learnsInsetWallsAndCeiling() {
+        val (checked, worst) = runScenario(90f, 990f, 260f, -1100f, 1500f)
+        assertTrue("checked $checked frames", checked > 50)
+        assertTrue("worst error $worst px", worst < 40f)
+    }
+
+    @Test fun foldMirrorsLikeBounces() {
+        assertEquals(50f, Tracker.fold(50f, 0f, 100f), 0.01f)
+        assertEquals(80f, Tracker.fold(120f, 0f, 100f), 0.01f)
+        assertEquals(20f, Tracker.fold(-20f, 0f, 100f), 0.01f)
+        assertEquals(30f, Tracker.fold(230f, 0f, 100f), 0.01f)
+    }
+
+    @Test fun ignoresExcludedStripArea() {
+        val tr = Tracker().apply { sharkColor = 0xDC2828; screenW = 1080f; screenH = 2160f }
+        val f = render(500f, 600f, 0f, 1080f, 0f)
+        assertNotNull(tr.detect(f, tr.sharkColor, 0, f.height))
+        tr.exclude = floatArrayOf(400f, 500f, 600f, 700f)
+        assertEquals(null, tr.detect(f, tr.sharkColor, 0, f.height))
+    }
+}

@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SharkBounce"
+rootProject.name = "BounceHelper"
 include(":app")

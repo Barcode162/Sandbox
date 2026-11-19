@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Bounce Helper</string>
+    <string name="a11y_description">Lets Bounce Helper show its floating tool strip and hold/drag the game paddle for you. It does not read any text or content from your apps.</string>
+</resources>

@@ -1,0 +1,8 @@
+<resources>
+    <style name="AppTheme" parent="android:Theme.Material">
+        <item name="android:colorPrimary">#0B4F8A</item>
+        <item name="android:colorPrimaryDark">#06325A</item>
+        <item name="android:colorAccent">#FFB300</item>
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+</resources>
