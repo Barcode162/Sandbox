@@ -68,6 +68,15 @@ Old flights slowly fade so it keeps adapting as the game speeds up. The status p
 🧠 flights learned, the typical miss, and ✓ once it knows the launch rule. Re-picking the
 paddle starts learning fresh.
 
+**Made for the Instagram DM emoji game** (tap an emoji you sent in a DM): pick the emoji's
+main colour with 🎯 and the black bar with ▬. The helper also:
+
+- **learns gravity**: if the emoji falls in arcs instead of straight lines, it measures the curve of
+  each flight and predicts the arc (simulation: misses drop from 245 px to 22 px);
+- **ignores look-alikes**: the same emoji sitting still in a chat bubble is skipped, and it sticks
+  with the emoji it's already following;
+- **handles dark mode**: a black "paddle" as wide as the screen is background, not the paddle.
+
 ## How it works
 
 - `CaptureService.kt` mirrors the screen into a small ~270 px wide image about 60 times a

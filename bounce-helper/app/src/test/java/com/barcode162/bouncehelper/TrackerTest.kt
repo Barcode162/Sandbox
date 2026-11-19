@@ -202,4 +202,94 @@ class TrackerTest {
         // Once flying, learning must never make it worse.
         assertTrue("steady ${learned.lateErr} vs ${plain.lateErr}", learned.lateErr <= plain.lateErr + 2f)
     }
+
+    // ---------------------------------------------------------------------
+    // Gravity: the emoji flies in arcs. The tracker must learn the pull and predict the arc.
+    // ---------------------------------------------------------------------
+
+    @Test fun learnsGravityArcs() {
+        val g = 2600f
+        val tr = Tracker().apply {
+            sharkColor = 0xDC2828; tolerance = 60; paddleY = this@TrackerTest.paddleY
+            screenW = this@TrackerTest.screenW; screenH = this@TrackerTest.screenH; leadSec = 0f
+        }
+        var x = 400f; var y = 700f; var vx = 650f; var vy = -900f
+        val dt = 1f / 60f
+        var t = 0L
+        var sinceAny = 100
+        var errSum = 0f; var errN = 0
+        val land = paddleY - radius
+        // exact landing by stepping the true physics
+        fun truth(x0: Float, y0: Float, vx0: Float, vy0: Float): Float {
+            var px = x0; var py = y0; var pvx = vx0; var pvy = vy0
+            val h = 0.0002f
+            while (!(pvy > 0 && py >= land)) {
+                pvy += g * h; px += pvx * h; py += pvy * h
+                if (px < radius) { px = 2 * radius - px; pvx = -pvx }
+                if (px > screenW - radius) { px = 2 * (screenW - radius) - px; pvx = -pvx }
+            }
+            return px
+        }
+        var hit = 0
+        repeat(60 * 30) { frame ->
+            val res = tr.process(render(x, y, 0f, screenW, 0f), t)
+            if (frame > 60 * 12 && res.landingX != null && sinceAny > 6 && y < paddleY - 250) {
+                errSum += abs(res.landingX!! - truth(x, y, vx, vy)); errN++
+            }
+            // true physics: gravity, side walls, paddle always catches with a varying launch
+            vy += g * dt; x += vx * dt; y += vy * dt; t += (dt * 1e9).toLong(); sinceAny++
+            if (x < radius) { x = 2 * radius - x; vx = -vx; sinceAny = 0 }
+            if (x > screenW - radius) { x = 2 * (screenW - radius) - x; vx = -vx; sinceAny = 0 }
+            if (y > land && vy > 0) {
+                y = land - (y - land); hit++
+                vy = -(2300f + (hit % 3) * 150f)
+                vx = floatArrayOf(500f, -800f, 300f, -400f, 900f)[hit % 5]
+                sinceAny = 0
+            }
+        }
+        val avg = errSum / maxOf(1, errN)
+        println("gravity: learned g=${tr.gravity} (true $g), steady error $avg px over $errN frames")
+        assertTrue("learned g ${tr.gravity}", abs(tr.gravity - g) < g * 0.15f)
+        assertTrue("arc error $avg px", avg < 40f)
+    }
+
+    // ---------------------------------------------------------------------
+    // A still copy of the emoji (in a chat bubble) must not steal the tracking.
+    // ---------------------------------------------------------------------
+
+    @Test fun ignoresStillLookAlike() {
+        val tr = Tracker().apply {
+            sharkColor = 0xDC2828; tolerance = 60; paddleY = this@TrackerTest.paddleY
+            screenW = this@TrackerTest.screenW; screenH = this@TrackerTest.screenH; leadSec = 0f
+        }
+        val bubbleX = 850f; val bubbleY = 1300f
+        fun frameWith(x: Float, y: Float): Frame {
+            val f = render(x, y, 0f, screenW, 0f)
+            for (j in 0 until fh) for (i in 0 until fw) {
+                val sx = (i + 0.5f) * div; val sy = (j + 0.5f) * div
+                if ((sx - bubbleX) * (sx - bubbleX) + (sy - bubbleY) * (sy - bubbleY) <= radius * radius * 1.2f) {
+                    val k = (j * fw + i) * 4
+                    f.rgba[k] = 220.toByte(); f.rgba[k + 1] = 40; f.rgba[k + 2] = 40
+                }
+            }
+            return f
+        }
+        var x = 300f; var y = 500f; var vx = 700f; var vy = 1000f
+        val dt = 1f / 60f
+        var t = 0L
+        var onTarget = 0; var total = 0
+        repeat(60 * 8) { frame ->
+            val res = tr.process(frameWith(x, y), t)
+            if (frame > 120) {
+                total++
+                val s = res.shark
+                if (s != null && abs(s.cx - x) < 30f && abs(s.cy - y) < 30f) onTarget++
+            }
+            x += vx * dt; y += vy * dt; t += (dt * 1e9).toLong()
+            if (x < radius || x > screenW - radius) vx = -vx
+            if (y < radius || (y > paddleY - radius && vy > 0)) vy = -vy
+        }
+        println("look-alike: on target $onTarget / $total frames")
+        assertTrue("on target $onTarget / $total", onTarget > total * 0.95f)
+    }
 }

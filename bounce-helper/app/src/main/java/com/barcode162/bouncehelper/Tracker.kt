@@ -1,6 +1,7 @@
 package com.barcode162.bouncehelper
 
 import kotlin.math.abs
+import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -74,6 +75,19 @@ class Tracker {
     private var vySign = 0
     private var lastSeen = 0L
 
+    /**
+     * Learned constant vertical pull (px/s², + = down). Straight-line games stay ~0; games where
+     * the emoji falls in arcs learn their gravity from the curve of each finished flight.
+     */
+    var gravity = 0f; private set
+    private var gravityWeight = 0f
+    /** Gravity actually used: only once learned and clearly not just noise. */
+    val gUse get() = if (gravityWeight >= 3f && abs(gravity) > screenH * 0.12f) gravity else 0f
+
+    /** Spots where a same-coloured thing sat still (e.g. the emoji in a chat bubble). */
+    private val staticSpots = ArrayList<FloatArray>()   // [x, y, expiryNanos]
+    private var stillSince = 0L
+
     /** Learns this game's habits from finished flights (see [PatternLearner]). */
     val learner = PatternLearner()
     private var lastPaddle: Blob? = null
@@ -98,13 +112,21 @@ class Tracker {
     fun process(f: Frame, tNanos: Long): TrackResult {
         val py = paddleY
         val sharkRowEnd = if (py > 0) min(f.height, (py / f.scaleY).toInt() + 1) else f.height
-        val shark = if (sharkColor >= 0) detect(f, sharkColor, 0, sharkRowEnd) else null
+        staticSpots.removeAll { it[2] < tNanos }
+        // Stick with the thing we're already following (not a look-alike elsewhere on screen).
+        var prefX = -1f; var prefY = -1f
+        if (history.isNotEmpty() && tNanos - lastSeen < 250_000_000L) {
+            val dt = (tNanos - history.last().t) / 1e9f
+            prefX = fitX + vx * dt; prefY = fitY + vy * dt + 0.5f * gUse * dt * dt
+        }
+        val shark = if (sharkColor >= 0) detect(f, sharkColor, 0, sharkRowEnd, prefX, prefY, avoidStatic = true) else null
 
         var paddle: Blob? = null
         if (paddleColor >= 0 && py > 0) {
             val band = (screenH * 0.04f / f.scaleY).toInt() + 2
             val row = (py / f.scaleY).toInt()
-            paddle = detect(f, paddleColor, max(0, row - band), min(f.height, row + band))
+            // A "paddle" wider than 60% of the screen is really background (e.g. black paddle on dark mode).
+            paddle = detect(f, paddleColor, max(0, row - band), min(f.height, row + band), maxHalfW = screenW * 0.3f)
         }
         if (paddle != null) lastPaddle = paddle
         learner.screenW = screenW
@@ -115,11 +137,18 @@ class Tracker {
         }
         lastSeen = tNanos
         addSample(tNanos, shark, 2.5f * max(f.scaleX, f.scaleY))
+        // Something that hasn't moved for 0.6 s while a twin exists is probably a static copy.
+        if (hypot(vx, vy) > screenH * 0.03f) stillSince = tNanos
+        else if (tNanos - stillSince > 600_000_000L && candidateCount > 1) {
+            staticSpots.add(floatArrayOf(shark.cx, shark.cy, (tNanos + 10_000_000_000L).toFloat()))
+            stillSince = tNanos
+            resetMotion()
+        }
         val lo = (leftWall ?: 0f) + shark.halfW
         val hi = (rightWall ?: screenW) - shark.halfW
         val lead = leadSec
         val nowX = fold(fitX + vx * lead, lo, hi)
-        val nowY = fitY + vy * lead
+        val nowY = fitY + vy * lead + 0.5f * gUse * lead * lead
         val (landX, tLand) = predict(shark)
         return TrackResult(
             shark, paddle, vx, vy, landX,
@@ -161,7 +190,8 @@ class Tracker {
                     }
                 }
             }
-            if (vySign != 0 && dy * vySign < -noise) {
+            // A real bounce flips the direction suddenly; the top of a gravity arc does it slowly.
+            if (vySign != 0 && dy * vySign < -noise && abs(prevVy) * dt > noise * 0.8f) {
                 bouncedY = true
                 // Only a bounce in the upper part of the screen is the ceiling (lower = paddle).
                 if (vySign < 0 && paddleY > 0 && b.cy < paddleY * 0.6f) {
@@ -171,6 +201,7 @@ class Tracker {
             }
         }
         if (bouncedX || bouncedY) {
+            learnGravity()
             history.clear()
             if (bouncedX) vx = -vx
             if (bouncedY) vy = -vy
@@ -196,16 +227,21 @@ class Tracker {
             awaitingLanding = false
         }
         history.addLast(Sample(t, b.cx, b.cy))
-        // Keep every sample since the last bounce (it's a straight line), up to 0.4 s / 24 frames.
-        while (history.size > 24 || (history.size > 3 && t - history.first().t > 400_000_000L)) history.removeFirst()
+        // Keep every sample since the last bounce. With known gravity the path is an exact
+        // parabola, so a longer window is safe; otherwise keep it short (0.4 s).
+        val g = gUse
+        val maxN = if (g != 0f) 60 else 24
+        val maxT = if (g != 0f) 1_000_000_000L else 400_000_000L
+        while (history.size > maxN || (history.size > 3 && t - history.first().t > maxT)) history.removeFirst()
         fitX = b.cx; fitY = b.cy
         val n = history.size
         if (n >= 3) {
-            // Least-squares straight line through all samples: far steadier than two points.
+            // Least-squares line through all samples (gravity's known curve removed from y first).
             var st = 0.0; var stt = 0.0; var sx = 0.0; var stx = 0.0; var sy = 0.0; var sty = 0.0
             for (s in history) {
                 val tt = (s.t - t) / 1e9
-                st += tt; stt += tt * tt; sx += s.x; stx += tt * s.x; sy += s.y; sty += tt * s.y
+                val yy = s.y - 0.5 * g * tt * tt
+                st += tt; stt += tt * tt; sx += s.x; stx += tt * s.x; sy += yy; sty += tt * yy
             }
             val den = n * stt - st * st
             if (den > 1e-9) {
@@ -219,7 +255,7 @@ class Tracker {
             val dt = (t - a.t) / 1e9f
             if (dt > 0.005f) {
                 vx = (b.cx - a.x) / dt
-                vy = (b.cy - a.y) / dt
+                vy = (b.cy - a.y) / dt + 0.5f * g * dt
             }
         }
         // Right after a paddle hit, blend the learned launch with the first few measured frames.
@@ -258,7 +294,10 @@ class Tracker {
         val landY = py - b.halfH
         val ceil = (topWall ?: 0f) + b.halfH
         val minSpeed = screenH * 0.02f
-        val t = when {
+        val g = gUse
+        val t = if (g > 0f) {
+            timeToLandWithGravity(fitY, vy, g, landY, ceil)
+        } else when {
             vy > minSpeed -> (landY - fitY) / vy
             vy < -minSpeed -> ((fitY - ceil) + (landY - ceil)) / -vy
             // Barely moving vertically: just stay under where it is right now.
@@ -276,8 +315,63 @@ class Tracker {
         return corrected to t
     }
 
-    /** Largest connected blob of [color] between frame rows [rowStart, rowEnd). */
-    fun detect(f: Frame, color: Int, rowStart: Int, rowEnd: Int): Blob? {
+    /** Falling arc: time to come down to [landY], bouncing off the ceiling if the arc reaches it. */
+    private fun timeToLandWithGravity(y0In: Float, vyIn: Float, g: Float, landY: Float, ceil: Float): Float {
+        var y0 = y0In; var v = vyIn; var total = 0f
+        repeat(3) {
+            if (v < 0f && y0 - v * v / (2f * g) < ceil) {
+                // reaches the ceiling first
+                val d = v * v - 2f * g * (y0 - ceil)
+                val tc = ((-v - sqrt(max(0f, d))) / g).coerceAtLeast(0f)
+                total += tc
+                v = -(v + g * tc)
+                y0 = ceil
+            } else {
+                val d = v * v + 2f * g * (landY - y0)
+                return total + ((-v + sqrt(max(0f, d))) / g)
+            }
+        }
+        return total
+    }
+
+    /** At the end of a flight segment, measure its curve and update the learned gravity. */
+    private fun learnGravity() {
+        val n = history.size
+        if (n < 15) return
+        val tEnd = history.last().t
+        if ((tEnd - history.first().t) < 200_000_000L) return
+        // Free quadratic fit y = a + b*t + c*t^2 (normal equations, Cramer's rule).
+        var s0 = 0.0; var s1 = 0.0; var s2 = 0.0; var s3 = 0.0; var s4 = 0.0
+        var y0 = 0.0; var y1 = 0.0; var y2 = 0.0
+        for (s in history) {
+            val tt = (s.t - tEnd) / 1e9
+            val t2 = tt * tt
+            s0 += 1; s1 += tt; s2 += t2; s3 += t2 * tt; s4 += t2 * t2
+            y0 += s.y; y1 += tt * s.y; y2 += t2 * s.y
+        }
+        fun det(a: Double, b: Double, c: Double, d: Double, e: Double, f: Double, g: Double, h: Double, i: Double) =
+            a * (e * i - f * h) - b * (d * i - f * g) + c * (d * h - e * g)
+        val dd = det(s0, s1, s2, s1, s2, s3, s2, s3, s4)
+        if (abs(dd) < 1e-12) return
+        val c = det(s0, s1, y0, s1, s2, y1, s2, s3, y2) / dd
+        val est = (2 * c).toFloat()
+        if (abs(est) > screenH * 10f) return   // nonsense
+        gravity = (gravity * gravityWeight + est) / (gravityWeight + 1f)
+        gravityWeight = min(20f, gravityWeight + 1f)
+    }
+
+    /** Number of same-coloured blobs seen in the last shark search. */
+    private var candidateCount = 0
+
+    /**
+     * Connected blob of [color] between frame rows [rowStart, rowEnd): the one nearest
+     * ([preferX], [preferY]) if given (among reasonably big ones), otherwise the largest.
+     */
+    fun detect(
+        f: Frame, color: Int, rowStart: Int, rowEnd: Int,
+        preferX: Float = -1f, preferY: Float = -1f,
+        maxHalfW: Float = Float.MAX_VALUE, avoidStatic: Boolean = false,
+    ): Blob? {
         val w = f.width
         val n = w * f.height
         if (mask.size < n) {
@@ -307,8 +401,7 @@ class Tracker {
             }
         }
 
-        var bestCount = 0
-        var bMinX = 0; var bMaxX = 0; var bMinY = 0; var bMaxY = 0
+        val found = ArrayList<IntArray>()   // [count, minX, maxX, minY, maxY]
         for (start in rowStart * w until rowEnd * w) {
             if (!mask[start] || seen[start]) continue
             var head = 0; var tail = 0
@@ -326,18 +419,30 @@ class Tracker {
                 if (y > rowStart) { val q = p - w; if (mask[q] && !seen[q]) { seen[q] = true; queue[tail++] = q } }
                 if (y < rowEnd - 1) { val q = p + w; if (mask[q] && !seen[q]) { seen[q] = true; queue[tail++] = q } }
             }
-            if (count > bestCount) {
-                bestCount = count; bMinX = minX; bMaxX = maxX; bMinY = minY; bMaxY = maxY
+            if (count >= 5) found.add(intArrayOf(count, minX, maxX, minY, maxY))
+        }
+        fun blobOf(c: IntArray) = Blob(
+            cx = (c[1] + c[2] + 1) / 2f * f.scaleX,
+            cy = (c[3] + c[4] + 1) / 2f * f.scaleY,
+            halfW = (c[2] - c[1] + 1) / 2f * f.scaleX,
+            halfH = (c[4] - c[3] + 1) / 2f * f.scaleY,
+            pixels = c[0],
+        )
+        var blobs = found.map { blobOf(it) }.filter { it.halfW <= maxHalfW }
+        if (avoidStatic) {
+            candidateCount = blobs.size
+            if (blobs.size > 1 && staticSpots.isNotEmpty()) {
+                val moving = blobs.filter { b ->
+                    staticSpots.none { s -> abs(b.cx - s[0]) < b.halfW && abs(b.cy - s[1]) < b.halfH }
+                }
+                if (moving.isNotEmpty()) blobs = moving
             }
         }
-        if (bestCount < 5) return null
-        return Blob(
-            cx = (bMinX + bMaxX + 1) / 2f * f.scaleX,
-            cy = (bMinY + bMaxY + 1) / 2f * f.scaleY,
-            halfW = (bMaxX - bMinX + 1) / 2f * f.scaleX,
-            halfH = (bMaxY - bMinY + 1) / 2f * f.scaleY,
-            pixels = bestCount,
-        )
+        if (blobs.isEmpty()) return null
+        val largest = blobs.maxBy { it.pixels }
+        if (preferX < 0f) return largest
+        return blobs.filter { it.pixels >= largest.pixels * 0.3f }
+            .minBy { (it.cx - preferX) * (it.cx - preferX) + (it.cy - preferY) * (it.cy - preferY) }
     }
 
     companion object {

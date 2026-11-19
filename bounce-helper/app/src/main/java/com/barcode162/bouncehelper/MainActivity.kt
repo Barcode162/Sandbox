@@ -274,6 +274,19 @@ class MainActivity : Activity() {
             })
         })
 
+        // Instagram tips
+        col.addView(card().apply {
+            addView(text("📸 Instagram emoji game", 18f, bold = true))
+            addView(text(
+                "• Send the emoji in a DM and tap it to start the game.\n" +
+                "• 🎯 Shark: tap the emoji's main colour (e.g. the yellow of 😂, the grey of 🦈), not its outline.\n" +
+                "• ▬ Paddle: tap the black bar at the bottom.\n" +
+                "• Dark mode is fine: the helper ignores \"paddles\" as wide as the screen.\n" +
+                "• The same emoji in the chat bubble is ignored once it's seen sitting still.\n" +
+                "• If the emoji falls in arcs, the helper learns the gravity by itself after a few bounces.",
+                14f, dim = true))
+        })
+
         // How to use
         col.addView(card().apply {
             addView(text("How to use", 18f, bold = true))
