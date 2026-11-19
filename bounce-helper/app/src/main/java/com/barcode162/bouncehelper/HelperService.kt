@@ -409,6 +409,7 @@ class HelperService : AccessibilityService() {
             t.paddleY = y
             Engine.paddleX = x
             t.resetWalls()
+            t.learner.requestReset()   // new paddle line = new geometry, start learning fresh
             toast("Paddle saved ▬ Now tap ▶ Auto")
         }
         Engine.save(this)
@@ -507,7 +508,11 @@ class HelperService : AccessibilityService() {
             // tiny dot on the shark's centre (small enough to be ignored by the tracker)
             r?.shark?.let { c.drawCircle(r.nowX + ox, r.nowY + oy, 3 * dp, dot) }
 
-            val delay = "${(Engine.captureDelayMs + Engine.extraLeadMs).toInt()} ms lead"
+            val delay = "${(Engine.captureDelayMs + Engine.extraLeadMs).toInt()} ms lead" +
+                if (t.learner.enabled && r != null && r.learnedFlights > 0) {
+                    " · 🧠 ${r.learnedFlights}" + (if (r.learnedAccuracy >= 0) " ±${r.learnedAccuracy.toInt()}px" else "") +
+                        (if (r.launchRuleKnown) " ✓" else "")
+                } else ""
             val status = when {
                 !Engine.captureRunning -> "Helper paused: screen sharing off"
                 t.sharkColor < 0 -> "Tap 🦈 → 🎯 Shark"

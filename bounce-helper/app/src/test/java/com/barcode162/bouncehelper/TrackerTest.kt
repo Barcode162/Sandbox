@@ -117,4 +117,89 @@ class TrackerTest {
         tr.exclude = floatArrayOf(400f, 500f, 600f, 700f)
         assertEquals(null, tr.detect(f, tr.sharkColor, 0, f.height))
     }
+
+    // ---------------------------------------------------------------------
+    // A full "game": pong launch rule (angle from hit position), speed-up per hit,
+    // inset walls, and a repeating paddle pattern. Learning should beat plain physics.
+    // ---------------------------------------------------------------------
+
+    private class GameStats(val earlyErr: Float, val lateErr: Float, val flights: Int)
+
+    private fun runGame(learn: Boolean, corr: Boolean = true, launch: Boolean = true, seq: Boolean = true): GameStats {
+        val wallL = 90f; val wallR = 990f; val wallT = 260f
+        val padHalf = 130f
+        val tr = Tracker().apply {
+            sharkColor = 0xDC2828; paddleColor = 0xF0C800; tolerance = 60
+            paddleY = this@TrackerTest.paddleY; screenW = this@TrackerTest.screenW; screenH = this@TrackerTest.screenH
+            leadSec = 0f
+            learner.enabled = learn
+            learner.useCorrection = corr; learner.useLaunch = launch; learner.useSequence = seq
+        }
+        val pattern = floatArrayOf(-0.8f, 0.3f, 0.6f, -0.2f, 0.9f, -0.5f)
+        var flight = 0
+        var x = 500f; var y = 600f; var speed = 1400f
+        var vx = 700f; var vy = 1200f
+        var padCx = 540f
+        var descending = false
+        val dt = 1f / 60f
+        var t = 0L
+        var sinceHit = 100; var sinceAny = 100
+        var earlySum = 0f; var earlyN = 0; var lateSum = 0f; var lateN = 0
+        val land = paddleY - radius
+        repeat(60 * 30) { frame ->
+            if (vy > 0 && !descending) {
+                descending = true
+                val lx = trueLanding(x, y, vx, vy, wallL, wallR, wallT)
+                padCx = (lx - pattern[flight % pattern.size] * padHalf).coerceIn(wallL + padHalf, wallR - padHalf)
+            }
+            val px = ByteArray(fw * fh * 4)
+            for (j in 0 until fh) for (i in 0 until fw) {
+                val sx = (i + 0.5f) * div; val sy = (j + 0.5f) * div
+                val k = (j * fw + i) * 4
+                val c = when {
+                    (sx - x) * (sx - x) + (sy - y) * (sy - y) <= radius * radius -> intArrayOf(220, 40, 40)
+                    abs(sy - paddleY) < 12f && abs(sx - padCx) < padHalf -> intArrayOf(240, 200, 0)
+                    sx < wallL || sx > wallR || sy < wallT -> intArrayOf(30, 30, 30)
+                    else -> intArrayOf(30, 90, 200)
+                }
+                px[k] = c[0].toByte(); px[k + 1] = c[1].toByte(); px[k + 2] = c[2].toByte(); px[k + 3] = -1
+            }
+            val res = tr.process(Frame(fw, fh, px, screenW / fw, screenH / fh), t)
+            // Grade the last 15 s (after learning had time).
+            if (frame > 60 * 15 && res.landingX != null) {
+                val truth = trueLanding(x, y, vx, vy, wallL, wallR, wallT)
+                val err = abs(res.landingX!! - truth)
+                // early = first 2 frames after leaving the paddle (when the paddle must start moving)
+                if (sinceHit in 1..2) { earlySum += err; earlyN++ }
+                else if (sinceAny > 5 && y < paddleY - 150) { lateSum += err; lateN++ }
+            }
+            x += vx * dt; y += vy * dt; t += (dt * 1e9).toLong(); sinceHit++; sinceAny++
+            if (x < wallL + radius) { x = 2 * (wallL + radius) - x; vx = -vx; sinceAny = 0 }
+            if (x > wallR - radius) { x = 2 * (wallR - radius) - x; vx = -vx; sinceAny = 0 }
+            if (y < wallT + radius) { y = 2 * (wallT + radius) - y; vy = -vy; sinceAny = 0 }
+            if (y > land && vy > 0) {
+                // pong rule: out angle from where it hit the paddle; faster every hit
+                val h = ((x - padCx) / padHalf).coerceIn(-1f, 1f)
+                speed = minOf(3200f, speed * 1.03f)
+                val a = Math.toRadians(55.0 * h)
+                vx = (speed * kotlin.math.sin(a)).toFloat(); vy = -(speed * kotlin.math.cos(a)).toFloat()
+                y = land - (y - land)
+                descending = false; flight++
+                sinceHit = 0; sinceAny = 0
+            }
+        }
+        return GameStats(earlySum / maxOf(1, earlyN), lateSum / maxOf(1, lateN), tr.learner.flights)
+    }
+
+    @Test fun learningBeatsPlainPhysics() {
+        val plain = runGame(learn = false)
+        val learned = runGame(learn = true)
+        println("plain:   early ${plain.earlyErr} px, steady ${plain.lateErr} px")
+        println("learned: early ${learned.earlyErr} px, steady ${learned.lateErr} px, flights ${learned.flights}")
+        assertTrue("flights ${learned.flights}", learned.flights > 15)
+        // Right after a paddle hit, the learned launch rule should be far better than guessing.
+        assertTrue("early ${learned.earlyErr} vs ${plain.earlyErr}", learned.earlyErr < plain.earlyErr * 0.75f)
+        // Once flying, learning must never make it worse.
+        assertTrue("steady ${learned.lateErr} vs ${plain.lateErr}", learned.lateErr <= plain.lateErr + 2f)
+    }
 }

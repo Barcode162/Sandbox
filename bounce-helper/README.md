@@ -53,6 +53,21 @@ much. The *Extra lead* slider adds time for the game's own reaction to touches (
 50 ms): if the paddle arrives late, raise it; if it overshoots, lower it. The status pill at the
 bottom of the screen shows the total lead.
 
+**🧠 Pattern learning** (on by default, switch and reset button in the app): every flight
+is recorded and graded against where the shark really landed. The helper learns:
+
+- **its usual misses**, grouped by how long until landing and how many wall bounces are ahead,
+  and corrects for them (only when the miss is clearly real, not noise);
+- **the launch rule**: how the shark leaves the paddle (angle from where it hit and the angle
+  it came in at, plus the speed-up per hit). Right after a hit, before the new path can be
+  measured, it already knows where the shark is going, blended with the live measurement by
+  how accurate each one is. In the simulation test this cuts the first-frames error by about a third;
+- **repeating landing sequences**, used only once they've proven right.
+
+Old flights slowly fade so it keeps adapting as the game speeds up. The status pill shows
+🧠 flights learned, the typical miss, and ✓ once it knows the launch rule. Re-picking the
+paddle starts learning fresh.
+
 ## How it works
 
 - `CaptureService.kt` mirrors the screen into a small ~270 px wide image about 60 times a
@@ -62,6 +77,9 @@ bottom of the screen shows the total lead.
   line. Speed and position come from a least-squares line through every frame since the
   last bounce, so the prediction barely wobbles. Unit tests in `TrackerTest.kt` simulate a
   pong-style shark and check the prediction stays within ~35 px and moves < 4 px per frame.
+- `PatternLearner.kt` is the learning part described above (error memory, recursive-least-squares
+  launch rule, repeating-sequence matcher). `TrackerTest.learningBeatsPlainPhysics` plays a
+  simulated pong-rule game and checks learning beats plain physics.
 - `HelperService.kt` (accessibility service) draws the floating strip and holds a virtual
   finger on the paddle using a continuous gesture, updated every 20 ms. The finger glides
   toward the target (faster when the shark is about to land) and holds still inside a small

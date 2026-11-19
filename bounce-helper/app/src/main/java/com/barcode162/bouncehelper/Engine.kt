@@ -38,6 +38,7 @@ object Engine {
         paddleX = p.getFloat("paddleX", -1f)
         showTracking = p.getBoolean("showTracking", true)
         extraLeadMs = p.getInt("extraLeadMs", 50)
+        tracker.learner.enabled = p.getBoolean("learn", true)
         updateLead()
     }
 
@@ -50,6 +51,7 @@ object Engine {
             .putFloat("paddleX", paddleX)
             .putBoolean("showTracking", showTracking)
             .putInt("extraLeadMs", extraLeadMs)
+            .putBoolean("learn", tracker.learner.enabled)
             .apply()
     }
 

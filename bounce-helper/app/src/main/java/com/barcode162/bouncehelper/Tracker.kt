@@ -3,6 +3,7 @@ package com.barcode162.bouncehelper
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sqrt
 
 /**
  * One captured screen frame, downscaled. Pixels are RGBA bytes, row by row.
@@ -31,6 +32,10 @@ data class TrackResult(
     /** Smoothed shark centre at the moment the frame was shown, moved forward by the delay. */
     val nowX: Float = 0f,
     val nowY: Float = 0f,
+    /** Flights the pattern learner has seen, and its typical miss (px, -1 = not yet known). */
+    val learnedFlights: Int = 0,
+    val learnedAccuracy: Float = -1f,
+    val launchRuleKnown: Boolean = false,
 )
 
 /**
@@ -69,6 +74,13 @@ class Tracker {
     private var vySign = 0
     private var lastSeen = 0L
 
+    /** Learns this game's habits from finished flights (see [PatternLearner]). */
+    val learner = PatternLearner()
+    private var lastPaddle: Blob? = null
+    private var awaitingLanding = true
+    private var sincePaddleHit = -1
+    private var launchEst: Pair<Float, Float>? = null
+
     private var mask = BooleanArray(0)
     private var seen = BooleanArray(0)
     private var queue = IntArray(0)
@@ -76,6 +88,7 @@ class Tracker {
     fun resetMotion() {
         history.clear()
         vx = 0f; vy = 0f; vxSign = 0; vySign = 0
+        launchEst = null; sincePaddleHit = -1
     }
 
     fun resetWalls() {
@@ -93,6 +106,8 @@ class Tracker {
             val row = (py / f.scaleY).toInt()
             paddle = detect(f, paddleColor, max(0, row - band), min(f.height, row + band))
         }
+        if (paddle != null) lastPaddle = paddle
+        learner.screenW = screenW
 
         if (shark == null) {
             if (tNanos - lastSeen > 300_000_000L) resetMotion()
@@ -110,13 +125,22 @@ class Tracker {
             shark, paddle, vx, vy, landX,
             timeToLand = tLand?.let { it - lead },
             nowX = nowX, nowY = nowY,
+            learnedFlights = learner.flights,
+            learnedAccuracy = learner.accuracyPx,
+            launchRuleKnown = learner.launchRuleKnown,
         )
     }
 
     private fun addSample(t: Long, b: Blob, noise: Float) {
         var bouncedX = false
         var bouncedY = false
-        history.lastOrNull()?.let { p ->
+        val p = history.lastOrNull()
+        val prevVx = vx
+        val prevVy = vy
+        val prevVySign = vySign
+        val dtPrev = if (p != null) (t - p.t) / 1e9f else 0f
+        val landY = paddleY - b.halfH
+        if (p != null) {
             val dx = b.cx - p.x
             val dy = b.cy - p.y
             val dt = (t - p.t) / 1e9f
@@ -150,6 +174,26 @@ class Tracker {
             history.clear()
             if (bouncedX) vx = -vx
             if (bouncedY) vy = -vy
+            val paddleHit = bouncedY && prevVySign > 0 && paddleY > 0 && b.cy > paddleY * 0.6f
+            if (paddleHit && p != null) {
+                // Where it touched: follow the old path from the previous frame to the landing line.
+                val tc = if (prevVy > 1f) ((landY - p.y) / prevVy).coerceIn(0f, dtPrev) else 0f
+                val contactX = p.x + prevVx * tc
+                if (awaitingLanding) { learner.onLanding(contactX); awaitingLanding = false }
+                val pad = lastPaddle
+                val hit = if (pad != null && pad.halfW > 1f) (contactX - pad.cx) / pad.halfW else 0f
+                // The learned launch rule knows the new path right away (null until it's learned).
+                launchEst = learner.onPaddleHit(hit, prevVx, prevVy)
+                launchEst?.let { vx = it.first; vy = it.second }
+                sincePaddleHit = 0
+            } else if (sincePaddleHit >= 0) {
+                learner.cancelLaunch(); sincePaddleHit = -1; launchEst = null
+            }
+        } else if (p != null && awaitingLanding && paddleY > 0 && p.y < landY && b.cy >= landY) {
+            // Crossed the paddle line without a bounce (a miss, or a game that lets it sink in).
+            val k = (landY - p.y) / (b.cy - p.y)
+            learner.onLanding(p.x + (b.cx - p.x) * k)
+            awaitingLanding = false
         }
         history.addLast(Sample(t, b.cx, b.cy))
         // Keep every sample since the last bounce (it's a straight line), up to 0.4 s / 24 frames.
@@ -178,9 +222,31 @@ class Tracker {
                 vy = (b.cy - a.y) / dt
             }
         }
+        // Right after a paddle hit, blend the learned launch with the first few measured frames.
+        launchEst?.let { est ->
+            // Trust each side by its accuracy: the measured speed's error shrinks as frames add up
+            // (straight-line fit through n points), the learned rule's error is what it usually misses by.
+            val w = if (n < 2) 1f else {
+                val dtF = if (n >= 2) ((t - history.first().t) / 1e9f) / (n - 1) else 1f / 60f
+                val sigmaX = noise * 0.24f
+                val spread = sqrt(n * (n * n - 1) / 12f)
+                val sigmaMeas = sigmaX / (dtF.coerceAtLeast(0.004f) * spread)
+                val sigmaModel = learner.launchSigma(sqrt(est.first * est.first + est.second * est.second))
+                sigmaMeas * sigmaMeas / (sigmaMeas * sigmaMeas + sigmaModel * sigmaModel)
+            }
+            if (w > 0.05f) {
+                vx = est.first * w + vx * (1f - w)
+                vy = est.second * w + vy * (1f - w)
+            } else launchEst = null
+        }
+        if (sincePaddleHit >= 0 && !(bouncedX || bouncedY)) {
+            sincePaddleHit++
+            if (n >= 6) { learner.onLaunchMeasured(vx, vy); sincePaddleHit = -1 }
+        }
         val minSpeed = screenH * 0.02f
         if (abs(vx) > minSpeed) vxSign = if (vx > 0) 1 else -1
         if (abs(vy) > minSpeed) vySign = if (vy > 0) 1 else -1
+        if (vySign < 0) awaitingLanding = true
     }
 
     /** Landing x and seconds until landing (measured from the frame's time). */
@@ -199,7 +265,15 @@ class Tracker {
             else -> return fold(fitX + vx * leadSec, lo, hi) to null
         }
         if (t < 0f) return fold(fitX + vx * leadSec, lo, hi) to 0f
-        return fold(fitX + vx * t, lo, hi) to t
+        val n = history.size
+        // Too early in a flight to know the path? A proven repeating pattern can fill in.
+        if (n < 3 && launchEst == null) learner.sequenceGuess()?.let { return it to t }
+        val unfolded = fitX + vx * t
+        val raw = fold(unfolded, lo, hi)
+        val bounces = foldBounces(unfolded, lo, hi)
+        val corrected = (raw + learner.correction(t, bounces)).coerceIn(lo, hi)
+        if (n >= 4) learner.onPrediction(raw, corrected, t, bounces)
+        return corrected to t
     }
 
     /** Largest connected blob of [color] between frame rows [rowStart, rowEnd). */

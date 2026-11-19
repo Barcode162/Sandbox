@@ -223,6 +223,31 @@ class MainActivity : Activity() {
             })
         })
 
+        // Learning
+        col.addView(card().apply {
+            addView(text("🧠 Pattern learning", 18f, bold = true))
+            addView(text("Records every flight and learns the game's habits: its usual prediction misses, " +
+                    "how the shark leaves the paddle (angle from where it hits, speed-up per hit) and " +
+                    "landing spots that repeat. Gets more accurate the longer it plays; it slowly forgets old " +
+                    "flights so it keeps up as the game speeds up. The status at the bottom shows " +
+                    "🧠 flights learned, typical miss, and ✓ once it knows the launch rule.", 14f, dim = true))
+            addView(Switch(this@MainActivity).apply {
+                text = "Learn the game's patterns"
+                textSize = 16f
+                setTextColor(Color.WHITE)
+                isChecked = Engine.tracker.learner.enabled
+                setPadding(0, (8 * dp).toInt(), 0, (8 * dp).toInt())
+                setOnCheckedChangeListener { _, on ->
+                    Engine.tracker.learner.enabled = on
+                    Engine.save(this@MainActivity)
+                }
+            })
+            addView(button("Forget what it learned") {
+                Engine.tracker.learner.requestReset()
+                toast("Learning reset. It starts fresh on the next flight.")
+            })
+        })
+
         // Delay / lead
         col.addView(card().apply {
             addView(text("Lead (delay make-up)", 18f, bold = true))
