@@ -2,7 +2,7 @@ name: Build Bounce Helper APK
 
 on:
   push:
-    branches: [main]
+    branches: [main, claude/gifted-heisenberg-23pcda]
     paths:
       - "bounce-helper/**"
       - ".github/workflows/bounce-helper.yml"
@@ -42,12 +42,13 @@ jobs:
           path: bounce-helper/BounceHelper.apk
 
       - name: Publish release
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/claude/gifted-heisenberg-23pcda')
         uses: softprops/action-gh-release@v2
         with:
           tag_name: bounce-helper-v1.0.${{ github.run_number }}
           name: Bounce Helper 1.0.${{ github.run_number }}
           make_latest: true
+          target_commitish: ${{ github.sha }}
           files: bounce-helper/BounceHelper.apk
           body: |
             Download **BounceHelper.apk** below on the Android phone and open it. Android 8.0+.
