@@ -13,6 +13,15 @@ object Engine {
     @Volatile var autoOn = false
     @Volatile var showTracking = true
     @Volatile var paddleX = -1f
+    /** Measured screen-to-helper delay of captured frames, in ms (updated live). */
+    @Volatile var captureDelayMs = 30f
+    /** Extra lead the user can add for the game's own touch delay, in ms. */
+    @Volatile var extraLeadMs = 50
+
+    /** Total delay to make up for: captured-frame delay + finger/game reaction delay. */
+    fun updateLead() {
+        tracker.leadSec = (captureDelayMs + extraLeadMs) / 1000f
+    }
 
     val frameLock = Any()
     /** Latest captured frame. Its buffer is reused: copy it (under [frameLock]) before keeping it. */
@@ -28,6 +37,8 @@ object Engine {
         tracker.paddleY = p.getFloat("paddleY", -1f)
         paddleX = p.getFloat("paddleX", -1f)
         showTracking = p.getBoolean("showTracking", true)
+        extraLeadMs = p.getInt("extraLeadMs", 50)
+        updateLead()
     }
 
     fun save(ctx: Context) {
@@ -38,6 +49,7 @@ object Engine {
             .putFloat("paddleY", tracker.paddleY)
             .putFloat("paddleX", paddleX)
             .putBoolean("showTracking", showTracking)
+            .putInt("extraLeadMs", extraLeadMs)
             .apply()
     }
 

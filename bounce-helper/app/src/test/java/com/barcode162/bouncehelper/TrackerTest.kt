@@ -48,7 +48,13 @@ class TrackerTest {
         return x
     }
 
+    /** Average frame-to-frame change of the prediction while the shark flies straight. */
+    var jitter = 0f
+
     private fun runScenario(wallL: Float, wallR: Float, wallT: Float, vx0: Float, vy0: Float): Pair<Int, Float> {
+        var prevLanding: Float? = null
+        var jitterSum = 0f
+        var jitterN = 0
         val tr = Tracker().apply {
             sharkColor = 0xDC2828; tolerance = 60; paddleY = this@TrackerTest.paddleY
             screenW = this@TrackerTest.screenW; screenH = this@TrackerTest.screenH
@@ -68,6 +74,10 @@ class TrackerTest {
                 val err = abs(res.landingX!! - trueLanding(x, y, vx, vy, wallL, wallR, wallT))
                 worst = maxOf(worst, err)
                 checked++
+                prevLanding?.let { jitterSum += abs(res.landingX!! - it); jitterN++ }
+                prevLanding = res.landingX
+            } else {
+                prevLanding = null
             }
             // advance true physics (perfect pong reflections, paddle always catches)
             x += vx * dt; y += vy * dt; t += (dt * 1e9).toLong(); framesSinceBounce++
@@ -76,12 +86,14 @@ class TrackerTest {
             if (y < wallT + radius) { y = 2 * (wallT + radius) - y; vy = -vy; framesSinceBounce = 0 }
             if (y > paddleY - radius && vy > 0) { y = 2 * (paddleY - radius) - y; vy = -vy * 1.02f; vx *= 1.02f; framesSinceBounce = 0 }
         }
+        jitter = if (jitterN > 0) jitterSum / jitterN else 0f
         return checked to worst
     }
 
     @Test fun predictsLandingWithScreenEdgeWalls() {
         val (checked, worst) = runScenario(0f, screenW, 0f, 900f, 1300f)
         assertTrue("checked $checked frames", checked > 50)
+        assertTrue("prediction jitter $jitter px/frame", jitter < 4f)
         assertTrue("worst error $worst px", worst < 40f)
     }
 

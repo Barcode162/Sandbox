@@ -7,10 +7,9 @@ that spot, so the score keeps climbing even when the shark gets very fast.
 
 ## Download
 
-**Direct APK:** https://github.com/Barcode162/Sandbox/raw/claude/gifted-heisenberg-23pcda/download/BounceHelper.apk
+**APK (always the newest):** https://github.com/Barcode162/Sandbox/releases/latest/download/BounceHelper.apk
 
-After this is merged to `main`, every build is also published at
-https://github.com/Barcode162/Sandbox/releases/latest
+Release page: https://github.com/Barcode162/Sandbox/releases/latest
 
 Needs Android 8.0 or newer.
 
@@ -49,16 +48,24 @@ pop out the tool strip:
 
 If it loses the shark, raise *Tolerance* in the app. If it locks onto the background, lower it.
 
+**Lead:** the helper measures how late each screen image arrives and aims ahead by that
+much. The *Extra lead* slider adds time for the game's own reaction to touches (default
+50 ms): if the paddle arrives late, raise it; if it overshoots, lower it. The status pill at the
+bottom of the screen shows the total lead.
+
 ## How it works
 
 - `CaptureService.kt` mirrors the screen into a small ~270 px wide image about 60 times a
   second (MediaProjection). Nothing is saved or sent anywhere.
 - `Tracker.kt` finds the largest blob of the shark's colour, measures its speed, learns the
   wall/ceiling positions from the first bounces, and mirrors the path forward to the paddle
-  line. Unit tests in `TrackerTest.kt` simulate a pong-style shark and check the prediction
-  stays within ~35 px.
+  line. Speed and position come from a least-squares line through every frame since the
+  last bounce, so the prediction barely wobbles. Unit tests in `TrackerTest.kt` simulate a
+  pong-style shark and check the prediction stays within ~35 px and moves < 4 px per frame.
 - `HelperService.kt` (accessibility service) draws the floating strip and holds a virtual
-  finger on the paddle using a continuous gesture, moving it every 24 ms. It also measures
+  finger on the paddle using a continuous gesture, updated every 20 ms. The finger glides
+  toward the target (faster when the shark is about to land) and holds still inside a small
+  dead zone. It also measures
   how far the paddle sits from the finger, so games where you drag relatively still work.
 
 The APK is signed with `signing/sharkbounce.keystore` (password `android`). The key is public

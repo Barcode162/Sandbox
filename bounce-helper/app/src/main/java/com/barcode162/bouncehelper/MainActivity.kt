@@ -223,6 +223,32 @@ class MainActivity : Activity() {
             })
         })
 
+        // Delay / lead
+        col.addView(card().apply {
+            addView(text("Lead (delay make-up)", 18f, bold = true))
+            addView(text("The screen image reaches the helper a little late, and the game reacts to the " +
+                    "finger a little late too. The helper measures the first delay itself; this slider adds " +
+                    "extra lead for the second. Paddle arrives late → raise it. Paddle overshoots → lower it.",
+                    14f, dim = true))
+            val label = text("", 14f, dim = true)
+            fun setLabel(v: Int) { label.text = "Extra lead: $v ms (measured screen delay: ${Engine.captureDelayMs.toInt()} ms)" }
+            setLabel(Engine.extraLeadMs)
+            addView(label)
+            addView(SeekBar(this@MainActivity).apply {
+                max = 200
+                progress = Engine.extraLeadMs
+                setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                    override fun onProgressChanged(s: SeekBar?, p: Int, fromUser: Boolean) {
+                        Engine.extraLeadMs = p
+                        Engine.updateLead()
+                        setLabel(p)
+                    }
+                    override fun onStartTrackingTouch(s: SeekBar?) {}
+                    override fun onStopTrackingTouch(s: SeekBar?) { Engine.save(this@MainActivity) }
+                })
+            })
+        })
+
         // How to use
         col.addView(card().apply {
             addView(text("How to use", 18f, bold = true))

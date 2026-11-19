@@ -37,7 +37,7 @@ class HelperService : AccessibilityService() {
 
     companion object {
         @Volatile var instance: HelperService? = null
-        private const val SEGMENT_MS = 24L
+        private const val SEGMENT_MS = 20L
     }
 
     private val main = Handler(Looper.getMainLooper())
@@ -58,8 +58,8 @@ class HelperService : AccessibilityService() {
     private var stroke: GestureDescription.StrokeDescription? = null
     private var holding = false
     private var fingerX = 0f
-    private var targetX = -1f
-    private var jitter = false
+    private var targetX = -1f          // smoothed place the finger should go
+    private var timeToLand = 1f        // seconds until the shark reaches the paddle
     private var stillSince = 0L
     private var paddleOffset = 0f   // detected paddle x minus finger x (for drag-relative games)
 
@@ -285,9 +285,15 @@ class HelperService : AccessibilityService() {
 
     fun onTrack(r: TrackResult) {
         lastResult = r
-        trackView?.invalidate()
+        if (Engine.showTracking) trackView?.invalidate()
         if (!Engine.autoOn) return
-        r.landingX?.let { targetX = it - paddleOffset }
+        r.landingX?.let { raw ->
+            val want = raw - paddleOffset
+            // Smooth small wobbles; accept big jumps (a new bounce) immediately.
+            targetX = if (targetX < 0 || abs(want - targetX) > Engine.tracker.screenW * 0.08f) want
+            else targetX + (want - targetX) * 0.4f
+        }
+        timeToLand = r.timeToLand ?: 1f
         // Learn how far the paddle sits from our finger (matters for games that drag relatively).
         val p = r.paddle
         val now = SystemClock.uptimeMillis()
@@ -341,9 +347,19 @@ class HelperService : AccessibilityService() {
                 send(s.continueStroke(path, 0, SEGMENT_MS, false))
                 return
             }
-            var nx = clampX(if (targetX >= 0) targetX else fingerX)
-            if (abs(nx - fingerX) > 3f) stillSince = SystemClock.uptimeMillis()
-            if (abs(nx - fingerX) < 1f) { nx = fingerX + if (jitter) 1f else -1f; jitter = !jitter }
+            val goal = clampX(if (targetX >= 0) targetX else fingerX)
+            val err = goal - fingerX
+            val w = Engine.tracker.screenW
+            var nx = fingerX
+            // Dead zone: if we're already close enough, hold perfectly still.
+            if (abs(err) > w * 0.006f) {
+                // Glide toward the goal: gentle when there's time, fast when the shark is about to land.
+                val rate = (3.5f / timeToLand.coerceAtLeast(0.05f)).coerceIn(14f, 80f)
+                val step = err * (1f - kotlin.math.exp(-rate * SEGMENT_MS / 1000f))
+                nx = clampX(fingerX + step)
+                stillSince = SystemClock.uptimeMillis()
+            }
+            // A zero-length segment is fine: the finger just stays down in place.
             val path = Path().apply { moveTo(fingerX, y); lineTo(nx, y) }
             fingerX = nx
             if (!send(s.continueStroke(path, 0, SEGMENT_MS, true))) holding = false
@@ -489,15 +505,16 @@ class HelperService : AccessibilityService() {
                 }
             }
             // tiny dot on the shark's centre (small enough to be ignored by the tracker)
-            r?.shark?.let { c.drawCircle(it.cx + ox, it.cy + oy, 3 * dp, dot) }
+            r?.shark?.let { c.drawCircle(r.nowX + ox, r.nowY + oy, 3 * dp, dot) }
 
+            val delay = "${(Engine.captureDelayMs + Engine.extraLeadMs).toInt()} ms lead"
             val status = when {
                 !Engine.captureRunning -> "Helper paused: screen sharing off"
                 t.sharkColor < 0 -> "Tap 🦈 → 🎯 Shark"
                 t.paddleY < 0 -> "Tap 🦈 → ▬ Paddle"
                 r?.shark == null -> "Looking for the shark…"
-                Engine.autoOn -> "AUTO ON · tracking ✓"
-                else -> "Tracking ✓ · tap ▶ Auto"
+                Engine.autoOn -> "AUTO ON · tracking ✓ · $delay"
+                else -> "Tracking ✓ · $delay · tap ▶ Auto"
             }
             val ty = height - 28 * dp
             val tw = label.measureText(status) / 2 + 12 * dp

@@ -26,6 +26,11 @@ data class TrackResult(
     val vy: Float,
     /** Screen x where the shark's centre will be when it reaches the paddle, or null if unknown. */
     val landingX: Float?,
+    /** Seconds from *now* (delay already subtracted) until the shark reaches the paddle, or null. */
+    val timeToLand: Float? = null,
+    /** Smoothed shark centre at the moment the frame was shown, moved forward by the delay. */
+    val nowX: Float = 0f,
+    val nowY: Float = 0f,
 )
 
 /**
@@ -46,6 +51,8 @@ class Tracker {
     @Volatile var screenH = 0f
     /** Screen rectangle to ignore (our own floating strip). [l, t, r, b] */
     @Volatile var exclude = floatArrayOf(0f, 0f, 0f, 0f)
+    /** Total delay (seconds) between the screen showing a frame and our finger acting on it. */
+    @Volatile var leadSec = 0.06f
 
     // ---- Learned play-area edges (screen px) ----
     var leftWall: Float? = null; private set
@@ -56,6 +63,8 @@ class Tracker {
     private val history = ArrayDeque<Sample>()
     private var vx = 0f
     private var vy = 0f
+    private var fitX = 0f            // smoothed position at the latest sample
+    private var fitY = 0f
     private var vxSign = 0
     private var vySign = 0
     private var lastSeen = 0L
@@ -91,7 +100,17 @@ class Tracker {
         }
         lastSeen = tNanos
         addSample(tNanos, shark, 2.5f * max(f.scaleX, f.scaleY))
-        return TrackResult(shark, paddle, vx, vy, predict(shark))
+        val lo = (leftWall ?: 0f) + shark.halfW
+        val hi = (rightWall ?: screenW) - shark.halfW
+        val lead = leadSec
+        val nowX = fold(fitX + vx * lead, lo, hi)
+        val nowY = fitY + vy * lead
+        val (landX, tLand) = predict(shark)
+        return TrackResult(
+            shark, paddle, vx, vy, landX,
+            timeToLand = tLand?.let { it - lead },
+            nowX = nowX, nowY = nowY,
+        )
     }
 
     private fun addSample(t: Long, b: Blob, noise: Float) {
@@ -133,11 +152,28 @@ class Tracker {
             if (bouncedY) vy = -vy
         }
         history.addLast(Sample(t, b.cx, b.cy))
-        while (history.size > 2 && t - history.first().t > 250_000_000L) history.removeFirst()
-        if (history.size >= 2) {
+        // Keep every sample since the last bounce (it's a straight line), up to 0.4 s / 24 frames.
+        while (history.size > 24 || (history.size > 3 && t - history.first().t > 400_000_000L)) history.removeFirst()
+        fitX = b.cx; fitY = b.cy
+        val n = history.size
+        if (n >= 3) {
+            // Least-squares straight line through all samples: far steadier than two points.
+            var st = 0.0; var stt = 0.0; var sx = 0.0; var stx = 0.0; var sy = 0.0; var sty = 0.0
+            for (s in history) {
+                val tt = (s.t - t) / 1e9
+                st += tt; stt += tt * tt; sx += s.x; stx += tt * s.x; sy += s.y; sty += tt * s.y
+            }
+            val den = n * stt - st * st
+            if (den > 1e-9) {
+                vx = ((n * stx - st * sx) / den).toFloat()
+                vy = ((n * sty - st * sy) / den).toFloat()
+                fitX = ((sx - vx * st) / n).toFloat()   // line's value at the latest time
+                fitY = ((sy - vy * st) / n).toFloat()
+            }
+        } else if (n == 2) {
             val a = history.first()
             val dt = (t - a.t) / 1e9f
-            if (dt > 0.02f) {
+            if (dt > 0.005f) {
                 vx = (b.cx - a.x) / dt
                 vy = (b.cy - a.y) / dt
             }
@@ -147,21 +183,23 @@ class Tracker {
         if (abs(vy) > minSpeed) vySign = if (vy > 0) 1 else -1
     }
 
-    private fun predict(b: Blob): Float? {
+    /** Landing x and seconds until landing (measured from the frame's time). */
+    private fun predict(b: Blob): Pair<Float?, Float?> {
         val py = paddleY
-        if (py <= 0) return null
+        if (py <= 0) return null to null
         val lo = (leftWall ?: 0f) + b.halfW
         val hi = (rightWall ?: screenW) - b.halfW
         val landY = py - b.halfH
         val ceil = (topWall ?: 0f) + b.halfH
         val minSpeed = screenH * 0.02f
         val t = when {
-            vy > minSpeed -> (landY - b.cy) / vy
-            vy < -minSpeed -> ((b.cy - ceil) + (landY - ceil)) / -vy
-            else -> return b.cx
+            vy > minSpeed -> (landY - fitY) / vy
+            vy < -minSpeed -> ((fitY - ceil) + (landY - ceil)) / -vy
+            // Barely moving vertically: just stay under where it is right now.
+            else -> return fold(fitX + vx * leadSec, lo, hi) to null
         }
-        if (t < 0f) return b.cx
-        return fold(b.cx + vx * t, lo, hi)
+        if (t < 0f) return fold(fitX + vx * leadSec, lo, hi) to 0f
+        return fold(fitX + vx * t, lo, hi) to t
     }
 
     /** Largest connected blob of [color] between frame rows [rowStart, rowEnd). */

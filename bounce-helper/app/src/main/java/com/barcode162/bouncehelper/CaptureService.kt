@@ -194,6 +194,12 @@ class CaptureService : Service() {
                 frame = Frame(w, h, buffer, Engine.tracker.screenW / w, Engine.tracker.screenH / h)
                 Engine.latestFrame = frame
             }
+            // How old is this frame? Image timestamps use the same clock as System.nanoTime().
+            val ageMs = (System.nanoTime() - img.timestamp) / 1e6f
+            if (ageMs in 0f..300f) {
+                Engine.captureDelayMs = Engine.captureDelayMs * 0.95f + ageMs * 0.05f
+                Engine.updateLead()
+            }
             val result = Engine.tracker.process(frame, img.timestamp)
             main.post { HelperService.instance?.onTrack(result) }
         } catch (e: Exception) {
