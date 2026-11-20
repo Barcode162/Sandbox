@@ -70,6 +70,7 @@ test('[WO-011] §15.2 Scene 5 state(1): n 1, τ 1, hair 0, ov 1, all 7 beams cen
     assert.deepEqual(t.geom.beamRect, { centreU: vp.U / 2, width: bw, v0: 0, v1: vp.V, color: '#FFFFFF' });
     // Every drawn beam is the same snapped rect, so no fringe column can exist.
     const want = { u0: snap(vp.U / 2 - bw / 2, vp.dpr), u1: snap(vp.U / 2 + bw / 2, vp.dpr), v0: 0, v1: vp.V };
+    assert.ok(want.u0 > 0 && want.u1 < vp.U);
     for (const r of /** @type {object[]} */ (t.geom.bandRects)) assert.deepEqual(r, want, `${vp.vw}×${vp.sh}@${vp.dpr}`);
   }
 });
@@ -138,14 +139,14 @@ test('[WO-011] beams stay symmetric about the centre and in spectral order until
   }
 });
 
-test('[WO-011] drawn edges are on the device grid, non-negative in width, and within [−overshoot, U]', () => {
+test('[WO-011] drawn edges are on the device grid (or exactly U), non-negative in width, and inside [0, U]', () => {
   for (const vp of ALL) {
     for (let k = 0; k <= 400; k++) {
       const p = k / 400;
       for (const r of /** @type {{u0:number,u1:number,v0:number,v1:number}[]} */ (state(p, vp).geom.bandRects)) {
         assert.ok(r.u1 >= r.u0, 'non-negative width');
         assert.ok(Math.abs(r.u0 * vp.dpr - Math.round(r.u0 * vp.dpr)) < 1e-9, 'u0 on the device grid');
-        assert.ok(Math.abs(r.u1 * vp.dpr - Math.round(r.u1 * vp.dpr)) < 1e-9, 'u1 on the device grid');
+        assert.ok(r.u1 === vp.U || Math.abs(r.u1 * vp.dpr - Math.round(r.u1 * vp.dpr)) < 1e-9, 'u1 on the device grid');
         assert.ok(r.u0 >= 0 && r.u1 <= vp.U, 'inside the stage');
         assert.equal(r.v0, 0);
         assert.equal(r.v1, vp.V);

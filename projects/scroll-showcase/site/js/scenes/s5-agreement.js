@@ -72,6 +72,18 @@ function toward(from, to, t) {
 }
 
 /**
+ * A drawn band edge: snapped to the device grid and kept inside [0, U], exactly
+ * as `bandRectsFromWeights` does, so an off-grid U (e.g. 811.5 px at DPR 1)
+ * keeps its exact last edge.
+ * @param {number} x
+ * @param {number} U
+ * @param {number} dpr
+ */
+function edge(x, U, dpr) {
+  return fin(clamp(snap(x, dpr), 0, U));
+}
+
+/**
  * PURE (K6). Scene 5 at local progress p.
  * @param {number} p  local progress, clamped to [0, 1] by the caller
  * @param {Viewport} vp
@@ -101,8 +113,8 @@ export function state(p, vp) {
     const a0 = lerp(base[i].u0, c - bw / 2, n);
     const a1 = lerp(base[i].u1, c + bw / 2, n);
     rects.push({
-      u0: fin(snap(toward(a0, h - w / 2, tau), dpr)),
-      u1: fin(snap(toward(a1, h + w / 2, tau), dpr)),
+      u0: edge(toward(a0, h - w / 2, tau), U, dpr),
+      u1: edge(toward(a1, h + w / 2, tau), U, dpr),
       v0: 0,
       v1: fin(V),
     });
