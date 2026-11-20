@@ -1,16 +1,16 @@
 {
-  "generated": "2026-11-20T18:41:01.450Z",
+  "generated": "2026-11-20T18:48:42.607Z",
   "ok": true,
   "rows": [
     {
       "budget": "JS gzip",
-      "actual": 35046,
-      "limit": 40960,
+      "actual": 40110,
+      "limit": 81920,
       "ok": true
     },
     {
       "budget": "CSS gzip",
-      "actual": 5439,
+      "actual": 6419,
       "limit": 12288,
       "ok": true
     },
@@ -40,7 +40,7 @@
     },
     {
       "budget": "First-load transfer",
-      "actual": 65241,
+      "actual": 71285,
       "limit": 97280,
       "ok": true
     }
@@ -169,8 +169,8 @@
       },
       {
         "file": "js/scenes/s2-field.js",
-        "bytes": 2050,
-        "gzip": 1018
+        "bytes": 9695,
+        "gzip": 3993
       },
       {
         "file": "js/scenes/s3-refraction.js",
@@ -199,8 +199,8 @@
       },
       {
         "file": "js/scenes/s5-agreement.js",
-        "bytes": 2017,
-        "gzip": 1002
+        "bytes": 7584,
+        "gzip": 3091
       },
       {
         "file": "js/scenes/s6-return.js",
@@ -208,8 +208,8 @@
         "gzip": 1010
       }
     ],
-    "bytes": 79451,
-    "gzip": 35046
+    "bytes": 92663,
+    "gzip": 40110
   },
   "css": {
     "files": [
@@ -235,8 +235,8 @@
       },
       {
         "file": "css/scenes/s2.css",
-        "bytes": 79,
-        "gzip": 92
+        "bytes": 954,
+        "gzip": 529
       },
       {
         "file": "css/scenes/s3.css",
@@ -250,8 +250,8 @@
       },
       {
         "file": "css/scenes/s5.css",
-        "bytes": 79,
-        "gzip": 93
+        "bytes": 1246,
+        "gzip": 636
       },
       {
         "file": "css/scenes/s6.css",
@@ -264,8 +264,8 @@
         "gzip": 2366
       }
     ],
-    "bytes": 13785,
-    "gzip": 5439
+    "bytes": 15827,
+    "gzip": 6419
   },
   "html": {
     "files": [
@@ -286,5 +286,5 @@
     "bytes": 4401,
     "sha256": "18a4de52385f6b988782639d5d0cc1326e5a8c2de9a7f01d7b20d9aedcc60943"
   },
-  "firstLoad": 65241
+  "firstLoad": 71285
 }

@@ -38,3 +38,4 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-20T18:41:34Z` **ceo** — Phase build → **build**
 - `2026-11-20T18:41:34Z` **ceo** — Convened 6× engineer — wave 1 WO-006..011
 - `2026-11-20T18:41:34Z` **ceo** — Convened 2× test-engineer — wave 1 WO-012, WO-013
+- `2026-11-20T18:49:30Z` **ceo** — Rate limit hit during wave 1 (resets 23:30 UTC). WO-006..013 paused mid-work; files checkpointed. Resume all 8 via SendMessage after reset.

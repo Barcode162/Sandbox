@@ -1,8 +1,8 @@
 {
-  "generated": "2026-11-20T18:41:01.454Z",
+  "generated": "2026-11-20T18:48:42.611Z",
   "mode": "quick",
   "VERIFY_PHASE": 0,
-  "ok": true,
+  "ok": false,
   "evidenceDir": "/home/user/Sandbox/bureau/missions/M-0001-scroll-showcase/evidence",
   "steps": [
     {
@@ -10,14 +10,14 @@
       "name": "preflight",
       "status": "pass",
       "gating": true,
-      "ms": 2
+      "ms": 3
     },
     {
       "n": 1,
       "name": "typecheck",
       "status": "pass",
       "gating": true,
-      "ms": 1771,
+      "ms": 1718,
       "cmd": "tsc -p tsconfig.json"
     },
     {
@@ -30,13 +30,13 @@
     {
       "n": 3,
       "name": "unit (dev)",
-      "status": "pass",
+      "status": "fail",
       "gating": true,
-      "ms": 336,
+      "ms": 557,
       "counts": {
-        "tests": 107,
-        "pass": 107,
-        "fail": 0,
+        "tests": 127,
+        "pass": 126,
+        "fail": 1,
         "skipped": 0,
         "todo": 0
       },
@@ -47,7 +47,7 @@
       "name": "unit (spec, printed only)",
       "status": "info",
       "gating": false,
-      "ms": 46,
+      "ms": 38,
       "counts": {
         "tests": 0,
         "pass": 0,
@@ -63,7 +63,7 @@
       "name": "size and assets",
       "status": "pass",
       "gating": true,
-      "ms": 48,
+      "ms": 42,
       "cmd": "node scripts/check-size.mjs"
     }
   ],

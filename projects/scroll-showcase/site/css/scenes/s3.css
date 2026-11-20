@@ -1,1 +1,40 @@
-/* scenes/s3.css: Scene 3 local styles. Stub from WO-001; filled by WO-009. */
+/* scenes/s3.css: Scene 3 *Refraction* (spec §4 Scene 3, D3; WO-009).
+ * Paint for the SVG that s3-refraction.js builds inside .uv. Geometry lives in the attributes;
+ * colour, blending and strokes live here so every value is a token. */
+
+.s3 {
+  position: absolute; top: 0; left: 0;
+  display: block;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* The ground: Scene 2's last field, cobalt (identity seam 2 → 3). */
+.s3-ground { fill: var(--band-6, #2154D8); }
+
+/* Each window covers the ground dots it sits on with opaque cobalt, then shows the glass body
+ * and the magnified world. */
+.s3-cover { fill: var(--band-6, #2154D8); }
+.s3-glass-hi { stop-color: var(--glass-hi, rgba(255, 255, 255, 0.22)); }
+.s3-glass-lo { stop-color: var(--glass-lo, rgba(255, 255, 255, 0.05)); }
+
+/* The three channel copies screen together over the cover and body: one white dot where all
+ * three coincide, separate red, green and blue dots towards the rim. */
+.s3-copy { mix-blend-mode: screen; }
+.s3-dot-r { fill: var(--ch-r, #FF3B3B); }
+.s3-dot-g { fill: var(--ch-g, #3BFF7A); }
+.s3-dot-b { fill: var(--ch-b, #3B6BFF); }
+
+/* The edge covers the clip boundary (#7); the fringe is a 1 px chromatic line just inside it. */
+.s3-edge {
+  fill: none;
+  stroke: var(--glass-edge, rgba(255, 255, 255, 0.85));
+  stroke-width: 1.5px;
+  stroke-linejoin: round;
+}
+.s3-fringe {
+  fill: none;
+  stroke: var(--fringe-c, #38D6FF);
+  stroke-width: 1px;
+  stroke-linecap: round;
+}
