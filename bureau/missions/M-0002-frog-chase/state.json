@@ -13,7 +13,8 @@
   },
   "gates": {},
   "headcount": {
-    "experience-designer": 1
+    "experience-designer": 1,
+    "architect": 1
   },
   "levers": [
     "bakeoff",
@@ -29,5 +30,5 @@
       "at": "2026-11-20T21:42:09Z"
     }
   ],
-  "updated": "2026-11-20T21:42:09Z"
+  "updated": "2026-11-20T22:22:40Z"
 }
