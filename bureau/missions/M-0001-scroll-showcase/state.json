@@ -5,7 +5,7 @@
   "tier": 3,
   "domain": "interactive-web",
   "output": "projects/scroll-showcase",
-  "phase": "intel",
+  "phase": "design",
   "created": "2026-11-20T12:08:42Z",
   "rounds": {
     "plan": 1,
@@ -13,7 +13,8 @@
   },
   "gates": {},
   "headcount": {
-    "scout": 3
+    "scout": 3,
+    "experience-designer": 3
   },
   "history": [
     {
@@ -23,7 +24,11 @@
     {
       "phase": "intel",
       "at": "2026-11-20T12:09:15Z"
+    },
+    {
+      "phase": "design",
+      "at": "2026-11-20T12:15:51Z"
     }
   ],
-  "updated": "2026-11-20T12:09:15Z"
+  "updated": "2026-11-20T12:15:51Z"
 }
