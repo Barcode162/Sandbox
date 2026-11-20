@@ -186,7 +186,7 @@
       const sunI = G.lerp(k0.sunI, k1.sunI, t);
       const light = this.sun;
       let dir = sd;
-      if (e < 0.0) { dir = sd.clone().negate(); light.color.setHex(0x8fa6d8); light.intensity = 0.35 * night; }
+      if (e < 0.0) { dir = sd.clone().negate(); light.color.setHex(0x8fa6d8); light.intensity = 0.22 * night; }
       else { light.color.copy(sunC).lerp(new THREE.Color(0xffffff), 0.4); light.intensity = sunI; }
       const p = cam.position; const snap = 140 / 2048;
       const cx = Math.round(p.x / snap) * snap, cz = Math.round(p.z / snap) * snap;
@@ -196,7 +196,7 @@
       // ambient reflection strength follows daylight
       const env = 0.12 + 0.33 * this.daylight;
       for (const k of ['std', 'metal', 'glass', 'aeth', 'voidc', 'grass']) G.M[k].envMapIntensity = env;
-      G.M.aeth.emissiveIntensity = 0.55 + night * 0.5; G.M.cloud.emissiveIntensity = 0.12 + 0.5 * this.daylight; G.M.voidc.emissiveIntensity = 0.5 + night * 0.5;
+      G.M.aeth.emissiveIntensity = 0.55 + night * 0.5; G.M.cloud.emissiveIntensity = 0.03 + 0.52 * this.daylight; G.M.voidc.emissiveIntensity = 0.5 + night * 0.5;
     },
     clock() { const h = (this.tod * 24) % 24; const hh = Math.floor(h), mm = Math.floor((h - hh) * 60); return (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm; },
 

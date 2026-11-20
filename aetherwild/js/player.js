@@ -13,7 +13,7 @@
     eye: 1.62, eyeOff: 0, walkPh: 0, focus: null, combatTarget: null, staminaWait: 0, lastHurt: 99, swimming: false,
     init() {
       this.buildViewModel();
-      this.torchLight = { pos: new THREE.Vector3(), color: 0xffa44a, intensity: 2.2, dist: 20, flicker: true };
+      this.torchLight = { pos: new THREE.Vector3(), color: 0xffa44a, intensity: 1.1, dist: 10, flicker: true };
     },
     spawnAt(x, z) {
       this.pos.set(x, G.World.height(x, z) + 0.5, z); this.vel.set(0, 0, 0);
@@ -344,7 +344,7 @@
           const it = G.ITEMS[id];
           const g = G.Models.item(id);
           const wrap = new THREE.Group(); wrap.add(g);
-          if (it.type === 'tool') { g.position.y = -0.12; wrap.rotation.set(-0.55, 0.15, 0.25); if (id === 'stone_spear') { g.position.y = -0.7; } }
+          if (it.type === 'tool') { g.scale.setScalar(0.62); g.position.y = -0.08; wrap.rotation.set(-0.55, 0.15, 0.25); if (id === 'stone_spear') { g.position.y = -0.7; } }
           else if (it.type === 'place') { g.scale.setScalar(0.22); g.position.set(-0.05, 0.02, -0.12); }
           else { g.scale.setScalar(0.26); g.position.set(-0.02, 0.04, -0.06); }
           this.vmItem = wrap; this.hand.add(wrap);

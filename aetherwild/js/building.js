@@ -17,10 +17,10 @@
     chest: [0.6, 0.36, 0.85], bed: [0.65, 1.15, 0.55], lantern: [0.2, 0.2, 2.0], backpack: [0.3, 0.3, 0.6],
   };
   const LIGHTS = {
-    campfire: { color: 0xff8a3a, intensity: 2.2, dist: 18, flicker: true, y: 0.8 },
-    furnace: { color: 0xff7a2a, intensity: 1.4, dist: 10, flicker: true, y: 0.8 },
-    forge: { color: 0x4ff0e0, intensity: 1.6, dist: 12, y: 1.8 },
-    lantern: { color: 0x7ff7ea, intensity: 2.0, dist: 20, y: 1.6 },
+    campfire: { color: 0xff8a3a, intensity: 1.5, dist: 11, flicker: true, y: 0.8 },
+    furnace: { color: 0xff7a2a, intensity: 1.0, dist: 7, flicker: true, y: 0.8 },
+    forge: { color: 0x4ff0e0, intensity: 1.0, dist: 8, y: 1.8 },
+    lantern: { color: 0x7ff7ea, intensity: 1.1, dist: 11, y: 1.6 },
     backpack: { color: 0x4ff0e0, intensity: 0.8, dist: 6, y: 1.0 },
   };
 

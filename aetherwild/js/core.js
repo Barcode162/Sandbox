@@ -168,7 +168,7 @@ window.G = window.G || {};
   G.Lights = {
     pool: [], sources: new Set(),
     init(scene, n) {
-      for (let i = 0; i < n; i++) { const l = new THREE.PointLight(0xffa64d, 0, 14, 2); scene.add(l); this.pool.push(l); }
+      for (let i = 0; i < n; i++) { const l = new THREE.PointLight(0xffa64d, 0, 14, 1.6); scene.add(l); this.pool.push(l); }
     },
     add(src) { this.sources.add(src); return src; }, // src: {pos:Vector3, color, intensity, dist, flicker}
     remove(src) { this.sources.delete(src); },
