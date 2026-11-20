@@ -179,7 +179,7 @@ class TestGates(BureauCase):
     DIRECTORS = ("director-vision", "director-engineering", "director-risk")
 
     def test_plan_gate(self):
-        mdir = self.new_mission(tier=3)
+        mdir = self.new_mission(tier=4)
         out = self.cli("gate", "M-0001", "plan", ok=False).stdout
         self.assertIn("still a template", out)
         self.assertIn("has not voted", out)
@@ -201,9 +201,9 @@ class TestGates(BureauCase):
                        "--score", "9", "--report", "board/missing.md", ok=False).stderr
         self.assertIn("write it before voting", err)
 
-    def test_ship_gate_tier2(self):
-        mdir = self.new_mission(tier=2)
-        self.fill(mdir, "brief.md")
+    def test_ship_gate_tier3(self):
+        mdir = self.new_mission(tier=3)
+        self.fill(mdir, "brief.md", "design/experience.md", "design/architecture.md")
         (mdir / "plan.md").write_text("# Plan\n\n### WO-001 — Core\n\n### WO-002 — UI\n")
         self.vote("M-0001", "plan", "director-engineering")
         fid = self.cli("finding", "add", "M-0001", "--sev", "S1", "--by", "qa-tester", "--title", "bug").stdout.strip()
@@ -212,12 +212,13 @@ class TestGates(BureauCase):
         self.assertIn("S0/S1 not yet verified: F-001", out)
         self.assertIn("without a completion report: WO-001, WO-002", out)
         self.assertIn("no code-reviewer review", out)
+        self.assertNotIn("inspector-general", out)  # only the audit lever or tier 4 requires one
 
         self.cli("finding", "resolve", "M-0001", fid, "--by", "engineer", "--evidence", "e")
-        self.cli("finding", "verify", "M-0001", fid, "--by", "inspector-general")
+        self.cli("finding", "verify", "M-0001", fid, "--by", "qa-tester")  # the finder re-verifies
         for wo in ("WO-001", "WO-002"):
             self.report(mdir, f"reports/{wo}.md")
-        for role in ("code-reviewer", "qa-tester", "inspector-general"):
+        for role in ("code-reviewer", "qa-tester"):
             self.report(mdir, f"reviews/{role}-r1.md")
         self.vote("M-0001", "ship", "director-engineering", "APPROVE", "8.6")
         self.vote("M-0001", "ship", "director-vision", "APPROVE", "7.9")
@@ -233,6 +234,65 @@ class TestGates(BureauCase):
         self.assertIn("S2 not yet verified or waived", self.cli("gate", "M-0001", "ship", ok=False).stdout)
         self.cli("finding", "waive", "M-0001", "F-001", "--by", "ceo", "--reason", "cosmetic, tier 1")
         self.cli("gate", "M-0001", "ship")
+
+    def test_tier2_needs_no_plan_board(self):
+        mdir = self.new_mission(tier=2)
+        self.fill(mdir, "brief.md", "plan.md")
+        self.assertIn("no board review required", self.cli("gate", "M-0001", "plan").stdout)
+
+    def test_word_caps_block_the_plan_gate(self):
+        mdir = self.new_mission(tier=2)
+        self.fill(mdir, "brief.md")
+        (mdir / "plan.md").write_text("# Plan\n\n" + "word " * 2600)
+        self.assertIn("over its cap of 2500", self.cli("gate", "M-0001", "plan", ok=False).stdout)
+        (mdir / "plan.md").write_text("# Plan\n\n" + "word " * 100)
+        self.assertIn("plan.md written", self.cli("gate", "M-0001", "plan").stdout)
+
+    def test_board_report_cap(self):
+        mdir = self.new_mission(tier=4)
+        self.report(mdir, "board/plan-director-risk.md", "word " * 800)
+        err = self.cli("vote", "M-0001", "plan", "--director", "director-risk", "--verdict", "APPROVE",
+                       "--score", "9", "--report", "board/plan-director-risk.md", ok=False).stderr
+        self.assertIn("the cap is 700", err)
+
+
+class TestEconomy(BureauCase):
+    def test_agent_budget_is_enforced(self):
+        self.new_mission(tier=2)  # budget 8
+        self.cli("convene", "M-0001", "engineer", "--n", "6")
+        err = self.cli("convene", "M-0001", "qa-tester", "--n", "3", ok=False).stderr
+        self.assertIn("over budget", err)
+        self.assertIn("used 6 of 8", err)
+        self.cli("convene", "M-0001", "qa-tester", "--n", "3", "--owner-approved", "go ahead, one more")
+        out = self.cli("status", "M-0001").stdout
+        self.assertIn("headcount 9 of 9 budget", out)
+        log = (self.tmp / "bureau/missions/M-0001-test-mission/log.md").read_text()
+        self.assertIn("Budget raised by 1 with the Owner's approval", log)
+
+    def test_levers_default_from_domain_and_add_requirements(self):
+        out = self.cli("new", "Site", "--tier", "2", "--domain", "interactive-web").stdout.strip()
+        mdir = self.tmp / out
+        self.assertIn("levers polish", self.cli("status", "M-0001").stdout)
+        self.fill(mdir, "brief.md", "plan.md")
+        self.report(mdir, "reviews/code-reviewer-r1.md")
+        self.report(mdir, "reports/WO-001.md")
+        self.vote("M-0001", "ship", "director-vision", "APPROVE", "9")
+        self.assertIn("no polish-critic review", self.cli("gate", "M-0001", "ship", ok=False).stdout)
+        self.report(mdir, "reviews/polish-critic-r1.md")
+        self.assertIn("PASS", self.cli("gate", "M-0001", "ship").stdout)
+
+    def test_bakeoff_lever_requires_cards_and_verdict(self):
+        out = self.cli("new", "Game", "--tier", "2", "--domain", "game", "--levers", "bakeoff,polish").stdout.strip()
+        mdir = self.tmp / out
+        self.fill(mdir, "brief.md", "plan.md")
+        gate = self.cli("gate", "M-0001", "plan", ok=False).stdout
+        self.assertIn("design/directions.md is missing (or still a template)", gate)
+        self.fill(mdir, "design/directions.md")
+        self.report(mdir, "board/bakeoff-experience.md")
+        self.assertIn("PASS", self.cli("gate", "M-0001", "plan").stdout)
+
+    def test_unknown_lever_rejected(self):
+        self.assertIn("unknown lever", self.cli("new", "x", "--tier", "2", "--levers", "vibes", ok=None).stderr)
 
 
 class TestMemory(BureauCase):

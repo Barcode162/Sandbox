@@ -11,7 +11,7 @@ Skip the Bureau only when:
 - the Owner says "skip the bureau", "quick", or "just do it yourself";
 - the request is about the Bureau's own records (`status`, `roster`, reading a dossier). Answer it directly with the CLI.
 
-The Owner can force a size with `--tier 1-5` and continue earlier work with `--resume M-XXXX`.
+The Owner can force a size with `--tier 1-5`, choose the craft machinery with `--levers bakeoff,polish,hardening,audit,spike`, and continue earlier work with `--resume M-XXXX`. Each tier has a hard agent budget; going over it needs the Owner's words (`--owner-approved`). The tier sets the headcount, not the bar: when in doubt, the CEO goes down a tier and adds a lever.
 
 ## Where things live
 

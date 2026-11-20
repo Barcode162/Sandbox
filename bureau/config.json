@@ -6,14 +6,17 @@
     "dimension_floor": 7.0,
     "_note": "Owner-set floors. The ratchet rule: thresholds may rise above these, never fall below. Only the owner edits this block."
   },
-  "max_parallel_agents": 8,
+  "max_parallel_agents": 4,
   "institute_review_every": 5,
   "tiers": {
     "1": {
       "name": "Desk",
       "summary": "Trivial, fully specified change. The CEO does it directly, with one independent check.",
-      "typical_headcount": "1-3",
-      "plan_docs": ["brief.md"],
+      "typical_headcount": "1-2",
+      "max_agents": 2,
+      "plan_docs": [
+        "brief.md"
+      ],
       "plan_board": [],
       "ship_board": [],
       "required_reviews": [],
@@ -22,52 +25,173 @@
     },
     "2": {
       "name": "Squad",
-      "summary": "A contained feature, fix or document. Small team, real review, one director at each gate.",
-      "typical_headcount": "6-14",
-      "plan_docs": ["brief.md", "plan.md"],
-      "plan_board": ["director-engineering"],
-      "ship_board": ["director-engineering", "director-vision"],
-      "required_reviews": ["code-reviewer", "qa-tester", "inspector-general"],
+      "summary": "One page, site, tool, toy or contained feature. Designer + architect + 1-3 engineers, one review wave, one director at ship. Add levers (bakeoff, polish) for flagship craft at small scope.",
+      "typical_headcount": "4-8",
+      "max_agents": 8,
+      "plan_docs": [
+        "brief.md",
+        "plan.md"
+      ],
+      "plan_board": [],
+      "ship_board": [
+        "director-vision"
+      ],
+      "required_reviews": [
+        "code-reviewer"
+      ],
       "max_remediation_rounds": 2,
       "retro": true
     },
     "3": {
       "name": "Division",
-      "summary": "A real product or major feature. Full design, parallel build, the whole Quality Division, the full board.",
-      "typical_headcount": "15-40",
-      "plan_docs": ["brief.md", "design/experience.md", "design/architecture.md", "plan.md"],
-      "plan_board": ["director-vision", "director-engineering", "director-risk"],
-      "ship_board": ["director-vision", "director-engineering", "director-risk"],
-      "required_reviews": ["code-reviewer", "qa-tester", "red-team", "polish-critic", "inspector-general"],
-      "max_remediation_rounds": 3,
+      "summary": "A multi-screen product, a 2D game, a library with docs. Full spec, contracts in code, 3-6 slice work orders, one plan director, two ship directors.",
+      "typical_headcount": "8-14",
+      "max_agents": 14,
+      "plan_docs": [
+        "brief.md",
+        "design/experience.md",
+        "design/architecture.md",
+        "plan.md"
+      ],
+      "plan_board": [
+        "director-engineering"
+      ],
+      "ship_board": [
+        "director-vision",
+        "director-engineering"
+      ],
+      "required_reviews": [
+        "code-reviewer",
+        "qa-tester"
+      ],
+      "max_remediation_rounds": 2,
       "retro": true
     },
     "4": {
       "name": "Full Bureau",
-      "summary": "Flagship build. Bake-offs on key creative and technical calls, multiple reviewers per area, many build waves.",
-      "typical_headcount": "40-120",
-      "plan_docs": ["brief.md", "design/experience.md", "design/architecture.md", "plan.md"],
-      "plan_board": ["director-vision", "director-engineering", "director-risk"],
-      "ship_board": ["director-vision", "director-engineering", "director-risk"],
-      "required_reviews": ["code-reviewer", "qa-tester", "red-team", "polish-critic", "inspector-general"],
-      "max_remediation_rounds": 4,
+      "summary": "Flagship build: a 3D vertical slice, a product with a backend. Bake-offs, the full board, the full Quality Division.",
+      "typical_headcount": "15-30",
+      "max_agents": 30,
+      "plan_docs": [
+        "brief.md",
+        "design/experience.md",
+        "design/architecture.md",
+        "plan.md"
+      ],
+      "plan_board": [
+        "director-vision",
+        "director-engineering",
+        "director-risk"
+      ],
+      "ship_board": [
+        "director-vision",
+        "director-engineering",
+        "director-risk"
+      ],
+      "required_reviews": [
+        "code-reviewer",
+        "qa-tester",
+        "red-team",
+        "polish-critic",
+        "inspector-general"
+      ],
+      "max_remediation_rounds": 3,
       "retro": true
     },
     "5": {
       "name": "Program",
-      "summary": "Umbrella for work bigger than one mission. Its plan is a roadmap whose work orders are milestones, each run as its own tier 3-4 mission; milestone 1 is a vertical slice at full polish. Each milestone's delivery report is filed as the umbrella's WO report.",
-      "typical_headcount": "hundreds, across milestones",
-      "plan_docs": ["brief.md", "design/experience.md", "design/architecture.md", "plan.md"],
-      "plan_board": ["director-vision", "director-engineering", "director-risk"],
-      "ship_board": ["director-vision", "director-engineering", "director-risk"],
-      "required_reviews": ["inspector-general"],
-      "max_remediation_rounds": 4,
+      "summary": "Umbrella for work bigger than one mission. Its plan is a roadmap whose work orders are milestones, each run as its own tier 2-4 mission with its own budget; milestone 1 is a vertical slice at full polish. Each milestone's delivery report is filed as the umbrella's WO report.",
+      "typical_headcount": "per milestone; the umbrella itself 2-6",
+      "max_agents": 6,
+      "plan_docs": [
+        "brief.md",
+        "design/experience.md",
+        "design/architecture.md",
+        "plan.md"
+      ],
+      "plan_board": [
+        "director-vision",
+        "director-engineering",
+        "director-risk"
+      ],
+      "ship_board": [
+        "director-vision",
+        "director-engineering",
+        "director-risk"
+      ],
+      "required_reviews": [
+        "inspector-general"
+      ],
+      "max_remediation_rounds": 3,
       "retro": true
     }
   },
   "upgrade_approvals": {
-    "patch": {"min_directors": 0, "ceo_may_approve": true, "_kinds": "prompt, playbook, template, tooling"},
-    "minor": {"min_directors": 2, "_kinds": "role, process, rubric, gate"},
-    "major": {"owner": true, "_kinds": "charter"}
+    "patch": {
+      "min_directors": 0,
+      "ceo_may_approve": true,
+      "_kinds": "prompt, playbook, template, tooling"
+    },
+    "minor": {
+      "min_directors": 2,
+      "_kinds": "role, process, rubric, gate"
+    },
+    "major": {
+      "owner": true,
+      "_kinds": "charter"
+    }
+  },
+  "_economy_note": "Bureau v2 economy (U-0002). max_agents is a hard budget enforced by `bureau convene`; going over needs --owner-approved. Resuming an agent with SendMessage is not a new convening. Word caps are enforced by `bureau gate <m> plan` (plan docs) and `bureau vote` (board reports).",
+  "doc_word_caps": {
+    "brief.md": 1000,
+    "design/directions.md": 1500,
+    "design/experience.md": 6000,
+    "design/architecture.md": 2500,
+    "plan.md": 2500,
+    "intel/*.md": 1200,
+    "board/*.md": 700,
+    "reports/*.md": 500,
+    "reviews/*.md": 900
+  },
+  "levers": {
+    "bakeoff": {
+      "summary": "One designer writes 3 rival direction cards (design/directions.md); director-vision or the Owner picks; the same designer is resumed to spec the winner.",
+      "plan_requires": [
+        "design/directions.md",
+        "board/bakeoff-*.md"
+      ]
+    },
+    "polish": {
+      "summary": "A polish-critic judges screenshots against the spec's frame tables and polish list.",
+      "ship_requires_reviews": [
+        "polish-critic"
+      ]
+    },
+    "hardening": {
+      "summary": "A red-team attacks inputs, state and failure paths.",
+      "ship_requires_reviews": [
+        "red-team"
+      ]
+    },
+    "audit": {
+      "summary": "The inspector-general audits every completion claim and verifies findings.",
+      "ship_requires_reviews": [
+        "inspector-general"
+      ]
+    },
+    "spike": {
+      "summary": "Engineers prototype a risky unknown before the plan freezes; the relevant director picks.",
+      "plan_requires": []
+    }
+  },
+  "domain_default_levers": {
+    "interactive-web": [
+      "polish"
+    ],
+    "game": [
+      "polish"
+    ],
+    "software": [],
+    "general": []
   }
 }

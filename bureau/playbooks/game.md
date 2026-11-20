@@ -23,14 +23,14 @@ Later milestones widen the world. They never lower the polish.
 - **Assets** are procedural (geometry, shader or canvas textures, synthesized audio) or otherwise original. If the session has an asset-generation connector (image, 3D or audio), it may be used for original assets, but only after the Owner approves the spend (Charter XI.2).
 
 ## Staffing
-A typical tier-4 wave plan:
+A typical tier-4 wave plan. Group the disciplines below into **vertical slices of at most 4 per wave**, one engineer per slice, carrying several disciplines each (the budget is 30 agents for the whole mission). At tier 2–3, a toy or 2D game is 2–4 slices in total:
 - **Wave 0:** scaffold and contracts (integrator).
 - **Wave 1:** core loop/gameplay, controls & game-feel, camera, rendering & lighting baseline, world blockout, audio engine, test harness (test-engineer).
 - **Wave 2:** AI/behavior, vehicles/physics, shaders/VFX, UI/HUD, progression and save.
 - **Wave 3:** content (level, missions), narrative, a juice pass, a performance pass.
 - **Then:** polish waves driven by findings.
 
-Run **bake-offs** on art direction and on game feel. Those two calls decide most of how the game is received.
+Use the **`bakeoff` lever** (direction cards) on art direction and on game feel. Those two calls decide most of how the game is received.
 
 ## The experience spec must also cover
 - **Loops:** the core loop (seconds), the session loop (minutes) and the progression loop (the whole slice).

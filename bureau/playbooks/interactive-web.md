@@ -40,7 +40,7 @@ Contrast, logical keyboard order, visible focus, landmarks, labelled controls, a
 - console-error health checks.
 
 ## Staffing
-frontend, design-system, motion, accessibility, responsive-layout, data-viz, copywriting, and backend / api-design if there is a server. Run a bake-off on visual direction for anything brand-facing.
+frontend, design-system, motion, accessibility, responsive-layout, data-viz, copywriting, and backend / api-design if there is a server. Use the `bakeoff` lever (three direction cards) on visual direction for anything brand-facing or where looks are the point. A single page or site is tier 2 + `bakeoff,polish`, whatever its ambition (L-0001). Spec it with frame tables (`bureau/exemplars/frame-table.md`).
 
 ## Reviewer checklist (web addendum)
 - Every interactive element has hover, focus, active and disabled states.

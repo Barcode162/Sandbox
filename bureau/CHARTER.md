@@ -1,6 +1,6 @@
 # The Charter of the Bureau
 
-> One agent asked once gives you one draft. The Bureau puts a whole organization behind every request: people who research, people who set the ambition, people who plan, many who build in parallel, people whose only job is to break it, a board that can say no, and an institute that makes the whole machine better after every mission.
+> One agent asked once gives you one draft. The Bureau puts an organization behind every request: rival ideas judged with reasons, a spec that makes "exceptional" concrete frame by frame, specialists who build it, independent critics whose only job is to break it, a board that can say no, and an institute that makes the machine better after every mission. It spends its effort where quality comes from, and nowhere else (Article XIII).
 
 This Charter is the Bureau's constitution. The CEO's step-by-step operating manual is the `bureau` skill (`.claude/skills/bureau/SKILL.md`). The standard everything is judged against is [`QUALITY_BAR.md`](QUALITY_BAR.md). The records office is `bureau/bin/bureau`.
 
@@ -35,32 +35,34 @@ Each role is a subagent definition in `.claude/agents/`. Roles are combined with
 | # | Phase | Who | Output |
 |---|---|---|---|
 | 1 | Intake | CEO | `brief.md`, tier, playbook |
-| 2 | Intel | scouts ×N | `intel/*.md` |
-| 3 | Design | experience-designer(s), architect | `design/experience.md`, `design/architecture.md`, `plan.md` |
-| ◆ | **Gate 1: Plan** | Board | `board/plan-*.md`, votes |
-| 4 | Build | engineers ×N in waves, test-engineer | product code, `reports/WO-*.md` |
-| 5 | Integration | integrator | one build, green verify command |
-| 6 | Review | Quality Division | `reviews/*.md`, findings |
-| 7 | Remediation | engineers → inspector-general | resolved → verified findings (loop) |
-| ◆ | **Gate 2: Ship** | Board | `board/ship-*.md`, votes |
+| 2 | Intel (only when it changes a decision) | CEO, or a scout | `intel/*.md` |
+| 3 | Design | experience-designer (cards → spec, one life), architect (contracts in code) | `design/directions.md`, `design/experience.md`, `design/architecture.md`, `plan.md` |
+| ◆ | **Gate 1: Plan** | Board seats for the tier | `board/plan-*.md`, votes |
+| 4 | Build | engineers in waves of ≤ 4, one vertical slice each | product code and tests, `reports/WO-*.md` |
+| 5 | Integration | CEO runs verify; integrator only when slices need a hand merge | one build, green verify command |
+| 6 | Review | the tier's reviewers + each lever's reviewer | `reviews/*.md`, findings |
+| 7 | Remediation | the owning engineers (resumed) → the finder verifies | resolved → verified findings (loop) |
+| ◆ | **Gate 2: Ship** | Board seats for the tier | `board/ship-*.md`, votes |
 | 8 | Delivery | CEO | commit, push, report to Owner |
-| 9 | Retro & upgrade | historian, reformer, Board | lessons, upgrades, new version |
+| 9 | Retro & upgrade | CEO (tier 2–3); historian, reformer, Board (tier 4+) | lessons, upgrades, new version |
 
 Gates are checked mechanically by `bureau gate <mission> plan|ship`. A gate that fails sends the mission back. It does not get argued around.
 
 ## Article IV — Tiers
 
-The CEO sizes every mission. **When in doubt, go up a tier.** The Owner can force one with `--tier N`.
+The CEO sizes every mission. **A tier sets the headcount, not the bar**: the quality bar is the same at every tier. **When in doubt, go down a tier and add a lever.** The Owner can force either with `--tier N` and `--levers …`.
 
-| Tier | Name | Typical headcount | Board at gates | Required reviews |
+| Tier | Name | Agent budget | Board at gates | Required reviews |
 |---|---|---|---|---|
-| 1 | Desk | 1–3 | none | CEO self-check plus one independent check |
-| 2 | Squad | 6–14 | engineering (plan); engineering + vision (ship) | code-reviewer, qa-tester, inspector-general |
-| 3 | Division | 15–40 | full board | full Quality Division |
-| 4 | Full Bureau | 40–120 | full board | full Quality Division, several per area, bake-offs |
-| 5 | Program | hundreds across milestones | full board on the roadmap, the end, and every milestone | full Quality Division in every milestone; Inspector General audits the whole |
+| 1 | Desk | 2 | none | CEO self-check plus one independent check |
+| 2 | Squad | 8 | vision (ship) | code-reviewer |
+| 3 | Division | 14 | engineering (plan); vision + engineering (ship) | code-reviewer, qa-tester |
+| 4 | Full Bureau | 30 | full board | full Quality Division |
+| 5 | Program | 6 for the umbrella; each milestone has its own | full board on the roadmap, the end, and every milestone | Inspector General audits the whole |
 
-Exact gate rules live in `bureau/config.json`.
+**Levers** add quality machinery at any tier, and each one adds a mechanical gate requirement: `bakeoff` (rival direction cards and a judged verdict), `polish` (a polish-critic review; on by default for interactive-web and game), `hardening` (red-team), `audit` (inspector-general), and `spike`.
+
+Exact gate rules, budgets and levers live in `bureau/config.json`.
 
 ## Article V — The Code (binding on every member)
 
@@ -77,7 +79,7 @@ Exact gate rules live in `bureau/config.json`.
 
 1. **Builders don't grade their own work.** Reviewers don't fix. Directors don't build.
 2. **The resolver of a finding may not verify it.** `bureau` enforces this.
-3. **Tests come from the spec, not from the implementation.** The `test-engineer` writes acceptance tests from acceptance criteria, independently of the engineers building the feature.
+3. **Tests come from the spec, not from the implementation.** The spec's frame tables and the plan's done-when criteria are the oracle. Engineers test their slice against them, never against what their code happens to do, and reviewers check the same frames independently. A `test-engineer` builds cross-cutting harnesses (visual regression, performance, determinism sweeps).
 4. **The Inspector General answers to the Charter**, not to the CEO's schedule. Its job is to catch the Bureau lying to itself.
 
 ## Article VII — Findings
@@ -100,7 +102,7 @@ Lifecycle: `open → resolved` (engineer, with evidence) `→ verified` (someone
 3. **Gate 2 (ship)** passes only when every required director votes `APPROVE` with a score at or above `ship_threshold`, no rubric dimension is below `dimension_floor`, and the findings rules hold. A director who scores any dimension below the floor must not approve.
 4. Directors **verify before they vote.** They run the verify command, look at the screenshots, and spot-check claims. A rubber stamp is a breach of duty.
 5. A revised plan or build opens a new round (`bureau round`). Votes from earlier rounds stop counting.
-6. **Bake-offs.** When a decision dominates quality (art direction, game feel, core architecture), the CEO may commission two or three competing proposals or prototypes, and the relevant director picks the winner with written reasons. This is the Bureau's main lever: many minds, best idea wins.
+6. **Bake-offs.** When a decision dominates quality (art direction, game feel, core architecture), the CEO commissions **rival direction cards** (≤ 450 words each: north star, the look, three signature frames, risk, buildability) or small prototypes, and the relevant director (or the Owner) picks the winner with written reasons. Rivals compete as pitches, not as full specs; only the winner is specified in full. This is the Bureau's main lever: many ideas, best idea wins, without paying to write up the losers.
 
 ## Article IX — Self-upgrade (the Institute)
 
@@ -133,3 +135,14 @@ The Owner's bar is flagship quality. The Bureau meets it by going **deep before 
 ## Article XII — Amendments
 
 This Charter changes only by a **major** upgrade approved by the Owner and recorded in the ledger. The Board may propose amendments; the reformer drafts them.
+
+## Article XIII — Economy
+
+The Owner pays for every token. Spending without a return in quality is waste, and waste is a defect.
+
+1. **Spend where quality comes from:** the definition of exceptional, rival directions, frame tables, contracts in code, and looking at the real frames. Don't spend on documents nobody builds from, restated specs, or coordination between agents who could have been one.
+2. **Budgets bind.** Each tier has an agent budget that `bureau convene` enforces. Only the Owner can raise it, on the record.
+3. **Resume, don't respawn.** An agent continuing its own work is resumed with its context intact. A fresh agent is convened only for independence or different expertise.
+4. **Documents have caps.** Word caps in `config.json` are checked by the gates. A document over its cap is cut, not argued for.
+5. **Fit the model to the job.** Roles whose work is mechanical (scouting, test harnesses, QA passes, audits, records) run on a faster model. Roles where taste and judgement decide quality (design, architecture, engineering, polish, the vision and engineering seats) run on the session's model.
+6. **The retro reports cost.** It records agents used against the budget and names any convening that a resume or the CEO could have done.

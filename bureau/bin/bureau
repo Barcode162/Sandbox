@@ -139,6 +139,34 @@ def load_config() -> dict:
     return load_json(CONFIG_FILE)
 
 
+def word_count(path: Path) -> int:
+    return len(re.findall(r"\S+", path.read_text().replace(TEMPLATE_MARKER, "")))
+
+
+def word_cap(cfg: dict, relpath: str):
+    """The word cap for a dossier path, from config doc_word_caps (exact path, then glob)."""
+    caps = cfg.get("doc_word_caps", {})
+    if relpath in caps:
+        return caps[relpath]
+    for pattern, cap in caps.items():
+        if "*" in pattern and Path(relpath).match(pattern):
+            return cap
+    return None
+
+
+def mission_levers(cfg: dict, st: dict) -> list:
+    return [lv for lv in st.get("levers", []) if lv in cfg.get("levers", {})]
+
+
+def budget(cfg: dict, st: dict):
+    """(used, cap) for a mission's agent budget; cap is None when the tier sets none."""
+    used = sum(st["headcount"].values())
+    cap = tier_cfg(cfg, st["tier"]).get("max_agents")
+    if cap is not None:
+        cap += sum(o["n"] for o in st.get("budget_overrides", []))
+    return used, cap
+
+
 def load_roster() -> dict:
     return load_json(ROSTER_FILE)
 
@@ -261,6 +289,13 @@ def cmd_new(a):
         raise BureauError(f"mission template missing at {rel(MISSION_TEMPLATE)}")
     slug = slugify(a.slug or a.title)
     output = a.output or f"projects/{slug}"
+    if a.levers is None:
+        levers = list(cfg.get("domain_default_levers", {}).get(a.domain or "", []))
+    else:
+        levers = [x.strip() for x in a.levers.split(",") if x.strip()]
+    unknown = [x for x in levers if x not in cfg.get("levers", {})]
+    if unknown:
+        raise BureauError(f"unknown lever(s) {', '.join(unknown)}; levers are {', '.join(cfg.get('levers', {}))}")
     with locked():
         MISSIONS.mkdir(parents=True, exist_ok=True)
         n = max((int(p.name[2:6]) for p in mission_dirs()), default=0) + 1
@@ -283,9 +318,12 @@ def cmd_new(a):
             "id": mid, "title": a.title, "slug": slug, "tier": a.tier,
             "domain": a.domain or "", "output": output, "phase": "intake",
             "created": now(), "rounds": {"plan": 1, "ship": 1}, "gates": {},
-            "headcount": {}, "history": [{"phase": "intake", "at": now()}],
+            "headcount": {}, "levers": levers, "history": [{"phase": "intake", "at": now()}],
         })
-        append_log(mdir, f"Mission opened — tier {a.tier} ({tier['name']}), output `{output}`.")
+        cap = tier.get("max_agents")
+        append_log(mdir, f"Mission opened — tier {a.tier} ({tier['name']}), output `{output}`"
+                   + (f", agent budget {cap}" if cap is not None else "")
+                   + (f", levers {', '.join(levers)}" if levers else "") + ".")
     print(rel(mdir))
 
 
@@ -309,14 +347,25 @@ def cmd_convene(a):
     roles = roster_roles()
     if a.role not in roles:
         print(f"warning: {a.role!r} is not on the roster (see `bureau roster`)", file=sys.stderr)
+    cfg = load_config()
     with locked():
         mdir = find_mission(a.mission)
         st = load_state(mdir)
+        used, cap = budget(cfg, st)
+        if cap is not None and used + a.n > cap:
+            over = used + a.n - cap
+            if not a.owner_approved:
+                raise BureauError(
+                    f"over budget: {st['id']} has used {used} of {cap} agents and this would make {used + a.n}. "
+                    "Resume an agent you already convened (SendMessage), do the glue yourself, or ask the Owner "
+                    "and re-run with --owner-approved \"<what the Owner said>\"")
+            st.setdefault("budget_overrides", []).append({"n": over, "owner": a.owner_approved, "at": now()})
+            append_log(mdir, f"Budget raised by {over} with the Owner's approval: \"{a.owner_approved}\"")
         st["headcount"][a.role] = st["headcount"].get(a.role, 0) + a.n
         save_state(mdir, st)
         append_log(mdir, f"Convened {a.n}× {a.role}" + (f" — {a.note}" if a.note else ""))
-    total = sum(st["headcount"].values())
-    print(f"{st['id']}: {a.role} ×{a.n} (mission headcount {total})")
+    used, cap = budget(cfg, st)
+    print(f"{st['id']}: {a.role} ×{a.n} (mission headcount {used}" + (f" of {cap}" if cap is not None else "") + ")")
 
 
 def cmd_log(a):
@@ -415,6 +464,11 @@ def cmd_vote(a):
         report = Path(a.report)
         if not ((mdir / report).exists() or (ROOT / report).exists()):
             raise BureauError(f"board report {a.report!r} not found — write it before voting")
+        path = mdir / report if (mdir / report).exists() else ROOT / report
+        cap = word_cap(load_config(), report.as_posix())
+        if cap is not None and word_count(path) > cap:
+            raise BureauError(f"board report {a.report!r} is {word_count(path)} words; the cap is {cap}. "
+                              "Cut it to the verdict, the scores and the conditions, then vote")
         st = load_state(mdir)
         rnd = st["rounds"][a.gate]
         append_jsonl(mdir / "votes.jsonl", {
@@ -454,7 +508,16 @@ def evaluate_gate(mdir: Path, gate: str, cfg: dict | None = None):
             elif TEMPLATE_MARKER in p.read_text():
                 check(False, f"{doc} is still a template (remove the marker once it is written)")
             else:
-                check(True, f"{doc} written")
+                cap, words = word_cap(cfg, doc), word_count(p)
+                if cap is not None and words > cap:
+                    check(False, f"{doc} is {words} words, over its cap of {cap} — cut it before the board reads it")
+                else:
+                    check(True, f"{doc} written" + (f" ({words}/{cap} words)" if cap is not None else ""))
+        for lever in mission_levers(cfg, st):
+            for pattern in cfg["levers"][lever].get("plan_requires", []):
+                found = [f for f in sorted(mdir.glob(pattern)) if TEMPLATE_MARKER not in f.read_text()]
+                check(found, f"{lever}: {pattern} on file" if found
+                      else f"{lever} lever: {pattern} is missing (or still a template)")
         voters = tier["plan_board"]
         votes = current_votes(mdir, "plan", st)
         if not voters:
@@ -487,7 +550,10 @@ def evaluate_gate(mdir: Path, gate: str, cfg: dict | None = None):
         check(not missing, f"completion reports for all {len(wos)} work orders" if not missing
               else f"work orders without a completion report: {', '.join(missing)}")
 
-    for role in tier["required_reviews"]:
+    reviews = list(tier["required_reviews"])
+    for lever in mission_levers(cfg, st):
+        reviews += [r for r in cfg["levers"][lever].get("ship_requires_reviews", []) if r not in reviews]
+    for role in reviews:
         found = sorted((mdir / "reviews").glob(f"{role}*.md"))
         check(found, f"{role} review on file" if found else f"no {role} review in reviews/")
 
@@ -559,8 +625,11 @@ def _status_one(mdir: Path):
     print(f"{st['id']} · {st['title']}")
     print(f"  tier {st['tier']} ({tier['name']}) · phase {st['phase']} · domain {st.get('domain') or '—'}")
     print(f"  dossier {rel(mdir)} · output {st['output']}")
-    print(f"  headcount {sum(head.values())}"
+    used, cap = budget(cfg, st)
+    print(f"  headcount {used}" + (f" of {cap} budget" if cap is not None else "")
           + (" — " + ", ".join(f"{r} {n}" for r, n in sorted(head.items(), key=lambda x: -x[1])) if head else ""))
+    levers = mission_levers(cfg, st)
+    print("  levers " + (", ".join(levers) if levers else "none"))
     fs = findings(mdir).values()
     parts = []
     for sev in SEVERITIES:
@@ -693,7 +762,8 @@ def cmd_roster(a):
         print(f"  {area:<10} {', '.join(items)}")
     cfg = load_config()
     print(f"\nCapacity: {len(roster_roles(roster))} roles × {total} disciplines · "
-          f"up to {cfg['max_parallel_agents']} agents per wave · unlimited waves per mission")
+          f"up to {cfg['max_parallel_agents']} agents per wave · agent budget per tier: "
+          + ", ".join(f"T{k} {v.get('max_agents', '-')}" for k, v in cfg["tiers"].items()))
 
 
 def cmd_validate(a):
@@ -766,6 +836,16 @@ def cmd_validate(a):
             ok(r in roles, f"config: tier {t} requires a review from unknown role {r!r}")
         for doc in tc.get("plan_docs", []):
             ok((MISSION_TEMPLATE / doc).exists(), f"config: tier {t} plan doc {doc!r} has no template")
+        ok(isinstance(tc.get("max_agents"), int) and tc["max_agents"] >= 1,
+           f"config: tier {t} needs an integer agent budget max_agents >= 1")
+    for name, lv in cfg.get("levers", {}).items():
+        for r in lv.get("ship_requires_reviews", []):
+            ok(r in roles, f"config: lever {name} requires a review from unknown role {r!r}")
+    for dom, lvs in cfg.get("domain_default_levers", {}).items():
+        for lv in lvs:
+            ok(lv in cfg.get("levers", {}), f"config: domain {dom} defaults to unknown lever {lv!r}")
+    for doc, cap in cfg.get("doc_word_caps", {}).items():
+        ok(isinstance(cap, int) and cap > 0, f"config: word cap for {doc!r} must be a positive integer")
     ok(set(cfg.get("upgrade_approvals", {})) == {"major", "minor", "patch"},
        "config: upgrade_approvals must define major, minor and patch")
 
@@ -814,6 +894,8 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--slug")
     s.add_argument("--domain", help="game | interactive-web | software | general")
     s.add_argument("--output", help="where the product lives (default projects/<slug>)")
+    s.add_argument("--levers", help="comma-separated quality levers (bakeoff, polish, hardening, audit, spike); "
+                                    "default from the domain; pass '' for none")
     s.set_defaults(fn=cmd_new)
 
     s = sub.add_parser("status", help="org overview, or one mission in detail")
@@ -831,6 +913,8 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("role")
     s.add_argument("--n", type=int, default=1)
     s.add_argument("--note")
+    s.add_argument("--owner-approved", metavar="QUOTE",
+                   help="the Owner's words approving a convening beyond the tier's agent budget")
     s.set_defaults(fn=cmd_convene)
 
     s = sub.add_parser("log", help="append a line to the mission log")

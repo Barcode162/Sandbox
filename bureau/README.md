@@ -32,19 +32,19 @@ A multi-agent organization living in this repo. Ask once, and a whole company wo
                                                   inspector-general
 ```
 
-**17 roles × 54 disciplines**, convened in waves of up to 8, with unlimited waves per mission. A tier-4 mission typically convenes 40–120 agents, and a Program convenes hundreds across milestones. New specialists are hired through `/bureau-hire`.
+**17 roles × 54 disciplines**, convened in waves of up to 4 within a hard agent budget per tier (enforced by `bureau convene`). Agents that continue their own work are **resumed**, not re-convened. Mechanical roles run on a faster model. New specialists are hired through `/bureau-hire`. See Charter Article XIII (Economy) for why.
 
 ## The mission lifecycle
 
 ```
  the ask ─▶ ① INTAKE      brief, tier, playbook                         CEO
-            ② INTEL       scouts in parallel, one topic each           Strategy
-            ③ DESIGN      experience spec (bake-off) → architecture    Strategy
-                          → plan of work orders with exclusive ownership
+            ② INTEL       only when it changes a decision              CEO / scout
+            ③ DESIGN      3 direction cards → judged → frame-table     Strategy
+                          spec → contracts in code → 2–6 slices
             ◆ GATE 1      board reviews the plan · bureau gate <M> plan    Board
-            ④ BUILD       waves of engineers in parallel + test harness Engineering
+            ④ BUILD       ≤ 4 engineers, one vertical slice each        Engineering
             ⑤ INTEGRATE   one clean build, verify command green        Engineering
-            ⑥ REVIEW      code · QA · red team · polish · audit        Quality
+            ⑥ REVIEW      tier's reviewers + each lever's reviewer     Quality
             ⑦ REMEDIATE   fix → independent verify → loop until clean  Eng ⇄ Quality
             ◆ GATE 2      board ship vote ≥ 8.0, zero open S0/S1/S2     Board
             ⑧ DELIVER     commit, push, report with evidence           CEO
@@ -55,24 +55,26 @@ A multi-agent organization living in this repo. Ask once, and a whole company wo
 ## What makes it better than asking once
 
 - **Many specialists, not one generalist.** Each role has its own procedure and standards, and each engineer gets a discipline.
-- **Contracts first, then parallel build.** The architect freezes the interfaces and gives every work order exclusive file ownership, so dozens of engineers can work at once without collisions.
-- **Bake-offs.** For the calls that dominate quality (art direction, feel, core architecture), two or three agents compete and a director picks the winner.
-- **Adversarial review.** Five independent reviewer roles, each trying to find what the builders missed.
+- **Contracts first, in code.** The architect writes the interfaces as real type and stub files and gives each vertical slice exclusive ownership, so a few engineers work at once without collisions.
+- **Bake-offs.** For the calls that dominate quality (art direction, feel, core architecture), three rival direction cards compete and a director (or you) picks the winner. Only the winner gets a full spec, built around frame tables (`bureau/exemplars/frame-table.md`).
+- **Adversarial review.** Independent reviewers, each trying to find what the builders missed. Levers add more of them.
 - **Mechanical honesty.** Findings, votes and gates live in the records office, so they can't be argued around. A fix can't be verified by the agent that made it, S0/S1 findings can only be waived by you, and the ship gate needs every director at 8.0 or higher with nothing open.
-- **The Inspector General** audits every claim, so "done" means done.
+- **The Inspector General** (the `audit` lever, always at tier 4+) audits every claim, so "done" means done.
 - **It improves itself.** Every mission ends in a retro. Lessons go into memory, recurring lessons are promoted into binding rules, and upgrades are proposed, approved by class, applied, versioned (`bureau/VERSION`) and logged (`memory/UPGRADES.md`). Quality thresholds only ever move up (the ratchet).
 
 ## Tiers
 
-| Tier | Name | Use for | Agents |
+| Tier | Name | Use for | Agent budget |
 |---|---|---|---|
-| 1 | Desk | tiny, fully specified changes | 1–3 |
-| 2 | Squad | one contained feature or artifact | 6–14 |
-| 3 | Division | a complete product or major feature | 15–40 |
-| 4 | Full Bureau | a flagship piece | 40–120 |
-| 5 | Program | months of human-team work, delivered as milestones | hundreds |
+| 1 | Desk | tiny, fully specified changes | 2 |
+| 2 | Squad | one page or site, a toy game, a CLI, a focused feature | 8 |
+| 3 | Division | a multi-screen product, a 2D game, a library with docs | 14 |
+| 4 | Full Bureau | a 3D vertical slice, a product with a backend | 30 |
+| 5 | Program | months of human-team work, delivered as milestones | per milestone |
 
-The CEO picks the tier and goes up when in doubt. Force one with `/bureau <ask> --tier 4`.
+**The tier sets the headcount, not the bar.** Craft comes from **levers** you can add at any tier: `bakeoff`, `polish` (on by default for web and games), `hardening`, `audit`, `spike`. The CEO goes *down* a tier when in doubt and adds a lever. Force them with `/bureau <ask> --tier 2 --levers bakeoff,polish`.
+
+A *Bent Light*-class site (M-0001) is now tier 2 + `bakeoff,polish`, about 8 agents. It ran as tier 3 with 26 agents convened before it was halted halfway.
 
 ## Commands
 

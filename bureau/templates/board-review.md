@@ -1,10 +1,12 @@
-# Board review — <plan|ship> gate — <director> — round N — M-XXXX
+# Board review — <plan|ship|bakeoff> — <director> — round N — M-XXXX
+
+<!-- Cap: 700 words (enforced by `bureau vote`). Verdict, scores, conditions. No essays. -->
 
 VERDICT: APPROVE | CONDITIONAL | REJECT
 SCORE: x.x / 10
 
 ## Rubric
-| # | Dimension | Score | Why (evidence) |
+| # | Dimension | Score | Why (one line, with evidence) |
 |---|---|---|---|
 | 1 | Fidelity | | |
 | 2 | Ambition & delight | | |
@@ -15,15 +17,10 @@ SCORE: x.x / 10
 | 7 | Accessibility & comfort | | |
 | 8 | Evidence | | |
 
-<!-- Plan gate: score the plan's ability to reach each dimension. Ship gate: score the product.
-     Ship rule: overall ≥ ship_threshold and no dimension < dimension_floor, or you may not APPROVE. -->
+<!-- Ship rule: overall ≥ ship_threshold and no dimension < dimension_floor, or you may not APPROVE. -->
 
 ## What I verified myself
-<!-- Commands run, screenshots opened, flows walked, claims spot-checked. -->
+<!-- Commands run, screenshots opened. One line each. -->
 
 ## Conditions
-<!-- Numbered, specific, checkable. Required for CONDITIONAL / REJECT. -->
-
-## Concerns (non-blocking)
-
-## Commendations
+<!-- Numbered, one line each, specific and checkable. Required for CONDITIONAL / REJECT. -->
