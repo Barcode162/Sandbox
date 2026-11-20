@@ -1,0 +1,33 @@
+{
+  "id": "M-0002",
+  "title": "Frog river chase",
+  "slug": "frog-chase",
+  "tier": 2,
+  "domain": "game",
+  "output": "projects/frog-chase",
+  "phase": "design",
+  "created": "2026-11-20T21:41:47Z",
+  "rounds": {
+    "plan": 1,
+    "ship": 1
+  },
+  "gates": {},
+  "headcount": {
+    "experience-designer": 1
+  },
+  "levers": [
+    "bakeoff",
+    "polish"
+  ],
+  "history": [
+    {
+      "phase": "intake",
+      "at": "2026-11-20T21:41:47Z"
+    },
+    {
+      "phase": "design",
+      "at": "2026-11-20T21:42:09Z"
+    }
+  ],
+  "updated": "2026-11-20T21:42:09Z"
+}
