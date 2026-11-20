@@ -14,3 +14,8 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-20T12:33:57Z` **ceo** — Convened 1× experience-designer — consolidate winner C into experience.md
 - `2026-11-20T13:31:56Z` **ceo** — experience.md consolidated (1101 lines; F1-F17, D1-D10 traced). Designer run hit rate limit after writing; file verified complete by CEO.
 - `2026-11-20T13:31:56Z` **ceo** — Convened 1× architect — architecture + plan
+- `2026-11-20T13:50:30Z` **ceo** — Architect: 24 WOs / 5 waves; self-hosted Space Grotesk; npm run verify pipeline.
+- `2026-11-20T13:50:30Z` **ceo** — Phase design → **plan-review**
+- `2026-11-20T13:50:30Z` **ceo** — Convened 1× director-vision — gate1
+- `2026-11-20T13:50:30Z` **ceo** — Convened 1× director-engineering — gate1
+- `2026-11-20T13:50:30Z` **ceo** — Convened 1× director-risk — gate1
