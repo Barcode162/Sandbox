@@ -1,7 +1,7 @@
 {
   "spike": "WO-005",
   "mission": "M-0001",
-  "date": "2026-11-20T14:21:02.971Z",
+  "date": "2026-11-20T18:32:27.869Z",
   "playwright": "1.63.0",
   "chromium": "157.0.8103.78",
   "frames": 120,
@@ -28,61 +28,62 @@
         "backingH": 1620,
         "mpx": 4.6656,
         "lutEntries": 256,
-        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36"
+        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36",
+        "colourGroupsLastFrame": null
       },
       "raf": {
         "n": 360,
-        "p50": 50,
-        "p95": 66.7,
-        "max": 116.7,
-        "over20": 99.7
+        "p50": 33.3,
+        "p95": 50,
+        "max": 66.7,
+        "over20": 92.8
       },
       "drawUnflushed": {
         "n": 360,
-        "p50": 2.1,
-        "p95": 3.6,
-        "max": 25.9,
-        "over20": 0.3
+        "p50": 1.7,
+        "p95": 3.1,
+        "max": 7.5,
+        "over20": 0
       },
       "rafWithReadback": {
         "n": 360,
-        "p50": 33.4,
-        "p95": 66.7,
-        "max": 66.8,
-        "over20": 99.4
+        "p50": 33.3,
+        "p95": 50,
+        "max": 66.7,
+        "over20": 92.5
       },
       "drawUnflushedReadbackPass": {
         "n": 360,
-        "p50": 1.9,
-        "p95": 3.5,
-        "max": 5.9,
+        "p50": 1.7,
+        "p95": 2.7,
+        "max": 4.8,
         "over20": 0
       },
       "drawFlushed": {
         "n": 360,
-        "p50": 36,
-        "p95": 57.8,
-        "max": 62.9,
+        "p50": 30.4,
+        "p95": 47.6,
+        "max": 54.7,
         "over20": 100
       },
       "perRun": [
         {
           "run": 0,
-          "rafP95": 66.7,
-          "drawP95": 3.7,
-          "flushedP95": 55.3
+          "rafP95": 50,
+          "drawP95": 2.8,
+          "flushedP95": 41.6
         },
         {
           "run": 1,
-          "rafP95": 50.1,
-          "drawP95": 3.1,
-          "flushedP95": 60.9
+          "rafP95": 50,
+          "drawP95": 2.7,
+          "flushedP95": 50.6
         },
         {
           "run": 2,
-          "rafP95": 83.4,
-          "drawP95": 5.8,
-          "flushedP95": 57
+          "rafP95": 50,
+          "drawP95": 3.2,
+          "flushedP95": 33.8
         }
       ],
       "consoleErrors": [],
@@ -113,61 +114,62 @@
         "backingH": 1080,
         "mpx": 2.0736,
         "lutEntries": 256,
-        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36"
+        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36",
+        "colourGroupsLastFrame": null
       },
       "raf": {
         "n": 360,
         "p50": 16.7,
-        "p95": 33.3,
+        "p95": 16.8,
         "max": 33.4,
-        "over20": 8.1
+        "over20": 2.8
       },
       "drawUnflushed": {
         "n": 360,
-        "p50": 1.9,
-        "p95": 3.3,
-        "max": 5.2,
+        "p50": 1.7,
+        "p95": 2.8,
+        "max": 3.7,
         "over20": 0
       },
       "rafWithReadback": {
         "n": 360,
         "p50": 16.7,
-        "p95": 33.4,
-        "max": 50,
-        "over20": 14.7
+        "p95": 16.7,
+        "max": 33.4,
+        "over20": 1.4
       },
       "drawUnflushedReadbackPass": {
         "n": 360,
-        "p50": 2.1,
-        "p95": 3.5,
-        "max": 7.1,
+        "p50": 1.7,
+        "p95": 2.9,
+        "max": 4.3,
         "over20": 0
       },
       "drawFlushed": {
         "n": 360,
-        "p50": 14.9,
-        "p95": 22.9,
-        "max": 44.6,
-        "over20": 26.7
+        "p50": 12.1,
+        "p95": 18.3,
+        "max": 21.6,
+        "over20": 0.3
       },
       "perRun": [
         {
           "run": 0,
-          "rafP95": 33.3,
-          "drawP95": 3.7,
-          "flushedP95": 22.4
+          "rafP95": 16.7,
+          "drawP95": 2.6,
+          "flushedP95": 18.3
         },
         {
           "run": 1,
           "rafP95": 16.8,
-          "drawP95": 3.2,
-          "flushedP95": 20.9
+          "drawP95": 2.8,
+          "flushedP95": 18.3
         },
         {
           "run": 2,
           "rafP95": 33.3,
-          "drawP95": 3.2,
-          "flushedP95": 25.2
+          "drawP95": 3.3,
+          "flushedP95": 18
         }
       ],
       "consoleErrors": [],
@@ -198,61 +200,62 @@
         "backingH": 1620,
         "mpx": 4.6656,
         "lutEntries": 256,
-        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36"
+        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36",
+        "colourGroupsLastFrame": null
       },
       "raf": {
         "n": 360,
         "p50": 33.3,
         "p95": 50,
-        "max": 66.7,
-        "over20": 91.1
+        "max": 50.1,
+        "over20": 76.4
       },
       "drawUnflushed": {
         "n": 360,
         "p50": 1.5,
-        "p95": 2.7,
-        "max": 10.2,
+        "p95": 2.5,
+        "max": 10.8,
         "over20": 0
       },
       "rafWithReadback": {
         "n": 360,
         "p50": 33.3,
         "p95": 50,
-        "max": 66.8,
-        "over20": 95.8
+        "max": 66.7,
+        "over20": 76.1
       },
       "drawUnflushedReadbackPass": {
         "n": 360,
-        "p50": 1.6,
-        "p95": 2.9,
-        "max": 3.9,
+        "p50": 1.5,
+        "p95": 2.4,
+        "max": 7.8,
         "over20": 0
       },
       "drawFlushed": {
         "n": 360,
-        "p50": 31.2,
-        "p95": 49.3,
-        "max": 57.4,
-        "over20": 100
+        "p50": 26.5,
+        "p95": 39.8,
+        "max": 68.9,
+        "over20": 98.9
       },
       "perRun": [
         {
           "run": 0,
-          "rafP95": 66.6,
-          "drawP95": 2.9,
-          "flushedP95": 50
+          "rafP95": 33.4,
+          "drawP95": 2.3,
+          "flushedP95": 38.3
         },
         {
           "run": 1,
           "rafP95": 50,
-          "drawP95": 2.5,
-          "flushedP95": 51.1
+          "drawP95": 2.4,
+          "flushedP95": 42.6
         },
         {
           "run": 2,
           "rafP95": 50,
-          "drawP95": 2.2,
-          "flushedP95": 44
+          "drawP95": 2.5,
+          "flushedP95": 39.8
         }
       ],
       "consoleErrors": [],
@@ -283,61 +286,62 @@
         "backingH": 1350,
         "mpx": 2.916,
         "lutEntries": 256,
-        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36"
+        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36",
+        "colourGroupsLastFrame": null
       },
       "raf": {
         "n": 360,
-        "p50": 33.3,
+        "p50": 16.7,
         "p95": 33.4,
         "max": 50.1,
-        "over20": 63.1
+        "over20": 44.4
       },
       "drawUnflushed": {
         "n": 360,
-        "p50": 1.5,
-        "p95": 2.7,
-        "max": 5.8,
+        "p50": 1.4,
+        "p95": 2.4,
+        "max": 6.7,
         "over20": 0
       },
       "rafWithReadback": {
         "n": 360,
-        "p50": 33.3,
+        "p50": 16.7,
         "p95": 33.4,
         "max": 50.1,
-        "over20": 61.1
+        "over20": 47.2
       },
       "drawUnflushedReadbackPass": {
         "n": 360,
-        "p50": 1.5,
-        "p95": 2.4,
-        "max": 3.8,
+        "p50": 1.4,
+        "p95": 2.5,
+        "max": 4.2,
         "over20": 0
       },
       "drawFlushed": {
         "n": 360,
-        "p50": 23.9,
-        "p95": 35.8,
-        "max": 40.1,
-        "over20": 98.1
+        "p50": 21.7,
+        "p95": 34.3,
+        "max": 61.5,
+        "over20": 89.2
       },
       "perRun": [
         {
           "run": 0,
           "rafP95": 33.4,
-          "drawP95": 2.7,
-          "flushedP95": 34.1
+          "drawP95": 2.2,
+          "flushedP95": 25.6
         },
         {
           "run": 1,
           "rafP95": 33.4,
-          "drawP95": 2.4,
-          "flushedP95": 29.7
+          "drawP95": 2.2,
+          "flushedP95": 34.5
         },
         {
           "run": 2,
           "rafP95": 33.4,
-          "drawP95": 3,
-          "flushedP95": 37.1
+          "drawP95": 2.5,
+          "flushedP95": 34.4
         }
       ],
       "consoleErrors": [],
@@ -368,61 +372,62 @@
         "backingH": 1624,
         "mpx": 1.218,
         "lutEntries": 256,
-        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36"
+        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36",
+        "colourGroupsLastFrame": null
       },
       "raf": {
         "n": 360,
         "p50": 16.7,
         "p95": 16.7,
-        "max": 33.3,
-        "over20": 1.1
+        "max": 16.8,
+        "over20": 0
       },
       "drawUnflushed": {
         "n": 360,
         "p50": 0.8,
-        "p95": 1.3,
-        "max": 3,
+        "p95": 1.2,
+        "max": 3.3,
         "over20": 0
       },
       "rafWithReadback": {
         "n": 360,
         "p50": 16.7,
-        "p95": 16.8,
-        "max": 33.3,
-        "over20": 0.3
+        "p95": 16.7,
+        "max": 16.8,
+        "over20": 0
       },
       "drawUnflushedReadbackPass": {
         "n": 360,
         "p50": 0.8,
-        "p95": 1.3,
-        "max": 2.8,
+        "p95": 1.2,
+        "max": 1.8,
         "over20": 0
       },
       "drawFlushed": {
         "n": 360,
-        "p50": 11.2,
-        "p95": 16.9,
-        "max": 22.2,
-        "over20": 0.3
+        "p50": 10.5,
+        "p95": 16,
+        "max": 17.2,
+        "over20": 0
       },
       "perRun": [
         {
           "run": 0,
-          "rafP95": 16.8,
-          "drawP95": 1.3,
-          "flushedP95": 16.4
+          "rafP95": 16.7,
+          "drawP95": 1.2,
+          "flushedP95": 15.3
         },
         {
           "run": 1,
           "rafP95": 16.7,
           "drawP95": 1.2,
-          "flushedP95": 15.7
+          "flushedP95": 14.2
         },
         {
           "run": 2,
-          "rafP95": 16.7,
-          "drawP95": 1.3,
-          "flushedP95": 17.7
+          "rafP95": 16.8,
+          "drawP95": 1.1,
+          "flushedP95": 16.5
         }
       ],
       "consoleErrors": [],
@@ -453,61 +458,62 @@
         "backingH": 1620,
         "mpx": 4.6656,
         "lutEntries": 256,
-        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36"
+        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36",
+        "colourGroupsLastFrame": null
       },
       "raf": {
         "n": 360,
-        "p50": 33.4,
-        "p95": 50.1,
+        "p50": 33.3,
+        "p95": 50,
         "max": 66.7,
-        "over20": 99.7
+        "over20": 95.3
       },
       "drawUnflushed": {
         "n": 360,
-        "p50": 2.2,
-        "p95": 3.5,
-        "max": 10,
+        "p50": 2,
+        "p95": 3.1,
+        "max": 7.6,
         "over20": 0
       },
       "rafWithReadback": {
         "n": 360,
-        "p50": 33.4,
-        "p95": 66.6,
-        "max": 66.8,
-        "over20": 99.4
+        "p50": 33.3,
+        "p95": 50,
+        "max": 100,
+        "over20": 94.7
       },
       "drawUnflushedReadbackPass": {
         "n": 360,
-        "p50": 2.2,
-        "p95": 3.6,
-        "max": 7,
+        "p50": 2,
+        "p95": 3.4,
+        "max": 7.5,
         "over20": 0
       },
       "drawFlushed": {
         "n": 360,
-        "p50": 35.6,
-        "p95": 57.2,
-        "max": 63.2,
+        "p50": 31.6,
+        "p95": 47.3,
+        "max": 89.2,
         "over20": 100
       },
       "perRun": [
         {
           "run": 0,
-          "rafP95": 66.6,
-          "drawP95": 3.6,
-          "flushedP95": 57.4
+          "rafP95": 50,
+          "drawP95": 3,
+          "flushedP95": 51.7
         },
         {
           "run": 1,
           "rafP95": 50.1,
-          "drawP95": 3.4,
-          "flushedP95": 49.1
+          "drawP95": 3.1,
+          "flushedP95": 39.8
         },
         {
           "run": 2,
-          "rafP95": 50.1,
-          "drawP95": 3.6,
-          "flushedP95": 59.3
+          "rafP95": 50,
+          "drawP95": 3.2,
+          "flushedP95": 48.7
         }
       ],
       "consoleErrors": [],
@@ -538,61 +544,62 @@
         "backingH": 1620,
         "mpx": 4.6656,
         "lutEntries": 256,
-        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36"
+        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36",
+        "colourGroupsLastFrame": null
       },
       "raf": {
         "n": 360,
         "p50": 16.7,
-        "p95": 50,
+        "p95": 33.5,
         "max": 50.1,
-        "over20": 43.1
+        "over20": 34.2
       },
       "drawUnflushed": {
         "n": 180,
-        "p50": 1.6,
-        "p95": 2.7,
-        "max": 5.3,
+        "p50": 1.5,
+        "p95": 2.5,
+        "max": 5.4,
         "over20": 0
       },
       "rafWithReadback": {
         "n": 360,
         "p50": 16.7,
         "p95": 50,
-        "max": 50.1,
-        "over20": 42.5
+        "max": 66.6,
+        "over20": 35
       },
       "drawUnflushedReadbackPass": {
         "n": 180,
-        "p50": 1.6,
-        "p95": 2.7,
-        "max": 5.1,
+        "p50": 1.5,
+        "p95": 2.8,
+        "max": 6.4,
         "over20": 0
       },
       "drawFlushed": {
         "n": 180,
-        "p50": 33.3,
-        "p95": 49.8,
-        "max": 59.4,
+        "p50": 29.6,
+        "p95": 48.3,
+        "max": 68.4,
         "over20": 100
       },
       "perRun": [
         {
           "run": 0,
-          "rafP95": 50,
-          "drawP95": 2.7,
-          "flushedP95": 50.9
+          "rafP95": 33.4,
+          "drawP95": 2.4,
+          "flushedP95": 51.9
         },
         {
           "run": 1,
-          "rafP95": 50,
-          "drawP95": 2.7,
-          "flushedP95": 50.7
+          "rafP95": 33.4,
+          "drawP95": 2.6,
+          "flushedP95": 41.9
         },
         {
           "run": 2,
-          "rafP95": 33.4,
+          "rafP95": 49.9,
           "drawP95": 2.5,
-          "flushedP95": 48.9
+          "flushedP95": 40.3
         }
       ],
       "consoleErrors": [],
@@ -624,26 +631,27 @@
         "backingH": 1620,
         "mpx": 4.6656,
         "lutEntries": 256,
-        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36"
+        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36",
+        "colourGroupsLastFrame": null
       },
       "raf": {
         "n": 360,
         "p50": 16.7,
-        "p95": 16.7,
-        "max": 66.6,
+        "p95": 16.8,
+        "max": 33.4,
         "over20": 0.3
       },
       "drawUnflushed": {
         "n": 360,
         "p50": 0,
         "p95": 0.1,
-        "max": 0.2,
+        "max": 0.1,
         "over20": 0
       },
       "rafWithReadback": {
         "n": 360,
         "p50": 16.7,
-        "p95": 16.8,
+        "p95": 16.7,
         "max": 16.8,
         "over20": 0
       },
@@ -651,34 +659,34 @@
         "n": 360,
         "p50": 0,
         "p95": 0.1,
-        "max": 0.1,
+        "max": 0.2,
         "over20": 0
       },
       "drawFlushed": {
         "n": 360,
-        "p50": 2,
-        "p95": 2.7,
-        "max": 10.7,
+        "p50": 1.5,
+        "p95": 2.1,
+        "max": 9.6,
         "over20": 0
       },
       "perRun": [
         {
           "run": 0,
-          "rafP95": 16.7,
+          "rafP95": 16.8,
           "drawP95": 0.1,
-          "flushedP95": 2.4
+          "flushedP95": 1.7
         },
         {
           "run": 1,
           "rafP95": 16.8,
           "drawP95": 0.1,
-          "flushedP95": 2.5
+          "flushedP95": 2
         },
         {
           "run": 2,
-          "rafP95": 16.8,
+          "rafP95": 16.7,
           "drawP95": 0.1,
-          "flushedP95": 2.9
+          "flushedP95": 5.4
         }
       ],
       "consoleErrors": [],
@@ -710,61 +718,62 @@
         "backingH": 1620,
         "mpx": 4.6656,
         "lutEntries": 256,
-        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36"
+        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36",
+        "colourGroupsLastFrame": null
       },
       "raf": {
         "n": 360,
-        "p50": 33.4,
-        "p95": 50.1,
-        "max": 66.7,
-        "over20": 100
+        "p50": 33.3,
+        "p95": 50,
+        "max": 83.4,
+        "over20": 88.9
       },
       "drawUnflushed": {
         "n": 360,
-        "p50": 1.5,
-        "p95": 2.5,
-        "max": 3.4,
+        "p50": 1.3,
+        "p95": 2.2,
+        "max": 7.2,
         "over20": 0
       },
       "rafWithReadback": {
         "n": 360,
-        "p50": 49.9,
-        "p95": 66.7,
-        "max": 83.4,
-        "over20": 100
+        "p50": 33.3,
+        "p95": 50,
+        "max": 50.1,
+        "over20": 92.2
       },
       "drawUnflushedReadbackPass": {
         "n": 360,
-        "p50": 1.5,
-        "p95": 2.6,
-        "max": 4,
+        "p50": 1.3,
+        "p95": 2,
+        "max": 4.4,
         "over20": 0
       },
       "drawFlushed": {
         "n": 360,
-        "p50": 37.6,
-        "p95": 58,
-        "max": 73.8,
+        "p50": 30,
+        "p95": 38.9,
+        "max": 50.3,
         "over20": 100
       },
       "perRun": [
         {
           "run": 0,
-          "rafP95": 66.5,
-          "drawP95": 2.5,
-          "flushedP95": 53.2
+          "rafP95": 50,
+          "drawP95": 2.4,
+          "flushedP95": 42.7
         },
         {
           "run": 1,
           "rafP95": 50,
-          "drawP95": 1.8,
-          "flushedP95": 58.4
+          "drawP95": 2.2,
+          "flushedP95": 36
         },
         {
           "run": 2,
-          "rafP95": 50.1,
-          "drawP95": 2.6,
-          "flushedP95": 54.2
+          "rafP95": 33.4,
+          "drawP95": 1.6,
+          "flushedP95": 35.4
         }
       ],
       "consoleErrors": [],
@@ -796,61 +805,62 @@
         "backingH": 1620,
         "mpx": 4.6656,
         "lutEntries": 256,
-        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36"
+        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36",
+        "colourGroupsLastFrame": null
       },
       "raf": {
         "n": 360,
-        "p50": 33.4,
-        "p95": 66.6,
-        "max": 66.8,
-        "over20": 99.7
+        "p50": 33.3,
+        "p95": 50,
+        "max": 66.7,
+        "over20": 89.2
       },
       "drawUnflushed": {
         "n": 360,
-        "p50": 1.9,
-        "p95": 3.1,
-        "max": 5.8,
+        "p50": 1.6,
+        "p95": 3,
+        "max": 6.6,
         "over20": 0
       },
       "rafWithReadback": {
         "n": 360,
-        "p50": 33.4,
-        "p95": 66.7,
-        "max": 83.4,
-        "over20": 99.2
+        "p50": 33.3,
+        "p95": 50,
+        "max": 99.9,
+        "over20": 93.9
       },
       "drawUnflushedReadbackPass": {
         "n": 360,
-        "p50": 1.8,
-        "p95": 3.5,
-        "max": 7.7,
+        "p50": 1.7,
+        "p95": 2.8,
+        "max": 5.2,
         "over20": 0
       },
       "drawFlushed": {
         "n": 360,
-        "p50": 34.6,
-        "p95": 57.1,
-        "max": 67,
+        "p50": 30.4,
+        "p95": 43.7,
+        "max": 92,
         "over20": 100
       },
       "perRun": [
         {
           "run": 0,
-          "rafP95": 50.1,
-          "drawP95": 3.1,
-          "flushedP95": 45.4
+          "rafP95": 49.9,
+          "drawP95": 2.3,
+          "flushedP95": 46.9
         },
         {
           "run": 1,
-          "rafP95": 50.1,
-          "drawP95": 2.9,
-          "flushedP95": 57.5
+          "rafP95": 49.9,
+          "drawP95": 2.5,
+          "flushedP95": 37.2
         },
         {
           "run": 2,
-          "rafP95": 66.6,
-          "drawP95": 3.2,
-          "flushedP95": 57.7
+          "rafP95": 50,
+          "drawP95": 3.5,
+          "flushedP95": 38
         }
       ],
       "consoleErrors": [],
@@ -882,61 +892,62 @@
         "backingH": 1080,
         "mpx": 2.0736,
         "lutEntries": 256,
-        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36"
+        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36",
+        "colourGroupsLastFrame": null
       },
       "raf": {
         "n": 360,
         "p50": 16.7,
         "p95": 16.8,
         "max": 33.4,
-        "over20": 1.7
+        "over20": 2.2
       },
       "drawUnflushed": {
         "n": 360,
         "p50": 1.4,
         "p95": 2.3,
-        "max": 10.8,
-        "over20": 0
+        "max": 27.6,
+        "over20": 0.3
       },
       "rafWithReadback": {
         "n": 360,
         "p50": 16.7,
-        "p95": 33.3,
+        "p95": 16.7,
         "max": 33.4,
-        "over20": 7.2
+        "over20": 1.4
       },
       "drawUnflushedReadbackPass": {
         "n": 360,
-        "p50": 1.5,
-        "p95": 2.6,
-        "max": 5.5,
+        "p50": 1.3,
+        "p95": 2.4,
+        "max": 5.4,
         "over20": 0
       },
       "drawFlushed": {
         "n": 360,
-        "p50": 12,
-        "p95": 20.8,
-        "max": 24.1,
-        "over20": 8.3
+        "p50": 11.2,
+        "p95": 17.6,
+        "max": 39.3,
+        "over20": 1.9
       },
       "perRun": [
         {
           "run": 0,
-          "rafP95": 16.7,
-          "drawP95": 2.3,
-          "flushedP95": 18.7
+          "rafP95": 16.8,
+          "drawP95": 2.7,
+          "flushedP95": 16.6
         },
         {
           "run": 1,
           "rafP95": 16.8,
           "drawP95": 2.2,
-          "flushedP95": 21.5
+          "flushedP95": 17.7
         },
         {
           "run": 2,
           "rafP95": 16.8,
-          "drawP95": 2.4,
-          "flushedP95": 18.9
+          "drawP95": 1.8,
+          "flushedP95": 19.7
         }
       ],
       "consoleErrors": [],
@@ -944,6 +955,269 @@
       "screenshots": [
         "d4-hold.png",
         "d4-stress.png"
+      ],
+      "passes": false
+    },
+    {
+      "id": "d5",
+      "name": "d2 without the per-facet 0.5 px stroke (stroke share; seams would show)",
+      "vw": 1920,
+      "vh": 1080,
+      "dpr": 2,
+      "cap": 1.5,
+      "lattice": 72,
+      "colour": "lut",
+      "cadence": "scroll",
+      "layers": "hold",
+      "noStroke": true,
+      "diag": true,
+      "info": {
+        "facets": 896,
+        "cols": 28,
+        "rows": 16,
+        "backing": 1.5,
+        "backingW": 2880,
+        "backingH": 1620,
+        "mpx": 4.6656,
+        "lutEntries": 256,
+        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36",
+        "colourGroupsLastFrame": null
+      },
+      "raf": {
+        "n": 360,
+        "p50": 33.3,
+        "p95": 33.4,
+        "max": 50.1,
+        "over20": 66.9
+      },
+      "drawUnflushed": {
+        "n": 360,
+        "p50": 1.1,
+        "p95": 1.8,
+        "max": 2.4,
+        "over20": 0
+      },
+      "rafWithReadback": {
+        "n": 360,
+        "p50": 33.3,
+        "p95": 50,
+        "max": 66.6,
+        "over20": 73.9
+      },
+      "drawUnflushedReadbackPass": {
+        "n": 360,
+        "p50": 1.1,
+        "p95": 1.9,
+        "max": 6,
+        "over20": 0
+      },
+      "drawFlushed": {
+        "n": 360,
+        "p50": 25.8,
+        "p95": 38.8,
+        "max": 55.4,
+        "over20": 100
+      },
+      "perRun": [
+        {
+          "run": 0,
+          "rafP95": 50,
+          "drawP95": 1.8,
+          "flushedP95": 36.3
+        },
+        {
+          "run": 1,
+          "rafP95": 33.4,
+          "drawP95": 1.6,
+          "flushedP95": 34.2
+        },
+        {
+          "run": 2,
+          "rafP95": 33.4,
+          "drawP95": 1.8,
+          "flushedP95": 42.7
+        }
+      ],
+      "consoleErrors": [],
+      "expectedReadbackWarnings": 3,
+      "screenshots": [
+        "d5-hold.png",
+        "d5-stress.png"
+      ],
+      "passes": false
+    },
+    {
+      "id": "d6",
+      "name": "d2 with facets batched by colour (one path, fill and stroke per distinct colour)",
+      "vw": 1920,
+      "vh": 1080,
+      "dpr": 2,
+      "cap": 1.5,
+      "lattice": 72,
+      "colour": "lut",
+      "cadence": "scroll",
+      "layers": "hold",
+      "batch": true,
+      "diag": true,
+      "info": {
+        "facets": 896,
+        "cols": 28,
+        "rows": 16,
+        "backing": 1.5,
+        "backingW": 2880,
+        "backingH": 1620,
+        "mpx": 4.6656,
+        "lutEntries": 256,
+        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36",
+        "colourGroupsLastFrame": 217
+      },
+      "raf": {
+        "n": 360,
+        "p50": 33.4,
+        "p95": 50.1,
+        "max": 83.4,
+        "over20": 96.7
+      },
+      "drawUnflushed": {
+        "n": 360,
+        "p50": 0.8,
+        "p95": 1.3,
+        "max": 4.9,
+        "over20": 0
+      },
+      "rafWithReadback": {
+        "n": 360,
+        "p50": 33.4,
+        "p95": 66.7,
+        "max": 100,
+        "over20": 97.8
+      },
+      "drawUnflushedReadbackPass": {
+        "n": 360,
+        "p50": 0.8,
+        "p95": 1.6,
+        "max": 14.1,
+        "over20": 0
+      },
+      "drawFlushed": {
+        "n": 360,
+        "p50": 36,
+        "p95": 62.5,
+        "max": 85.3,
+        "over20": 100
+      },
+      "perRun": [
+        {
+          "run": 0,
+          "rafP95": 66.7,
+          "drawP95": 1.3,
+          "flushedP95": 63
+        },
+        {
+          "run": 1,
+          "rafP95": 50,
+          "drawP95": 1.3,
+          "flushedP95": 42.9
+        },
+        {
+          "run": 2,
+          "rafP95": 50,
+          "drawP95": 1.3,
+          "flushedP95": 67.8
+        }
+      ],
+      "consoleErrors": [],
+      "expectedReadbackWarnings": 3,
+      "screenshots": [
+        "d6-hold.png",
+        "d6-stress.png"
+      ],
+      "passes": false
+    },
+    {
+      "id": "d7",
+      "name": "c1 stress with facets batched by colour",
+      "vw": 1920,
+      "vh": 1080,
+      "dpr": 2,
+      "cap": 1.5,
+      "lattice": 72,
+      "colour": "lut",
+      "cadence": "scroll",
+      "batch": true,
+      "diag": true,
+      "info": {
+        "facets": 896,
+        "cols": 28,
+        "rows": 16,
+        "backing": 1.5,
+        "backingW": 2880,
+        "backingH": 1620,
+        "mpx": 4.6656,
+        "lutEntries": 256,
+        "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.8103.78 Safari/537.36",
+        "colourGroupsLastFrame": 65
+      },
+      "raf": {
+        "n": 360,
+        "p50": 33.4,
+        "p95": 66.7,
+        "max": 100,
+        "over20": 96.9
+      },
+      "drawUnflushed": {
+        "n": 360,
+        "p50": 1.5,
+        "p95": 4.1,
+        "max": 15.3,
+        "over20": 0
+      },
+      "rafWithReadback": {
+        "n": 360,
+        "p50": 33.4,
+        "p95": 66.6,
+        "max": 116.6,
+        "over20": 97.8
+      },
+      "drawUnflushedReadbackPass": {
+        "n": 360,
+        "p50": 1.5,
+        "p95": 3,
+        "max": 8.2,
+        "over20": 0
+      },
+      "drawFlushed": {
+        "n": 360,
+        "p50": 34.1,
+        "p95": 54,
+        "max": 107.3,
+        "over20": 100
+      },
+      "perRun": [
+        {
+          "run": 0,
+          "rafP95": 66.7,
+          "drawP95": 5.6,
+          "flushedP95": 64.6
+        },
+        {
+          "run": 1,
+          "rafP95": 66.7,
+          "drawP95": 4.1,
+          "flushedP95": 48
+        },
+        {
+          "run": 2,
+          "rafP95": 50.1,
+          "drawP95": 2.6,
+          "flushedP95": 45.6
+        }
+      ],
+      "consoleErrors": [],
+      "expectedReadbackWarnings": 3,
+      "screenshots": [
+        "d7-hold.png",
+        "d7-stress.png"
       ],
       "passes": false
     }
@@ -955,12 +1229,12 @@
   },
   "lutSaving": {
     "drawUnflushedP50": {
-      "lut": 2.1,
-      "oklch": 2.2
+      "lut": 1.7,
+      "oklch": 2
     },
     "drawFlushedP95": {
-      "lut": 57.8,
-      "oklch": 57.2
+      "lut": 47.6,
+      "oklch": 47.3
     }
   }
 }

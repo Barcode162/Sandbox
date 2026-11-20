@@ -1,0 +1,290 @@
+{
+  "generated": "2026-11-20T18:39:03.676Z",
+  "ok": true,
+  "rows": [
+    {
+      "budget": "JS gzip",
+      "actual": 35046,
+      "limit": 40960,
+      "ok": true
+    },
+    {
+      "budget": "CSS gzip",
+      "actual": 5439,
+      "limit": 12288,
+      "ok": true
+    },
+    {
+      "budget": "HTML gzip",
+      "actual": 2468,
+      "limit": 16384,
+      "ok": true
+    },
+    {
+      "budget": "Font bytes",
+      "actual": 22288,
+      "limit": 22288,
+      "ok": true
+    },
+    {
+      "budget": "Font sha256",
+      "actual": "0640890476fc1198ab4de571fb658de443c4d85b66466ec09534a8737ab1ce9d",
+      "limit": "0640890476fc1198ab4de571fb658de443c4d85b66466ec09534a8737ab1ce9d",
+      "ok": true
+    },
+    {
+      "budget": "OFL.txt sha256",
+      "actual": "18a4de52385f6b988782639d5d0cc1326e5a8c2de9a7f01d7b20d9aedcc60943",
+      "limit": "18a4de52385f6b988782639d5d0cc1326e5a8c2de9a7f01d7b20d9aedcc60943",
+      "ok": true
+    },
+    {
+      "budget": "First-load transfer",
+      "actual": 65241,
+      "limit": 97280,
+      "ok": true
+    }
+  ],
+  "js": {
+    "files": [
+      {
+        "file": "js/chrome/chrome.js",
+        "bytes": 360,
+        "gzip": 270
+      },
+      {
+        "file": "js/chrome/font-claim.js",
+        "bytes": 226,
+        "gzip": 198
+      },
+      {
+        "file": "js/components/bands-dom.js",
+        "bytes": 3303,
+        "gzip": 1490
+      },
+      {
+        "file": "js/components/dotgrid-svg.js",
+        "bytes": 3368,
+        "gzip": 1573
+      },
+      {
+        "file": "js/components/svg.js",
+        "bytes": 4973,
+        "gzip": 1918
+      },
+      {
+        "file": "js/components/white-point.js",
+        "bytes": 2779,
+        "gzip": 1311
+      },
+      {
+        "file": "js/core/announce.js",
+        "bytes": 718,
+        "gzip": 412
+      },
+      {
+        "file": "js/core/copy.js",
+        "bytes": 6163,
+        "gzip": 2625
+      },
+      {
+        "file": "js/core/env.js",
+        "bytes": 1802,
+        "gzip": 843
+      },
+      {
+        "file": "js/core/geometry.js",
+        "bytes": 11370,
+        "gzip": 4658
+      },
+      {
+        "file": "js/core/math.js",
+        "bytes": 5169,
+        "gzip": 2056
+      },
+      {
+        "file": "js/core/phrases.js",
+        "bytes": 4450,
+        "gzip": 1926
+      },
+      {
+        "file": "js/core/reduced.js",
+        "bytes": 1654,
+        "gzip": 774
+      },
+      {
+        "file": "js/core/tokens.js",
+        "bytes": 3907,
+        "gzip": 1610
+      },
+      {
+        "file": "js/engine/admire.js",
+        "bytes": 569,
+        "gzip": 333
+      },
+      {
+        "file": "js/engine/ambient.js",
+        "bytes": 1072,
+        "gzip": 557
+      },
+      {
+        "file": "js/engine/engine.js",
+        "bytes": 10352,
+        "gzip": 3455
+      },
+      {
+        "file": "js/engine/hook.js",
+        "bytes": 1185,
+        "gzip": 628
+      },
+      {
+        "file": "js/engine/layers.js",
+        "bytes": 250,
+        "gzip": 204
+      },
+      {
+        "file": "js/engine/rewind.js",
+        "bytes": 524,
+        "gzip": 351
+      },
+      {
+        "file": "js/main.js",
+        "bytes": 1388,
+        "gzip": 573
+      },
+      {
+        "file": "js/scenes/index.js",
+        "bytes": 569,
+        "gzip": 350
+      },
+      {
+        "file": "js/scenes/prism-svg.js",
+        "bytes": 258,
+        "gzip": 213
+      },
+      {
+        "file": "js/scenes/s1-incidence.js",
+        "bytes": 2084,
+        "gzip": 1024
+      },
+      {
+        "file": "js/scenes/s2-field.js",
+        "bytes": 2050,
+        "gzip": 1018
+      },
+      {
+        "file": "js/scenes/s3-refraction.js",
+        "bytes": 2038,
+        "gzip": 1008
+      },
+      {
+        "file": "js/scenes/s4-contact.js",
+        "bytes": 236,
+        "gzip": 204
+      },
+      {
+        "file": "js/scenes/s4-dichroic.js",
+        "bytes": 2113,
+        "gzip": 1040
+      },
+      {
+        "file": "js/scenes/s4-fallback.js",
+        "bytes": 256,
+        "gzip": 225
+      },
+      {
+        "file": "js/scenes/s4-lut.js",
+        "bytes": 215,
+        "gzip": 187
+      },
+      {
+        "file": "js/scenes/s5-agreement.js",
+        "bytes": 2017,
+        "gzip": 1002
+      },
+      {
+        "file": "js/scenes/s6-return.js",
+        "bytes": 2033,
+        "gzip": 1010
+      }
+    ],
+    "bytes": 79451,
+    "gzip": 35046
+  },
+  "css": {
+    "files": [
+      {
+        "file": "css/base.css",
+        "bytes": 6451,
+        "gzip": 2248
+      },
+      {
+        "file": "css/chrome.css",
+        "bytes": 146,
+        "gzip": 145
+      },
+      {
+        "file": "css/colophon.css",
+        "bytes": 118,
+        "gzip": 125
+      },
+      {
+        "file": "css/scenes/s1.css",
+        "bytes": 79,
+        "gzip": 92
+      },
+      {
+        "file": "css/scenes/s2.css",
+        "bytes": 79,
+        "gzip": 92
+      },
+      {
+        "file": "css/scenes/s3.css",
+        "bytes": 79,
+        "gzip": 92
+      },
+      {
+        "file": "css/scenes/s4.css",
+        "bytes": 79,
+        "gzip": 93
+      },
+      {
+        "file": "css/scenes/s5.css",
+        "bytes": 79,
+        "gzip": 93
+      },
+      {
+        "file": "css/scenes/s6.css",
+        "bytes": 79,
+        "gzip": 93
+      },
+      {
+        "file": "css/tokens.css",
+        "bytes": 6596,
+        "gzip": 2366
+      }
+    ],
+    "bytes": 13785,
+    "gzip": 5439
+  },
+  "html": {
+    "files": [
+      {
+        "file": "index.html",
+        "bytes": 8188,
+        "gzip": 2468
+      }
+    ],
+    "bytes": 8188,
+    "gzip": 2468
+  },
+  "font": {
+    "bytes": 22288,
+    "sha256": "0640890476fc1198ab4de571fb658de443c4d85b66466ec09534a8737ab1ce9d"
+  },
+  "ofl": {
+    "bytes": 4401,
+    "sha256": "18a4de52385f6b988782639d5d0cc1326e5a8c2de9a7f01d7b20d9aedcc60943"
+  },
+  "firstLoad": 65241
+}

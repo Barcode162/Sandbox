@@ -8,7 +8,7 @@ import { createBands } from '../../site/js/components/bands-dom.js';
 import { createDotGrid } from '../../site/js/components/dotgrid-svg.js';
 import { createWhitePoint } from '../../site/js/components/white-point.js';
 import { el, setAttrs, setStyles } from '../../site/js/components/svg.js';
-import { viewport } from '../../site/js/core/geometry.js';
+import { bandRects, bandRectsFromWeights, dotGrid, viewport } from '../../site/js/core/geometry.js';
 import { FIXTURES, GROUNDS, groundCss } from './fixtures.js';
 
 /**
@@ -162,6 +162,7 @@ Object.assign(window, {
     fixtures: FIXTURES.map((f) => f.id),
     drawn: result.drawn,
     components: { createBands, createDotGrid, createWhitePoint, el, setAttrs, setStyles },
+    geometry: { bandRects, bandRectsFromWeights, dotGrid, viewport },
   },
 });
 document.documentElement.dataset.ready = 'true';

@@ -396,5 +396,7 @@ declare global {
   interface Window {
     __showcase: ShowcaseHook;
     __harness: HarnessHandle;
+    /** dev/components gallery hook (WO-004, dev-only; never in site/). Shape owned by WO-004. */
+    __gallery: any;
   }
 }

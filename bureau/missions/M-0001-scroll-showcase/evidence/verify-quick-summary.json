@@ -1,0 +1,86 @@
+{
+  "generated": "2026-11-20T18:39:03.683Z",
+  "mode": "quick",
+  "VERIFY_PHASE": 0,
+  "ok": false,
+  "evidenceDir": "/home/user/Sandbox/bureau/missions/M-0001-scroll-showcase/evidence",
+  "steps": [
+    {
+      "n": 0,
+      "name": "preflight",
+      "status": "pass",
+      "gating": true,
+      "ms": 3
+    },
+    {
+      "n": 1,
+      "name": "typecheck",
+      "status": "fail",
+      "gating": true,
+      "ms": 2280,
+      "cmd": "tsc -p tsconfig.json"
+    },
+    {
+      "n": 2,
+      "name": "static guards",
+      "status": "absent",
+      "gating": true,
+      "ms": 0
+    },
+    {
+      "n": 3,
+      "name": "unit (dev)",
+      "status": "pass",
+      "gating": true,
+      "ms": 458,
+      "counts": {
+        "tests": 107,
+        "pass": 107,
+        "fail": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "cmd": "node --test 'tests/unit/dev/**/*.test.js'"
+    },
+    {
+      "n": 3,
+      "name": "unit (spec, printed only)",
+      "status": "info",
+      "gating": false,
+      "ms": 63,
+      "counts": {
+        "tests": 0,
+        "pass": 0,
+        "fail": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "note": "non-gating: green; ",
+      "cmd": "node --test 'tests/unit/spec/**/*.test.js'"
+    },
+    {
+      "n": 4,
+      "name": "size and assets",
+      "status": "pass",
+      "gating": true,
+      "ms": 50,
+      "cmd": "node scripts/check-size.mjs"
+    }
+  ],
+  "ids": [],
+  "idsSeen": {
+    "WO-003": "pass",
+    "serve": "pass"
+  },
+  "skipped": 0,
+  "evidence": {
+    "screens": {
+      "bytes": 0,
+      "files": 0
+    },
+    "motion": {
+      "bytes": 0,
+      "files": 0
+    }
+  }
+}

@@ -28,8 +28,9 @@ const RINGS = {
 
 /**
  * @param {Element} parent an SVG element in (u, v) space, or a positioned HTML
- *   box (the point is then placed in a zero-size overflow-visible SVG at its
- *   top-left corner, so u and v are px from that corner)
+ *   box (the point is then placed in a 1 px overflow-visible SVG at its
+ *   top-left corner, so u and v are px from that corner; a zero-size SVG
+ *   would not render at all)
  * @returns {WhitePoint}
  */
 export function createWhitePoint(parent) {
@@ -39,7 +40,7 @@ export function createWhitePoint(parent) {
   if (inSvg) {
     host = el('g', { class: 'white-point' }, parent);
   } else {
-    host = el('svg', { class: 'white-point', width: 0, height: 0, 'aria-hidden': 'true', focusable: 'false' }, parent);
+    host = el('svg', { class: 'white-point', width: 1, height: 1, 'aria-hidden': 'true', focusable: 'false' }, parent);
     setStyles(host, { position: 'absolute', left: '0', top: '0', overflow: 'visible', 'pointer-events': 'none' });
   }
   const group = inSvg ? host : el('g', {}, host);
