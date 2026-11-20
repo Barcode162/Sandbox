@@ -438,7 +438,8 @@ export type StageId =
   | `fold-${TowerKind}-${'0-0' | '3-1' | '1-3'}` | 'fold-sealed-hover'
   | 'r18-8s' | 'r18-8s-cb'
   | 'r20-warning' | 'r20-arrival' | 'r20-shed50' | 'r20-death'
-  | 'pause' | 'settings-cb' | 'gameover' | 'victory';
+  | 'pause' | 'settings-cb' | 'gameover' | 'victory'
+  | 'blots-grid' | 'towers-sheet';
 
 export interface PerfReport {
   blots: number;
@@ -448,6 +449,8 @@ export interface PerfReport {
   meanStepMs: number;
   p95StepMs: number;
   maxStepMs: number;
+  /** Board condition 3: budget ≤ 6 ms. */
+  p99StepMs: number;
   heapStartMB: number | null;
   heapEndMB: number | null;
 }

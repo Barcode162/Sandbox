@@ -18,7 +18,7 @@ export function runPerf(sim: Sim, steps: number, now: () => number, heapMB: () =
   const s = sim.state;
   return {
     blots: s.blots.count, towers: s.towers.length, projectiles: s.projectiles.count, steps,
-    meanStepMs: mean, p95StepMs: times[Math.floor(times.length * 0.95)] ?? 0, maxStepMs: times[times.length - 1] ?? 0,
+    meanStepMs: mean, p95StepMs: times[Math.floor(times.length * 0.95)] ?? 0, p99StepMs: times[Math.floor(times.length * 0.99)] ?? 0, maxStepMs: times[times.length - 1] ?? 0,
     heapStartMB, heapEndMB: heapMB(),
   };
 }

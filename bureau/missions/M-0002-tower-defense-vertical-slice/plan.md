@@ -142,3 +142,11 @@ Cap: 2,500 words. Contracts live in code in `projects/tower-defense/src/contract
 - **Quality notes:** §16.18, §16.19, §16.8 (tink). The audio must not throw when there is no AudioContext.
 
 ## Board conditions
+
+Gate 1 r1 · director-engineering CONDITIONAL 8.0 (`board/plan-director-engineering-r1.md`). Folded in by the CEO:
+1. Blots-grid and towers-sheet captures can't run under Vitest (no canvas) → `StageId` gains `'blots-grid' | 'towers-sheet'` (types.ts); WO-004 builds both stages, WO-005 captures them in Chromium and pixel-diffs them.
+2. `verify --strict` has no time limit → it must finish in ≤ 8 min; R18/R20 stages skip ahead without drawing; the win script must give identical results in Vitest and in the browser (WO-005 asserts this).
+3. Zero-allocation budget is not met → WO-002 pools `SimEvent`s (or architecture.md states the exception honestly); `PerfReport.p99StepMs` added, budget ≤ 6 ms (WO-005 enforces).
+4. A full 2048 pool is undefined → WO-002/WO-003 drop the overflow deterministically (no crash), count drops in an overflow counter that goes into the state hash, and unit-test it.
+5. Balance → WO-002's engineer is resumed after WO-003 lands to tune the win/lose scripts; no skipped or faked win/loss tests at ship.
+

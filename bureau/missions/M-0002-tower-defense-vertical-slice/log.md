@@ -11,3 +11,8 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-20T21:28:21Z` **ceo** — Phase design → **plan-review**
 - `2026-11-20T21:28:35Z` **ceo** — Convened 1× director-engineering — plan gate r1
 - `2026-11-20T21:28:35Z` **ceo** — Architect DONE. Fixed state.json output path (CEO glue). Designer resumed to trim spec (gate count 6233>6000).
+- `2026-11-20T21:33:36Z` **director-engineering** — plan gate r1: CONDITIONAL (8.0)
+- `2026-11-20T21:33:51Z` **ceo** — plan gate PASSED (round 1)
+- `2026-11-20T21:34:26Z` **ceo** — Phase plan-review → **build**
+- `2026-11-20T21:34:26Z` **ceo** — Convened 4× engineer — wave 1: WO-002..005
+- `2026-11-20T21:34:26Z` **ceo** — Gate 1 PASS (DE CONDITIONAL 8.0). CEO folded 5 conditions: StageId +blots-grid/towers-sheet, PerfReport.p99StepMs, plan § Board conditions.

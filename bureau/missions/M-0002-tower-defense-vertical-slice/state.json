@@ -5,17 +5,24 @@
   "tier": 3,
   "domain": "game",
   "output": "projects/tower-defense",
-  "phase": "plan-review",
+  "phase": "build",
   "created": "2026-11-20T21:00:43Z",
   "rounds": {
     "plan": 1,
     "ship": 1
   },
-  "gates": {},
+  "gates": {
+    "plan": {
+      "passed": true,
+      "round": 1,
+      "at": "2026-11-20T21:33:51Z"
+    }
+  },
   "headcount": {
     "experience-designer": 1,
     "architect": 1,
-    "director-engineering": 1
+    "director-engineering": 1,
+    "engineer": 4
   },
   "levers": [
     "polish"
@@ -32,7 +39,11 @@
     {
       "phase": "plan-review",
       "at": "2026-11-20T21:28:21Z"
+    },
+    {
+      "phase": "build",
+      "at": "2026-11-20T21:34:26Z"
     }
   ],
-  "updated": "2026-11-20T21:28:35Z"
+  "updated": "2026-11-20T21:34:26Z"
 }
