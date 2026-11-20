@@ -4,8 +4,8 @@
   "slug": "tower-defense-vertical-slice",
   "tier": 3,
   "domain": "game",
-  "output": "projects/tower-defense-vertical-slice",
-  "phase": "design",
+  "output": "projects/tower-defense",
+  "phase": "plan-review",
   "created": "2026-11-20T21:00:43Z",
   "rounds": {
     "plan": 1,
@@ -14,7 +14,8 @@
   "gates": {},
   "headcount": {
     "experience-designer": 1,
-    "architect": 1
+    "architect": 1,
+    "director-engineering": 1
   },
   "levers": [
     "polish"
@@ -27,7 +28,11 @@
     {
       "phase": "design",
       "at": "2026-11-20T21:01:23Z"
+    },
+    {
+      "phase": "plan-review",
+      "at": "2026-11-20T21:28:21Z"
     }
   ],
-  "updated": "2026-11-20T21:14:10Z"
+  "updated": "2026-11-20T21:28:35Z"
 }

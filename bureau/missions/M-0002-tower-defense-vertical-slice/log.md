@@ -8,3 +8,6 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-20T21:01:23Z` **ceo** — Intake: tier 3 + polish per Owner. Roles not loaded as subagent types; using general-purpose adopting role files (rule 9).
 - `2026-11-20T21:14:10Z` **ceo** — Convened 1× architect — contracts+scaffold+architecture+plan
 - `2026-11-20T21:14:10Z` **ceo** — Spec done: Inkfold (5,977 words). Convening architect.
+- `2026-11-20T21:28:21Z` **ceo** — Phase design → **plan-review**
+- `2026-11-20T21:28:35Z` **ceo** — Convened 1× director-engineering — plan gate r1
+- `2026-11-20T21:28:35Z` **ceo** — Architect DONE. Fixed state.json output path (CEO glue). Designer resumed to trim spec (gate count 6233>6000).
