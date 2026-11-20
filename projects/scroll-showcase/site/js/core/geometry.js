@@ -103,7 +103,7 @@ function px(x) {
 
 /**
  * Build the Viewport record (C1) from the three measured inputs.
- * @param {number} vw documentElement.clientWidth, CSS px
+ * @param {number} vw client width of the root element, CSS px
  * @param {number} sh height of a 100svh probe, CSS px
  * @param {number} dpr devicePixelRatio
  * @returns {Viewport}
@@ -268,7 +268,7 @@ const PORTRAIT_TRI_VW = 40;
  * Fit cap. Neighbouring shelf centres are U/4 apart. The widest neighbouring
  * pair is triangle + circle, whose circumscribed radii (rotation-invariant, so
  * the ±8° arrival tilt is covered) are 30/√3 + 26/2 units. Where the specified
- * sizes would make those circles intersect (near-square windows, and 768×1024
+ * sizes would make those circles intersect (near-square viewports, and 768×1024
  * under the 40vw rule), every size scales down together until they touch.
  * At 375×812, 1024×768, 1440×900 and 1920×1080 the cap does not engage.
  */

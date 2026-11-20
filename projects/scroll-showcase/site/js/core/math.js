@@ -1,7 +1,7 @@
 // core/math.js — the pure maths every scene and the engine share (architecture §C2).
 //
 // Everything here is a pure function of its arguments: no clock, no DOM, no
-// Math.random. Position curves are maps of [0, 1] onto [0, 1] with f(0) = 0
+// ambient randomness. Position curves are maps of [0, 1] onto [0, 1] with f(0) = 0
 // and f(1) = 1 exactly (spec §3.5). They clamp their input, so a caller can
 // never extrapolate a curve past its endpoints by accident.
 
@@ -30,10 +30,10 @@ export function lerp(a, b, t) {
 
 /**
  * Remap: r(p, a, b) = clamp((p − a) / (b − a), 0, 1) (spec §3.5).
- * A degenerate window (a === b) is a step at a: 0 before it, 1 from it on.
+ * A degenerate range (a === b) is a step at a: 0 before it, 1 from it on.
  * @param {number} p
- * @param {number} a window start
- * @param {number} b window end (b >= a)
+ * @param {number} a range start
+ * @param {number} b range end (b >= a)
  * @returns {number}
  */
 export function r(p, a, b) {

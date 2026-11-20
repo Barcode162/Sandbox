@@ -52,6 +52,9 @@ const DIAGS = [
   { id: 'd2', name: 'c1, spec-faithful hold frames (p 0.44 to 0.56)', vw: 1920, vh: 1080, dpr: 2, cap: 1.5, lattice: 72, colour: 'lut', cadence: 'scroll', layers: 'hold' },
   { id: 'd3', name: 'c1 stress, willReadFrequently canvas', vw: 1920, vh: 1080, dpr: 2, cap: 1.5, lattice: 72, colour: 'lut', cadence: 'scroll', wrf: true },
   { id: 'd4', name: 'c2 (backing DPR 1), spec-faithful hold frames', vw: 1920, vh: 1080, dpr: 2, cap: 1, lattice: 72, colour: 'lut', cadence: 'scroll', layers: 'hold' },
+  { id: 'd5', name: 'd2 without the per-facet 0.5 px stroke (stroke share; seams would show)', vw: 1920, vh: 1080, dpr: 2, cap: 1.5, lattice: 72, colour: 'lut', cadence: 'scroll', layers: 'hold', noStroke: true },
+  { id: 'd6', name: 'd2 with facets batched by colour (one path, fill and stroke per distinct colour)', vw: 1920, vh: 1080, dpr: 2, cap: 1.5, lattice: 72, colour: 'lut', cadence: 'scroll', layers: 'hold', batch: true },
+  { id: 'd7', name: 'c1 stress with facets batched by colour', vw: 1920, vh: 1080, dpr: 2, cap: 1.5, lattice: 72, colour: 'lut', cadence: 'scroll', batch: true },
 ];
 // Chromium logs this in pass B by design: R8 mandates a getImageData readback every frame.
 const EXPECTED_WARNING = /Multiple readback operations using getImageData are faster with the willReadFrequently attribute/;
@@ -145,6 +148,8 @@ function pageMain(cfg, opts) {
     nx[f] = Math.cos(ang) * mag; ny[f] = Math.sin(ang) * mag;
   }
   const vx = new Float64Array(nv), vy = new Float64Array(nv);
+  const groups = new Map();
+  let lastGroups = null;
 
   function params(p, amb) {
     const J = glide(r(p, 0.08, 0.35)) * (1 - glide(r(p, 0.8, 0.96)));
@@ -204,11 +209,29 @@ function pageMain(cfg, opts) {
         R = Math.round(lerp(R, band[0], s.quant)); G = Math.round(lerp(G, band[1], s.quant)); B = Math.round(lerp(B, band[2], s.quant));
       }
       const col = `rgb(${R},${G},${B})`;
+      if (cfg.batch) {
+        let g = groups.get(col);
+        if (!g) { g = []; groups.set(col, g); }
+        g.push(t);
+        continue;
+      }
       ctx.beginPath();
       ctx.moveTo(vx[t[0]], vy[t[0]]); ctx.lineTo(vx[t[1]], vy[t[1]]); ctx.lineTo(vx[t[2]], vy[t[2]]);
       ctx.closePath();
       ctx.fillStyle = col; ctx.fill();
-      ctx.strokeStyle = col; ctx.stroke();
+      if (!cfg.noStroke) { ctx.strokeStyle = col; ctx.stroke(); }
+    }
+    if (cfg.batch) {
+      for (const [col, list] of groups) {
+        ctx.beginPath();
+        for (const t of list) {
+          ctx.moveTo(vx[t[0]], vy[t[0]]); ctx.lineTo(vx[t[1]], vy[t[1]]); ctx.lineTo(vx[t[2]], vy[t[2]]); ctx.closePath();
+        }
+        ctx.fillStyle = col; ctx.fill();
+        ctx.strokeStyle = col; ctx.stroke();
+      }
+      lastGroups = groups.size;
+      groups.clear();
     }
 
     // 1 px white lattice edges, one path, one stroke.
@@ -293,6 +316,7 @@ function pageMain(cfg, opts) {
   window.__spike = {
     info: { facets: nF, cols, rows, backing, backingW: canvas.width, backingH: canvas.height, mpx: (canvas.width * canvas.height) / 1e6, lutEntries: LUT.length, ua: navigator.userAgent },
     run,
+    groups: () => lastGroups,
     still(p) { draw(p, 0, false); },
     lutSpan() { // hue span actually reachable: J <= 1 so |n·L| <= 0.6
       return { hueMin: 255 - 150 * 0.6, hueMax: 255 + 150 * 0.6 };
@@ -332,7 +356,8 @@ async function onePage(browser, cfg, flush) {
   await page.evaluate(`(${pageMain.toString()})(${JSON.stringify(cfg)}, ${JSON.stringify({ frames: FRAMES, warmup: WARMUP })})`);
   const info = await page.evaluate(() => window.__spike.info);
   const res = await page.evaluate((f) => window.__spike.run(f), flush);
-  return { context, page, info, res, errors, expected };
+  const groupsLast = await page.evaluate(() => window.__spike.groups());
+  return { context, page, info, res, errors, expected, groupsLast };
 }
 
 async function main() {
@@ -349,7 +374,7 @@ async function main() {
     for (let run = 0; run < RUNS; run++) {
       // Pass A: production-like loop, no readback. rAF delta + unflushed draw.
       const a = await onePage(browser, cfg, false);
-      info = a.info; errors.push(...a.errors);
+      info = { ...a.info, colourGroupsLastFrame: a.groupsLast }; errors.push(...a.errors);
       if (run === RUNS - 1) {
         await a.page.screenshot({ path: path.join(OUT, `${cfg.id}-stress.png`), scale: 'css' });
         await a.page.evaluate(() => window.__spike.still(0.5));
@@ -452,10 +477,10 @@ function renderMd(R, order) {
   L.push('Draw-sample counts: c7 draws on every other rAF, so its draw percentiles cover ' + by.c7.drawFlushed.n + ' draws, against ' + by.c1.drawFlushed.n + ' for the others.');
   L.push('');
   L.push('## Diagnostics (not D2 levels; they explain where the cost goes)');
-  L.push('| id | what | backing Mpx | rAF p50 / p95 | rAF > 20 ms | draw unflushed p50 / p95 | draw flushed p50 / p95 | flushed p50 as % of c1 |');
-  L.push('|---|---|---|---|---|---|---|---|');
+  L.push('| id | what | backing Mpx | rAF p50 / p95 | rAF > 20 ms | draw unflushed p50 / p95 | draw flushed p50 / p95 | flushed p50 as % of c1 | fill calls (last frame) |');
+  L.push('|---|---|---|---|---|---|---|---|---|');
   for (const c of diags) {
-    L.push(`| ${c.id} | ${c.name} | ${c.info.mpx.toFixed(2)} | ${c.raf.p50} / ${c.raf.p95} | ${c.raf.over20}% | ${c.drawUnflushed.p50} / ${c.drawUnflushed.p95} | ${c.drawFlushed.p50} / ${c.drawFlushed.p95} | ${Math.round((c.drawFlushed.p50 / by.c1.drawFlushed.p50) * 100)}% |`);
+    L.push(`| ${c.id} | ${c.name} | ${c.info.mpx.toFixed(2)} | ${c.raf.p50} / ${c.raf.p95} | ${c.raf.over20}% | ${c.drawUnflushed.p50} / ${c.drawUnflushed.p95} | ${c.drawFlushed.p50} / ${c.drawFlushed.p95} | ${Math.round((c.drawFlushed.p50 / by.c1.drawFlushed.p50) * 100)}% | ${c.layers === 'ground' ? 1 : c.batch ? c.info.colourGroupsLastFrame : c.info.facets} |`);
   }
   L.push('');
   L.push(`Flushed cost per backing megapixel, spec-faithful hold frames: d2 ${(by.d2.drawFlushed.p50 / by.d2.info.mpx).toFixed(2)} ms/Mpx at 4.67 Mpx, d4 ${(by.d4.drawFlushed.p50 / by.d4.info.mpx).toFixed(2)} ms/Mpx at 2.07 Mpx. ` +

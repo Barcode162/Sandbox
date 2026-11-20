@@ -1,0 +1,89 @@
+/* Gallery chrome only. The components style themselves inline; nothing here
+   reaches inside a panel's art box except its size and clipping. */
+
+@font-face {
+  font-family: "Space Grotesk";
+  src: url(/fonts/space-grotesk-latin-wght-normal.woff2) format("woff2");
+  font-weight: 300 700;
+  font-display: swap;
+}
+
+:root {
+  --g-font: "Space Grotesk", "Helvetica Neue", Arial, "Liberation Sans", sans-serif;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 48px;
+  background: var(--wall);
+  color: var(--ink);
+  font: 400 16px / 1.5 var(--g-font);
+}
+
+.intro { max-width: 64ch; margin-bottom: 48px; }
+.kicker {
+  margin: 0 0 8px;
+  font: 600 12px / 1 var(--g-font);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+h1 { margin: 0 0 12px; font: 700 48px / 1 var(--g-font); letter-spacing: -0.035em; }
+.lede { margin: 0; font-size: 18px; line-height: 1.55; }
+
+.row { margin-bottom: 48px; }
+.row h2 {
+  margin: 0 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--wall-deep);
+  font: 600 12px / 1 var(--g-font);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.panels { display: flex; flex-wrap: wrap; gap: 24px; }
+.panel { margin: 0; width: 416px; }
+
+.art {
+  position: relative;
+  overflow: clip;
+  border-radius: 2px;
+}
+.art .overlay { position: absolute; left: 0; top: 0; }
+
+figcaption { display: grid; gap: 2px; padding-top: 12px; font-size: 15px; line-height: 1.45; }
+figcaption strong { font-weight: 600; }
+figcaption .from { color: color-mix(in srgb, var(--ink) 72%, var(--wall)); }
+figcaption code {
+  font: 500 12px / 1.4 ui-monospace, "Liberation Mono", monospace;
+  color: color-mix(in srgb, var(--ink) 64%, var(--wall));
+  font-variant-numeric: tabular-nums;
+}
+
+.loupe {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 112px;
+  height: 112px;
+  border: 1px solid color-mix(in srgb, var(--ink) 24%, transparent);
+  border-radius: 2px;
+  overflow: clip;
+}
+.loupe svg { display: block; }
+.loupe-label {
+  position: absolute;
+  right: 6px;
+  bottom: 4px;
+  font: 600 12px / 1 var(--g-font);
+  letter-spacing: 0.12em;
+  color: color-mix(in srgb, var(--ink) 72%, transparent);
+}
+
+.missing { font: 500 16px / 1.5 var(--g-font); }
+
+/* Solo: one fixture full-window at (0, 0), for pixel scans. */
+html[data-mode="solo"] body { padding: 0; overflow: clip; }
+html[data-mode="solo"] .intro { display: none; }
+.art--solo { position: absolute; left: 0; top: 0; border-radius: 0; transform-origin: 0 0; }

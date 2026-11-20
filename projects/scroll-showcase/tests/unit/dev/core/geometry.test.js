@@ -295,7 +295,7 @@ test('bandRectsFromWeights(): cumulative snapped edges normalised to U at all DP
       for (let k = 0; k < 40; k++) {
         /** @type {number[]} */
         const w = Array.from({ length: 7 }, () => (rand() < 0.15 ? 0 : rand() * 12));
-        if (w.every((x) => x === 0)) w[3] = 1;
+        if (w.reduce((a, b) => a + b, 0) === 0) w[3] = 1;
         const rects = bandRectsFromWeights(w, vp);
         const label = `${vw}x${sh}@${dpr} w=${w.map((x) => x.toFixed(2))}`;
         assert.equal(rects.length, 7);
