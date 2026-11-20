@@ -29,3 +29,4 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-20T14:13:24Z` **ceo** — Convened 1× integrator — wave 0 WO-001
 - `2026-11-20T14:13:24Z` **ceo** — Convened 4× engineer — wave 0 WO-002..005
 - `2026-11-20T18:33:13Z` **ceo** — WO-003 DONE. Carry-forward requests: WO-006 must write --gutter from vp.gutter beside --U/--V; WO-016/017/018 read all strings from COPY and use placardPhrase(scene, stillPlan(p).pShown) under reduced motion.
+- `2026-11-20T18:33:52Z` **ceo** — WO-002 DONE. CEO decision: APPROVE S3 shelf fit cap (shapes shrink only on collision; 40vw = triangle, others proportional, all portrait). No change at 375/1024/1440/1920. Designer may revisit in WO-027; WO-012 brief must cite this.
