@@ -6,13 +6,14 @@
 //    re-run by WO-013 on 2026-11-20; output quoted verbatim; it runs in every `npm run verify`) ─────
 //
 //   [K11] probe 1: rAF is frozen while the clock is paused
-//     paused page rAF callbacks: 0 while a free page ran 31 rAF over 502 ms of real time
+//     paused page rAF callbacks: 0 while a free page ran 32 rAF over 516 ms of real time
 //   [K11] probe 2: setTimeout is advanced by clock.runFor
 //     after runFor(1199): fired=false · after runFor(1): fired=true
 //   [K11] probe 3: CSS transitions are NOT advanced by clock.runFor while paused
 //     opacity after runFor(450): 1 · after ≥ 1300 ms of real time: 0
-//   [K11] probe 4: seeking a paused CSSTransition's currentTime gives exact values
+//   [K11] probe 4: seeking a paused CSSTransition currentTime gives exact values
 //     900 ms / 200 ms-delay linear fade 1 → 0: {"0":1,"200":1,"650":0.5,"1100":0}
+//     · timing {"duration":900,"delay":200,"easing":"linear"}
 //
 // ── The rules that follow ───────────────────────────────────────────────────────────────────
 //   * JS timers (the 1,200 ms idle timer, the 3,000 ms placard timer) and rAF-driven amplitude are

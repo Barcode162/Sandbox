@@ -72,14 +72,16 @@ function toward(from, to, t) {
 }
 
 /**
- * A drawn band edge: snapped to the device grid and kept inside [0, U], exactly
- * as `bandRectsFromWeights` does, so an off-grid U (e.g. 811.5 px at DPR 1)
- * keeps its exact last edge.
+ * A drawn band edge: snapped to the device grid and kept inside [0, U], as in
+ * `bandRectsFromWeights`. The stage limits themselves stay exact, so an
+ * off-grid U (e.g. 811.5 px at DPR 1.5) keeps its exact last edge at p 0.
  * @param {number} x
  * @param {number} U
  * @param {number} dpr
  */
 function edge(x, U, dpr) {
+  if (x <= 0) return 0;
+  if (x >= U) return fin(U);
   return fin(clamp(snap(x, dpr), 0, U));
 }
 
