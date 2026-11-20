@@ -1,0 +1,29 @@
+{
+  "id": "M-0001",
+  "title": "Scroll-driven animation showcase",
+  "slug": "scroll-showcase",
+  "tier": 3,
+  "domain": "interactive-web",
+  "output": "projects/scroll-showcase",
+  "phase": "intel",
+  "created": "2026-11-20T12:08:42Z",
+  "rounds": {
+    "plan": 1,
+    "ship": 1
+  },
+  "gates": {},
+  "headcount": {
+    "scout": 3
+  },
+  "history": [
+    {
+      "phase": "intake",
+      "at": "2026-11-20T12:08:42Z"
+    },
+    {
+      "phase": "intel",
+      "at": "2026-11-20T12:09:15Z"
+    }
+  ],
+  "updated": "2026-11-20T12:09:15Z"
+}
