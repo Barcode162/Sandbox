@@ -344,7 +344,7 @@
           const it = G.ITEMS[id];
           const g = G.Models.item(id);
           const wrap = new THREE.Group(); wrap.add(g);
-          if (it.type === 'tool') { g.scale.setScalar(0.62); g.position.y = -0.08; wrap.rotation.set(-0.55, 0.15, 0.25); if (id === 'stone_spear') { g.position.y = -0.7; } }
+          if (it.type === 'tool') { g.scale.setScalar(0.62); g.position.y = -0.08; wrap.rotation.set(-0.5, 0.1, -0.12); if (id === 'stone_spear') { g.position.y = -0.7; } }
           else if (it.type === 'place') { g.scale.setScalar(0.22); g.position.set(-0.05, 0.02, -0.12); }
           else { g.scale.setScalar(0.26); g.position.set(-0.02, 0.04, -0.06); }
           this.vmItem = wrap; this.hand.add(wrap);
