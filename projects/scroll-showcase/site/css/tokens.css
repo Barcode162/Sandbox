@@ -1,0 +1,167 @@
+/*
+ * Bent Light design tokens (experience spec §13).
+ *
+ * One source for colour (§13.1), type (§13.2), spacing and shape (§13.3) and
+ * motion (§13.5). `site/js/core/tokens.js` mirrors every colour; a dev unit test
+ * (tests/unit/dev/content/tokens.test.js) fails if the two disagree.
+ *
+ * Scheme rule (D9): under `prefers-color-scheme: dark` only `--wall` and
+ * `--wall-deep` change. Nothing else in this file depends on the colour scheme.
+ *
+ * `--font` (the family stack) is declared in base.css next to the @font-face
+ * rules it names (§13.2 Mode G). The composite `--type-*` tokens resolve it there.
+ */
+
+:root {
+  /* ── Colour (§13.1) ─────────────────────────────────────────────── */
+  --wall: #F6F3ED;        /* Y 0.90 · gallery wall, colophon ground */
+  --wall-deep: #E2DDD5;   /* Y 0.73 · spotlight falloff, beam underline, light-chip border */
+  --ink: #0C0F1A;         /* Y 0.005 · dark room, text, focus outer ring */
+  --beam: #FFFFFF;        /* Y 1.0 · white light, white point */
+
+  --band-1: #F54123;      /* vermilion · Y 0.23 */
+  --band-2: #F68704;      /* tangerine · Y 0.37 */
+  --band-3: #F2C50E;      /* saffron   · Y 0.59 */
+  --band-4: #0BCA86;      /* jade      · Y 0.44 */
+  --band-5: #04A7D8;      /* azure     · Y 0.33 */
+  --band-6: #2154D8;      /* cobalt    · Y 0.12 · Scene 3 ground */
+  --band-7: #8843DB;      /* violet    · Y 0.14 */
+
+  --ch-r: #FF3B3B;        /* refraction channels (screen blend) */
+  --ch-g: #3BFF7A;
+  --ch-b: #3B6BFF;
+
+  --plate-c: #00B8F0;     /* title plates (multiply); one zero channel each, */
+  --plate-m: #E6007E;     /* so in register they multiply to exact black     */
+  --plate-y: #FFE600;
+
+  --glass-hi: rgba(255, 255, 255, 0.22);   /* glass body gradient, top */
+  --glass-lo: rgba(255, 255, 255, 0.05);   /* glass body gradient, bottom */
+  --glass-edge: rgba(255, 255, 255, 0.85); /* glass stroke */
+
+  --fringe-c: #38D6FF;    /* prism and glass edge fringes */
+  --fringe-m: #FF4FB3;
+
+  --chip-light: color-mix(in srgb, var(--wall) 92%, transparent); /* --wall at 92% */
+  --chip-dark: rgba(12, 15, 26, 0.78);
+
+  /* Focus ring (§9): 2 px #FFFFFF inner ring + 2 px --ink outer ring, offset 2 px. */
+  --focus-inner: #FFFFFF;
+  --focus-outer: var(--ink);
+  --focus-width: 2px;
+  --focus-offset: 2px;
+  --focus: 0 0 0 var(--focus-width) var(--focus-inner),
+           0 0 0 calc(2 * var(--focus-width)) var(--focus-outer);
+
+  /* ── Type (§13.2) ───────────────────────────────────────────────── */
+  /* Composite tokens are `font` shorthands; tracking is separate because the
+     shorthand cannot carry it. Fixed line-heights keep box heights face-independent. */
+  --type-display-size: clamp(64px, 12.5vw, 200px);
+  --type-display-leading: 0.88;
+  --type-display-weight: 700;
+  --type-display-tracking: -0.035em;
+  --type-display-tracking-mode-s: -0.04em;
+  --type-display: var(--type-display-weight) var(--type-display-size) / var(--type-display-leading) var(--font);
+
+  --type-subtitle-size: clamp(16px, 1.5vw, 22px);
+  --type-subtitle-leading: 1.3;
+  --type-subtitle-weight: 500;
+  --type-subtitle: var(--type-subtitle-weight) var(--type-subtitle-size) / var(--type-subtitle-leading) var(--font);
+
+  --type-caption-size: 15px;      /* ≤ 768; 16px from 1024 (below) */
+  --type-caption-leading: 1.45;   /* ≤ 768; 1.5 from 1024 */
+  --type-caption-weight: 450;
+  --type-caption-weight-mode-s: 400;
+  --type-caption: var(--type-caption-weight) var(--type-caption-size) / var(--type-caption-leading) var(--font);
+
+  /* Labels are also uppercase with `font-variant-numeric: tabular-nums`. */
+  --type-label-size: 12px;
+  --type-label-leading: 1;
+  --type-label-weight: 600;
+  --type-label-tracking: 0.12em;
+  --type-label-tracking-mode-s: 0.14em;
+  --type-label: var(--type-label-weight) var(--type-label-size) / var(--type-label-leading) var(--font);
+
+  --type-colophon-size: 18px;
+  --type-colophon-leading: 1.55;
+  --type-colophon-weight: 400;
+  --type-colophon-measure: 52ch;
+  --type-colophon: var(--type-colophon-weight) var(--type-colophon-size) / var(--type-colophon-leading) var(--font);
+  --type-colophon-h2: 600 32px / 1.1 var(--font);
+
+  /* ── Spacing and shape (§13.3) ──────────────────────────────────── */
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-48: 48px;
+  --space-64: 64px;
+  --space-96: 96px;
+
+  /* Gutter by breakpoint (§11.1): <768 16 · <1024 24 · <1440 32 · <1920 40 · else 48. */
+  --gutter: 16px;
+
+  --chip-pad-y: 6px;
+  --chip-pad-x: 10px;
+  --chip-radius: 2px;
+  --hairline: 1px;
+  --rail-width: 2px;
+
+  /* ── Motion (§13.5) ─────────────────────────────────────────────── */
+  /* Unitless: read once at boot by the engine for its setTimeout timers (C6). */
+  --idle-ms: 1200;
+  --placard-ms: 3000;
+
+  --dur-chrome-out: 600ms;        /* 200ms under reduced motion (below) */
+  --dur-chrome-in: 160ms;
+  --dur-placard-in: 900ms;
+  --dur-placard-delay: 200ms;     /* the placard starts 200 ms after the caption hand-off */
+  --dur-placard-out: 120ms;
+  --dur-caption-handoff: 360ms;
+  --dur-hover: 120ms;
+  --dur-press: 90ms;
+  --dur-label: 200ms;
+  --dur-chip-theme: 240ms;
+  --dur-ambient-ramp: 1600ms;     /* easeInOutSine, applied in JS (engine/ambient.js) */
+  --dur-ambient-decay: 240ms;     /* easeOutCubic, applied in JS */
+  --dur-rewind: 8000ms;           /* easeInOutSine, applied in JS (engine/rewind.js) */
+
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-in: ease-in;             /* the caption's hand-off fade (§7.4) */
+}
+
+@media (min-width: 768px) {
+  :root { --gutter: 24px; }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --gutter: 32px;
+    --type-caption-size: 16px;
+    --type-caption-leading: 1.5;
+  }
+}
+
+@media (min-width: 1440px) {
+  :root { --gutter: 40px; }
+}
+
+@media (min-width: 1920px) {
+  :root { --gutter: 48px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-chrome-out: 200ms; }
+}
+
+/* D9: only the wall moves with the OS scheme (≈ 5.6% in Y). */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --wall: #F0EDE7;
+    --wall-deep: #DDD8D0;
+  }
+}

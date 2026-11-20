@@ -1,0 +1,5 @@
+node_modules/
+evidence-local/
+test-results/
+playwright-report/
+*.trace.json
