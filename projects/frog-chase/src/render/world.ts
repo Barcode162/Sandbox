@@ -35,33 +35,54 @@ export function rightEdge(y: number): number {
   return 101.4 + 1.3 * (1 + Math.sin(0.12 * y + 2.2)) * 0.5 + 0.7 * (1 + Math.sin(0.33 * y + 1)) * 0.5;
 }
 
-function bankPaths(ctx: CanvasRenderingContext2D, b: Bounds, northY: number, seed: number, ox: number, oy: number): void {
+/**
+ * Each bank region is filled on its own (overlapping subpaths of opposite winding would cancel).
+ * With `shadow`, only a thin strip between the shifted and the true shore is filled: the sand covers the rest.
+ */
+function fillBanks(ctx: CanvasRenderingContext2D, b: Bounds, northY: number, seed: number, shadow: boolean): void {
   const pad = 6;
+  const ox = shadow ? 0.35 * 1.6 : 0, oy = shadow ? -0.45 * 1.6 : 0;
   const step = Math.max(1.5, (b.xR - b.xL) / 90);
-  ctx.beginPath();
+  const y0 = b.yB - pad, y1 = b.yT + pad, x0 = b.xL - pad, x1 = b.xR + pad;
   if (b.xL < 0) {
-    ctx.moveTo(b.xL - pad + ox, b.yB - pad + oy);
-    for (let y = b.yB - pad; y <= b.yT + pad; y += step) ctx.lineTo(leftEdge(y) + ox, y + oy);
-    ctx.lineTo(b.xL - pad + ox, b.yT + pad + oy);
-    ctx.closePath();
+    ctx.beginPath();
+    for (let y = y0; y <= y1; y += step) ctx.lineTo(leftEdge(y) + ox, y + oy);
+    if (shadow) for (let y = y1; y >= y0; y -= step) ctx.lineTo(leftEdge(y), y);
+    else {
+      ctx.lineTo(x0, y1);
+      ctx.lineTo(x0, y0);
+    }
+    ctx.fill();
   }
   if (b.xR > 100) {
-    ctx.moveTo(b.xR + pad + ox, b.yB - pad + oy);
-    for (let y = b.yB - pad; y <= b.yT + pad; y += step) ctx.lineTo(rightEdge(y) + ox, y + oy);
-    ctx.lineTo(b.xR + pad + ox, b.yT + pad + oy);
-    ctx.closePath();
+    ctx.beginPath();
+    for (let y = y0; y <= y1; y += step) ctx.lineTo(rightEdge(y) + ox, y + oy);
+    if (shadow) for (let y = y1; y >= y0; y -= step) ctx.lineTo(rightEdge(y), y);
+    else {
+      ctx.lineTo(x1, y1);
+      ctx.lineTo(x1, y0);
+    }
+    ctx.fill();
   }
   if (b.yB < 14) {
-    ctx.moveTo(b.xL - pad + ox, b.yB - pad + oy);
-    for (let x = b.xL - pad; x <= b.xR + pad; x += step) ctx.lineTo(x + ox, southShore(x, seed) + oy);
-    ctx.lineTo(b.xR + pad + ox, b.yB - pad + oy);
-    ctx.closePath();
+    ctx.beginPath();
+    for (let x = x0; x <= x1; x += step) ctx.lineTo(x + ox, southShore(x, seed) + oy);
+    if (shadow) for (let x = x1; x >= x0; x -= step) ctx.lineTo(x, southShore(x, seed));
+    else {
+      ctx.lineTo(x1, y0);
+      ctx.lineTo(x0, y0);
+    }
+    ctx.fill();
   }
   if (b.yT > northY - 14) {
-    ctx.moveTo(b.xL - pad + ox, b.yT + pad + oy);
-    for (let x = b.xL - pad; x <= b.xR + pad; x += step) ctx.lineTo(x + ox, northShore(x, northY, seed) + oy);
-    ctx.lineTo(b.xR + pad + ox, b.yT + pad + oy);
-    ctx.closePath();
+    ctx.beginPath();
+    for (let x = x0; x <= x1; x += step) ctx.lineTo(x + ox, northShore(x, northY, seed) + oy);
+    if (shadow) for (let x = x1; x >= x0; x -= step) ctx.lineTo(x, northShore(x, northY, seed));
+    else {
+      ctx.lineTo(x1, y1);
+      ctx.lineTo(x0, y1);
+    }
+    ctx.fill();
   }
 }
 
@@ -73,11 +94,9 @@ export function onBank(x: number, y: number, northY: number, seed: number): bool
 /** Sand with its hard shadow on the water (bank height 1.6 wu). */
 export function drawBanks(ctx: CanvasRenderingContext2D, b: Bounds, northY: number, seed: number): void {
   ctx.fillStyle = SHADOW;
-  bankPaths(ctx, b, northY, seed, 0.35 * 1.6, -0.45 * 1.6);
-  ctx.fill();
+  fillBanks(ctx, b, northY, seed, true);
   ctx.fillStyle = PALETTE.bank;
-  bankPaths(ctx, b, northY, seed, 0, 0);
-  ctx.fill();
+  fillBanks(ctx, b, northY, seed, false);
 }
 
 const CELL = 13;

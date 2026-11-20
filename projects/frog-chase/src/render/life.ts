@@ -104,7 +104,7 @@ export class Life {
       this.primed = true;
       this.flies.forEach((f, i) => {
         f.x = 30 + 40 * i;
-        f.y = cy + hy * 0.2;
+        f.y = cy + hy * 0.4;
         f.mode = 0;
         f.until = t + 3 + i * 2.5;
       });
@@ -131,7 +131,8 @@ export class Life {
       if (f.mode === 0) {
         const k = 1 + 0.21 * i;
         tx = 50 + 38 * Math.sin(0.31 * k * t + i * 2.1) + 6 * Math.sin(1.7 * t + i);
-        ty = cy + hy * (0.25 * Math.sin(0.43 * k * t + i) + 0.2) + 5 * Math.sin(1.3 * t + 2 * i);
+        // Wander ahead of the frog (20–42% from the top), clear of the lit chips.
+        ty = cy + hy * (0.38 + 0.22 * Math.sin(0.43 * k * t + i)) + 3 * Math.sin(1.3 * t + 2 * i);
         if (t > f.until) {
           const pad = w.pickRestPad(f.n++ * 7 + i);
           if (pad >= 0) {

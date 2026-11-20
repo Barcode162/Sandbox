@@ -18,8 +18,12 @@ const rgb = (hex: string) => {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255] as const;
 };
 
-/** Halftone dots on transparent. pitch px between dot centres; size must be a multiple of pitch·16. */
-export function makeHalftone(size: number, pitch: number): HTMLCanvasElement {
+/**
+ * Halftone dots of `water-b`. pitch px between dot centres; size must be a multiple of pitch·16.
+ * `opaque` bakes them onto `water-a` (the river base: an opaque blit, no blending); otherwise the dots
+ * sit on transparent (laid over the submerged gator so it reads as under the print).
+ */
+export function makeHalftone(size: number, pitch: number, opaque = false): HTMLCanvasElement {
   const c = canvasOf(size);
   const ctx = c.getContext('2d')!;
   const img = ctx.createImageData(size, size);
@@ -31,6 +35,7 @@ export function makeHalftone(size: number, pitch: number): HTMLCanvasElement {
       radius[j * cells + i] = (0.9 + 0.7 * n) * (pitch / 4);
     }
   const [r, g, b] = rgb(PALETTE.waterB);
+  const [ar, ag, ab] = rgb(PALETTE.waterA);
   const half = pitch / 2;
   for (let y = 0; y < size; y++) {
     const cj = Math.floor(y / pitch);
@@ -39,8 +44,15 @@ export function makeHalftone(size: number, pitch: number): HTMLCanvasElement {
       const ci = Math.floor(x / pitch);
       const dx = x + 0.5 - (ci * pitch + half);
       const cover = Math.max(0, Math.min(1, radius[cj * cells + ci]! - Math.sqrt(dx * dx + dy * dy) + 0.5));
-      if (cover <= 0) continue;
       const k = (y * size + x) * 4;
+      if (opaque) {
+        img.data[k] = Math.round(ar + (r - ar) * cover);
+        img.data[k + 1] = Math.round(ag + (g - ag) * cover);
+        img.data[k + 2] = Math.round(ab + (b - ab) * cover);
+        img.data[k + 3] = 255;
+        continue;
+      }
+      if (cover <= 0) continue;
       img.data[k] = r;
       img.data[k + 1] = g;
       img.data[k + 2] = b;
@@ -51,22 +63,26 @@ export function makeHalftone(size: number, pitch: number): HTMLCanvasElement {
   return c;
 }
 
-/** Grayscale paper grain, drawn with `multiply` at 6% (§5.2). */
+/**
+ * Paper grain (§5.2: 6% multiply). Baked as ink with alpha 0.06·(1 − v): drawn source-over it darkens
+ * like a 6% multiply of grey v (toward ink rather than black), at a fraction of multiply's raster cost.
+ */
 export function makeGrain(size: number): HTMLCanvasElement {
   const c = canvasOf(size);
   const ctx = c.getContext('2d')!;
   const img = ctx.createImageData(size, size);
+  const [ir, ig, ib] = rgb(PALETTE.ink);
   for (let y = 0; y < size; y++)
     for (let x = 0; x < size; x++) {
       // Fibre-ish grain: fine noise plus a soft periodic mottling.
       const fine = rand3(x, y, 91);
       const mot = valueNoise(x / 32, y / 32, size / 32, 5);
-      const v = Math.round(255 - 255 * (0.55 * fine + 0.45 * mot));
+      const dark = 0.55 * fine + 0.45 * mot;
       const k = (y * size + x) * 4;
-      img.data[k] = v;
-      img.data[k + 1] = v;
-      img.data[k + 2] = v;
-      img.data[k + 3] = 255;
+      img.data[k] = ir;
+      img.data[k + 1] = ig;
+      img.data[k + 2] = ib;
+      img.data[k + 3] = Math.round(255 * 0.06 * dark);
     }
   ctx.putImageData(img, 0, 0);
   return c;

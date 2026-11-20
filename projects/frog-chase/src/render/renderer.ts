@@ -67,6 +67,7 @@ declare global {
   }
 }
 
+const SK = (k: string) => String((globalThis as any).__skip ?? '').includes(k);
 const DASH = [3, 3];
 const NO_DASH: number[] = [];
 
@@ -85,13 +86,12 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
   let w = 1, h = 1, dpr = 1;
   let resized = true;
 
-  // Textures (built once; the low tier gets its own cheaper tile).
-  const halftoneHi = makeHalftone(512, 4);
-  let halftoneLo: HTMLCanvasElement | null = null;
-  const grainTile = makeGrain(256);
-  const patHi = ctx.createPattern(halftoneHi, 'repeat')!;
-  let patLo: CanvasPattern | null = null;
-  const patGrain = ctx.createPattern(grainTile, 'repeat')!;
+  // Textures (built once; the low tier gets its own cheaper tiles, built on demand).
+  const waterHi = ctx.createPattern(makeHalftone(512, 4, true), 'repeat')!;
+  const dotsHi = ctx.createPattern(makeHalftone(512, 4), 'repeat')!;
+  let waterLo: CanvasPattern | null = null;
+  let dotsLo: CanvasPattern | null = null;
+  const patGrain = ctx.createPattern(makeGrain(256), 'repeat')!;
   const patMatrix = new DOMMatrix();
   let vignette: CanvasGradient | null = null;
 
@@ -552,19 +552,30 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
       bounds.yB = wy(view, h);
       const px = 1 / view.k;
 
-      // ── Background: water, deep pools, submerged gator, halftone.
+      // ── Background: the printed water (opaque halftone tile, river column only), deep pools.
+      const low = quality === 'low';
+      const water = low ? (waterLo ??= ctx.createPattern(makeHalftone(256, 8, true), 'repeat')!) : waterHi;
+      const tile = low ? 256 : 512;
+      // Integer offsets keep the pattern blit unfiltered (the fast raster path).
+      patMatrix.e = Math.round((at * 6 * view.k) % tile + view.shakeX);
+      patMatrix.f = Math.round((camera.y.x * view.k) % tile + view.shakeY);
+      water.setTransform(patMatrix);
       setScreen();
       ctx.globalCompositeOperation = 'source-over';
       ctx.globalAlpha = 1;
-      ctx.fillStyle = PALETTE.waterA;
-      ctx.fillRect(0, 0, w, h);
+      const colL = Math.max(0, Math.floor(sx(view, -4))), colR = Math.min(w, Math.ceil(sx(view, 104)));
+      if (colL > 0 || colR < w) {
+        ctx.fillStyle = PALETTE.bank;
+        ctx.fillRect(0, 0, w, h);
+      }
+      ctx.fillStyle = SK('water') ? PALETTE.waterA : water;
+      ctx.fillRect(colL, 0, colR - colL, h);
       setWorld();
-      drawDeepPools();
+      if (!SK('pools')) drawDeepPools();
 
       const gatorAwake = g.phase !== 'dormant' || hookAt >= 0;
       if (gatorAwake && hookAt < 0) hookAt = jt - 5000;
       let surface = gatorAwake ? clamp01((jt - hookAt - 140) / 650) : 0;
-      const flankActive = g.flank !== null || (flankPad >= 0 && flankClearAt >= 0 && jt - flankClearAt < 320);
       if (g.flank && g.flank.padId !== flankPad) {
         flankPad = g.flank.padId;
         flankAt = jt;
@@ -572,8 +583,9 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
         flankClearAt = -1;
       }
       if (!g.flank && flankPad >= 0 && flankClearAt < 0) flankClearAt = jt;
-      if (flankActive) surface *= 1 - clamp01((jt - flankAt) / 200);
-      else if (flankClearAt >= 0) surface *= clamp01((jt - flankClearAt - 200) / 300);
+      // While it flanks, the chasing head submerges (the eyes are at the pad); it resurfaces after.
+      if (g.flank) surface *= 1 - clamp01((jt - flankAt) / 200);
+      else if (flankClearAt >= 0) surface *= clamp01((jt - flankClearAt - 150) / 350);
       if (winAt >= 0) {
         const e = jt - winAt;
         surface *= 1 - clamp01((e - 120) / 600);
@@ -615,22 +627,34 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
           body[(i + 1) * 2 + 1] = lerp(g.bodyPrev[i]!.y, g.body[i]!.y, v.alpha) + headDy * Math.max(0, 1 - i / 3);
         }
         drawGatorBody(ctx, body, nb + 1, bodyAlpha);
+        // The print's dots run over the body (it reads as under the surface): only its bounding box.
+        let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+        for (let i = 0; i <= nb; i++) {
+          const bx = sx(view, body[i * 2]!), by = sy(view, body[i * 2 + 1]!);
+          if (bx < x0) x0 = bx;
+          if (bx > x1) x1 = bx;
+          if (by < y0) y0 = by;
+          if (by > y1) y1 = by;
+        }
+        const m = 10 * view.k;
+        x0 = Math.max(0, x0 - m);
+        y0 = Math.max(0, y0 - m);
+        x1 = Math.min(w, x1 + m);
+        y1 = Math.min(h, y1 + m);
+        if (x1 > x0 && y1 > y0) {
+          const dots = low ? (dotsLo ??= ctx.createPattern(makeHalftone(256, 8), 'repeat')!) : dotsHi;
+          dots.setTransform(patMatrix);
+          setScreen();
+          ctx.fillStyle = dots;
+          ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+        }
       }
-
-      setScreen();
-      const pat = quality === 'high' ? patHi : (patLo ??= ctx.createPattern((halftoneLo ??= makeHalftone(256, 8)), 'repeat')!);
-      const tile = quality === 'high' ? 512 : 256;
-      patMatrix.e = ((at * 6 * view.k) % tile) + view.shakeX;
-      patMatrix.f = ((camera.y.x * view.k) % tile) + view.shakeY;
-      pat.setTransform(patMatrix);
-      ctx.fillStyle = pat;
-      ctx.fillRect(0, 0, w, h);
 
       // ── Shore, ripples, water life, decor.
       setWorld();
       const seed = sim.river.seed;
-      drawBanks(ctx, bounds, northY, seed);
-      drawBankDetail(ctx, bounds, northY, seed);
+      if (!SK('banks')) drawBanks(ctx, bounds, northY, seed);
+      if (!SK('detail')) drawBankDetail(ctx, bounds, northY, seed);
       ripples.step(dts);
       ctx.strokeStyle = PALETTE.paper;
       for (let i = 0; i < ripples.cap; i++) {
@@ -644,7 +668,7 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
       }
       ctx.globalAlpha = 1;
       life.update((dt / 1000) * (reduced ? 0.5 : 1), bounds, lifeWorld);
-      life.drawWater(ctx);
+      if (!SK('life')) life.drawWater(ctx);
       drawDecor(ctx, sim.river.decor, bounds, at);
       drawLog(ctx, northY, bounds, at);
 
@@ -913,19 +937,15 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
 
       // ── Reeds and the air layer.
       const nr = collectReeds(bounds, northY, seed, reeds);
-      drawReeds(ctx, reeds, nr, at, true);
-      drawReeds(ctx, reeds, nr, at, false);
+      if (!SK('reeds')) drawReeds(ctx, reeds, nr, at, true);
+      if (!SK('reeds')) drawReeds(ctx, reeds, nr, at, false);
       life.drawAir(ctx);
 
       // ── Print grain and the danger vignette (screen space).
       setScreen();
-      if (quality === 'high') {
-        ctx.globalCompositeOperation = 'multiply';
-        ctx.globalAlpha = 0.06;
+      if (!low && !SK('grain')) {
         ctx.fillStyle = patGrain;
         ctx.fillRect(0, 0, w, h);
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.globalAlpha = 1;
       }
       // Vignette: alpha 0.35τ, pulsing on the shared heartbeat (polish 14).
       const hb = heartbeatPhase(sim);
