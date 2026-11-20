@@ -10,3 +10,5 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-20T12:15:51Z` **ceo** — Phase intel → **design**
 - `2026-11-20T12:15:51Z` **ceo** — Convened 3× experience-designer — visual-direction bake-off A/B/C
 - `2026-11-20T12:30:14Z` **ceo** — Convened 1× director-vision — bake-off judgement
+- `2026-11-20T12:33:57Z` **ceo** — Bake-off: director-vision picks C 'Bent Light' (8.4; A 7.5, B 6.8). Consolidation order = fold-ins F1-F17 + de-risks D1-D10 in board/bakeoff-experience.md.
+- `2026-11-20T12:33:57Z` **ceo** — Convened 1× experience-designer — consolidate winner C into experience.md
