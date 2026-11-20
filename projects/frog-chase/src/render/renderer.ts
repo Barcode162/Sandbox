@@ -446,7 +446,12 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
     ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
+  /**
+   * Quality tier (plan §14.5): drop grain and halve the halftone if the p95 frame exceeds 12 ms.
+   * Samples over 100 ms are stalls (GC, a deferred raster flush, a background tab), not steady cost.
+   */
   function measure(cost: number): void {
+    if (cost > 100) return;
     costs[costN % costs.length] = cost;
     costN++;
     if (forced || quality === 'low' || costN < 90 || costN % 60 !== 0) return;
@@ -1022,8 +1027,8 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
   function makeVignette(): CanvasGradient {
     const g = ctx!.createRadialGradient(0, 0, 0.5, 0, 0, 1);
     g.addColorStop(0, rgba(PALETTE.jaw, 0));
-    g.addColorStop(0.62, rgba(PALETTE.jaw, 0.5));
-    g.addColorStop(0.86, rgba(PALETTE.jaw, 1));
+    g.addColorStop(0.55, rgba(PALETTE.jaw, 0.55));
+    g.addColorStop(0.78, rgba(PALETTE.jaw, 1));
     return g;
   }
 

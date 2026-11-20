@@ -239,17 +239,17 @@ export class Life {
       ctx.strokeStyle = 'rgba(243,235,216,0.55)';
       ctx.lineWidth = 0.22;
       ctx.beginPath();
-      for (const [lx, ly] of LEGS) {
-        ctx.moveTo(lx + 0.45, ly);
-        ctx.arc(lx, ly, 0.45, 0, TAU);
+      for (let k = 0; k < LEGS.length; k += 2) {
+        ctx.moveTo(LEGS[k]! + 0.45, LEGS[k + 1]!);
+        ctx.arc(LEGS[k]!, LEGS[k + 1]!, 0.45, 0, TAU);
       }
       ctx.stroke();
       ctx.strokeStyle = 'rgba(29,43,58,0.75)';
       ctx.lineWidth = 0.16;
       ctx.beginPath();
-      for (const [lx, ly] of LEGS) {
+      for (let k = 0; k < LEGS.length; k += 2) {
         ctx.moveTo(0, 0);
-        ctx.lineTo(lx, ly);
+        ctx.lineTo(LEGS[k]!, LEGS[k + 1]!);
       }
       ctx.stroke();
       ctx.fillStyle = 'rgba(29,43,58,0.85)';
@@ -299,8 +299,9 @@ export class Life {
         ctx.fillStyle = pass === 0 ? SHADOW : PALETTE.paper;
         ctx.globalAlpha = pass === 0 ? 0.7 : wingA;
         ctx.beginPath();
-        for (const [wx, wy, ang] of WINGS) {
-          const a = ang * spread;
+        for (let k = 0; k < WINGS.length; k += 3) {
+          const wx = WINGS[k]!, wy = WINGS[k + 1]!;
+          const a = WINGS[k + 2]! * spread;
           ctx.moveTo(wx + Math.cos(a) * 3.6, wy + Math.sin(a) * 3.6);
           ctx.ellipse(wx + Math.cos(a) * 1.9, wy + Math.sin(a) * 1.9, 2.1, 0.62, a, 0, TAU);
         }
@@ -318,9 +319,6 @@ export class Life {
   }
 }
 
-const LEGS: readonly (readonly [number, number])[] = [
-  [2.6, 1.6], [2.6, -1.6], [-0.4, 2.4], [-0.4, -2.4], [-2.4, 1.9], [-2.4, -1.9],
-];
-const WINGS: readonly (readonly [number, number, number])[] = [
-  [1.0, 0, 1.35], [1.0, 0, -1.35], [0.2, 0, 1.85], [0.2, 0, -1.85],
-];
+/** Strider foot points (x, y pairs) and dragonfly wings (x, y, angle triples), flat so draw loops never allocate. */
+const LEGS = new Float32Array([2.6, 1.6, 2.6, -1.6, -0.4, 2.4, -0.4, -2.4, -2.4, 1.9, -2.4, -1.9]);
+const WINGS = new Float32Array([1.0, 0, 1.35, 1.0, 0, -1.35, 0.2, 0, 1.85, 0.2, 0, -1.85]);

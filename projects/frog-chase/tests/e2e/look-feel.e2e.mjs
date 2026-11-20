@@ -98,8 +98,8 @@ for (const [vp, viewport, resizeTo] of [
       const l = window.__lily;
       l.restart(7);
       l.setBot('idleAtTau', { tau: 0.8 });
-      // The bot stops for good at τ 0.8; τ only rises after. 400 ms later the zoom has eased in.
-      __f.until(() => l.sim().gator.tau >= 0.8);
+      // The bot stops for good at τ 0.8; once it stands there, τ only rises. 400 ms later the zoom has eased in.
+      __f.until(() => l.sim().gator.tau >= 0.8 && l.sim().frog.phase === 'idle');
       l.frame(1000 / 60, 24);
       const zoom = __f.P().zoom;
       const alive = !l.sim().result;
@@ -122,7 +122,7 @@ await withPage('look feel reduced motion', { viewport: VIEWPORTS.desktop, reduce
     const l = window.__lily;
     l.manualClock(true);
     l.setBot('idleAtTau', { tau: 0.8 });
-    __f.until(() => l.sim().gator.tau >= 0.8);
+    __f.until(() => l.sim().gator.tau >= 0.8 && l.sim().frog.phase === 'idle');
     l.frame(1000 / 60, 24);
     const zoom = __f.P().zoom;
     __f.until(() => !!l.sim().result);

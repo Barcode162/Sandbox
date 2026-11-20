@@ -18,6 +18,8 @@ const NOTCH = 14 * DEG;
 /** Curl fold: the folded segment spans 30% of the rim (±54°). */
 const FOLD = 54 * DEG;
 const FOLD_D = Math.cos(FOLD);
+/** Mirror sides, hoisted so draw loops do not build an array per call. */
+const SIDES = [1, -1] as const;
 
 // ───────────── pad shapes (unit radius, local +x = pad.rot) ─────────────
 
@@ -343,7 +345,7 @@ export function drawFrog(ctx: CanvasRenderingContext2D, p: FrogPose, alpha: numb
   ctx.stroke();
   if (p.legs > 0.25) {
     ctx.fillStyle = dark;
-    for (const side of [1, -1] as const) {
+    for (const side of SIDES) {
       const fx = legPts[4]!, fy = legPts[5]! * side;
       ctx.beginPath();
       ctx.moveTo(fx + 0.8, fy);
@@ -496,13 +498,12 @@ export function drawGatorHead(ctx: CanvasRenderingContext2D, h: HeadLook): void 
     // Shadow of the whole head, height 1.6 wu.
     ctx.save();
     ctx.translate((0.35 * 1.6 * headUp) / h.scale, (-0.45 * 1.6 * headUp) / h.scale);
-    ctx.rotate(0);
     ctx.fillStyle = SHADOW;
     ctx.globalAlpha = headUp;
     ctx.beginPath();
     skull(ctx);
     ctx.fill();
-    for (const side of [1, -1] as const) {
+    for (const side of SIDES) {
       ctx.save();
       ctx.rotate(half * side);
       ctx.beginPath();
@@ -527,7 +528,7 @@ export function drawGatorHead(ctx: CanvasRenderingContext2D, h: HeadLook): void 
     ctx.beginPath();
     skull(ctx);
     ctx.fill();
-    for (const side of [1, -1] as const) {
+    for (const side of SIDES) {
       ctx.save();
       ctx.rotate(half * side);
       if (half > 2 * DEG) {
@@ -566,7 +567,7 @@ export function drawGatorHead(ctx: CanvasRenderingContext2D, h: HeadLook): void 
   if (es > 0.01) {
     const la = Math.atan2(h.lookY - h.y, h.lookX - h.x) - h.heading;
     const px = Math.cos(la) * 0.32 * es, py = Math.sin(la) * 0.32 * es;
-    for (const side of [1, -1] as const) {
+    for (const side of SIDES) {
       const ex = -2.1, ey = 2.55 * side;
       ctx.fillStyle = SHADOW;
       ctx.beginPath();
