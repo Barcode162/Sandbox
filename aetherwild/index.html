@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aetherwild</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="loading" class="screen"><div class="logo">AETHERWILD</div><div class="sub">Growing the island…</div></div>
+
+<div id="title" class="screen hidden">
+  <div class="title-card">
+    <div class="logo">AETHERWILD</div>
+    <div class="tagline">Survive. Build. Tame the island.</div>
+    <div class="req">Keyboard and mouse required · Progress saves in this browser</div>
+    <div class="btns">
+      <button id="btn-continue" class="big hidden">Continue</button>
+      <button id="btn-new" class="big">New World</button>
+    </div>
+    <div class="controls">
+      <div><span>WASD</span> Move</div><div><span>Shift</span> Sprint</div><div><span>Space</span> Jump / swim up</div><div><span>C</span> Crouch (sneak)</div>
+      <div><span>LMB</span> Gather / attack / use</div><div><span>E</span> Interact / feed / drink</div><div><span>Tab</span> Inventory &amp; crafting</div><div><span>B</span> Build menu</div>
+      <div><span>U</span> Upgrade piece</div><div><span>X</span> Demolish / pick up</div><div><span>R</span> Ride / rotate</div><div><span>F</span> Pet follow / stay</div>
+    </div>
+  </div>
+</div>
+
+<div id="hud" class="hidden">
+  <div id="crosshair"><i></i></div>
+  <div id="prompt"></div>
+  <div id="target" class="hidden"></div>
+  <div id="objective"><div id="obj-n">GOAL</div><div id="obj-text"></div></div>
+  <div id="mapwrap"><canvas id="minimap" width="180" height="180"></canvas><div id="clock"></div></div>
+  <div id="toasts"></div>
+  <div id="buildhud" class="hidden"></div>
+  <div id="stats">
+    <div class="stat"><label>HP</label><div class="bar hp"><i id="bar-hp"></i></div></div>
+    <div class="stat"><label>FOOD</label><div class="bar food"><i id="bar-food"></i></div></div>
+    <div class="stat"><label>WATER</label><div class="bar water"><i id="bar-water"></i></div></div>
+    <div class="stat"><label>STAMINA</label><div class="bar stam"><i id="bar-stam"></i></div></div>
+  </div>
+  <div id="held-name"></div>
+  <div id="hotbar"></div>
+  <div id="flash"></div>
+  <div id="underwater"></div>
+</div>
+
+<div id="inv-screen" class="overlay hidden">
+  <div class="panel" id="inv-panel">
+    <h2>Inventory</h2>
+    <div id="inv-grid" class="grid"></div>
+    <div class="note">Top row is your hotbar (keys 1–8)</div>
+  </div>
+  <div class="panel" id="side-panel">
+    <div class="tabs"><button id="tab-craft" class="on">Crafting</button><button id="tab-chest" class="hidden">Storage</button></div>
+    <div id="craft-list"></div>
+    <div id="chest-wrap" class="hidden"><div id="chest-grid" class="grid"></div><div class="note">Shift-click to move stacks</div></div>
+  </div>
+</div>
+
+<div id="build-screen" class="overlay hidden">
+  <div class="panel" id="build-panel">
+    <h2>Build</h2>
+    <div id="tier-row"></div>
+    <div id="piece-grid"></div>
+    <div class="note">Snap foundations to the ground, then walls &amp; floors onto them. Aim at any piece and press <b>U</b> to upgrade it: Wood → Stone → Metal → Aetherium → Voidglass.</div>
+  </div>
+</div>
+
+<div id="tooltip" class="hidden"></div>
+
+<div id="pause" class="screen dim hidden">
+  <div class="title-card small">
+    <div class="logo sm">PAUSED</div>
+    <div class="btns">
+      <button id="btn-resume" class="big">Resume</button>
+      <button id="btn-save">Save Game</button>
+      <button id="btn-help">Controls</button>
+      <button id="btn-wipe" class="danger">New World</button>
+    </div>
+    <label class="sens">Mouse sensitivity <input id="sens" type="range" min="0.3" max="2.5" step="0.05"></label>
+  </div>
+</div>
+
+<div id="help" class="panel hidden">
+  <h2>Field Guide</h2>
+  <div class="controls">
+    <div><span>WASD</span> Move</div><div><span>Shift</span> Sprint</div><div><span>Space</span> Jump / swim</div><div><span>C</span> Crouch</div>
+    <div><span>LMB</span> Gather / attack</div><div><span>E</span> Interact</div><div><span>Tab</span> Inventory</div><div><span>B</span> Build</div>
+    <div><span>U</span> Upgrade</div><div><span>X</span> Demolish</div><div><span>R</span> Ride / rotate</div><div><span>F</span> Follow / stay</div>
+    <div><span>1–8</span> Hotbar</div><div><span>Wheel</span> Hotbar</div><div><span>H</span> This guide</div><div><span>Esc</span> Pause</div>
+  </div>
+  <ul>
+    <li><b>Herbivores</b> (Trikeros, Stegolith, Skitterbeak) tame by feeding Sunberries from bushes. Skitterbeaks are shy: crouch to sneak up.</li>
+    <li><b>Predators</b> (Razorclaw packs, the Dreadmaw) tame by knocking them out with a Knockout Club, then feeding meat.</li>
+    <li>Craft a <b>Saddle</b> at the Workbench to ride big tames.</li>
+    <li>Find <b>Aetherite</b> in the glowing teal Aether Glade, and <b>Void Crystal</b> on the highest peaks.</li>
+  </ul>
+</div>
+
+<div id="death" class="screen dim hidden">
+  <div class="title-card small">
+    <div class="logo sm red">YOU DIED</div>
+    <p>Your items are in a glowing backpack where you fell.</p>
+    <button id="btn-respawn" class="big">Respawn</button>
+  </div>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="js/core.js"></script>
+<script src="js/data.js"></script>
+<script src="js/models.js"></script>
+<script src="js/world.js"></script>
+<script src="js/physics.js"></script>
+<script src="js/inventory.js"></script>
+<script src="js/building.js"></script>
+<script src="js/creatures.js"></script>
+<script src="js/player.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
