@@ -24,7 +24,9 @@
     "director-vision": 2,
     "architect": 2,
     "director-engineering": 1,
-    "director-risk": 1
+    "director-risk": 1,
+    "integrator": 1,
+    "engineer": 4
   },
   "history": [
     {
@@ -48,5 +50,5 @@
       "at": "2026-11-20T14:13:12Z"
     }
   ],
-  "updated": "2026-11-20T14:13:12Z"
+  "updated": "2026-11-20T14:13:24Z"
 }
