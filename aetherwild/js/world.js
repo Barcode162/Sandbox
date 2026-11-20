@@ -9,7 +9,7 @@
   const W = G.World = {
     N, CS, H: null, dayLen: 960, tod: 0.32, nodes: [], variants: {}, nodeGrid: new Map(),
     init(scene, seed) {
-      this.scene = scene; this.seed = seed;
+      this.scene = scene; this.seed = seed; this.nodes = []; this.variants = {}; this.nodeGrid = new Map(); this.day = 1; this.tod = 0.32;
       this.n1 = G.makeNoise(seed); this.n2 = G.makeNoise(seed + 1); this.n3 = G.makeNoise(seed + 2); this.n4 = G.makeNoise(seed + 3);
       this.buildHeights(); this.spawn = this.findSpawn(); this.buildTerrain(); this.buildWater(); this.buildSky(); this.buildLights();
       this.scatter(); this.buildGrass(); this.buildClouds(); this.buildMap();
@@ -163,7 +163,7 @@
       { e: 0.45, top: 0x3a78c8, hor: 0xb4d0e6, sun: 0xfff3e0, hemi: 0.48, sunI: 1.55 },
     ],
     updateSky(dt, cam) {
-      this.tod = (this.tod + dt / this.dayLen) % 1;
+      this.tod += dt / this.dayLen; if (this.tod >= 1) { this.tod -= 1; this.day++; }
       const a = (this.tod - 0.25) * Math.PI * 2;
       const sd = new THREE.Vector3(Math.cos(a), Math.sin(a), 0.35).normalize();
       const e = sd.y; const K = this.sky_keys;
@@ -332,7 +332,7 @@
     buildGrass() {
       const r = G.mulberry32(this.seed + 5);
       const tuft = G.Models.grassTuft();
-      const count = 26000;
+      const count = G.settings.quality === 'low' ? 11000 : 26000;
       const im = new THREE.InstancedMesh(tuft, G.M.grass, count);
       const fl = [new THREE.InstancedMesh(G.Models.flower(0xf2d34a), G.M.std, 1500), new THREE.InstancedMesh(G.Models.flower(0xe86a9a), G.M.std, 1500), new THREE.InstancedMesh(G.Models.flower(0x9ad6ff), G.M.std, 1500)];
       const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3(), c = new THREE.Color(), nrm = new THREE.Vector3();
@@ -369,7 +369,7 @@
       for (const c of this.clouds) { c.position.x += dt * 2.2; if (c.position.x > 480) c.position.x -= 960; }
     },
     buildMap() {
-      const R = 256; const cv = document.createElement('canvas'); cv.width = cv.height = R;
+      const R = 768; const cv = document.createElement('canvas'); cv.width = cv.height = R;
       const ctx = cv.getContext('2d'); const img = ctx.createImageData(R, R);
       const c = new THREE.Color(), nrm = new THREE.Vector3();
       for (let j = 0; j < R; j++) for (let i = 0; i < R; i++) {

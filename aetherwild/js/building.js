@@ -26,7 +26,7 @@
 
   const B = G.Build = {
     pieces: [], placeables: [], cellMap: new Map(), edgeMap: new Map(), mode: null, placeItem: null, rot: 0, cand: null,
-    init(scene) { this.scene = scene; },
+    init(scene) { this.scene = scene; this.pieces = []; this.placeables = []; this.cellMap = new Map(); this.edgeMap = new Map(); this.mode = null; this.placeItem = null; this.ghost = null; this.ghostKey = ''; this.cand = null; this.rot = 0; },
 
     // ----------------------------------------------------------- geometry
     center(p) {

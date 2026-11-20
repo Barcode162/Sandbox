@@ -58,12 +58,14 @@
     init() {
       G.Icons.init();
       this.buildHotbar(); this.buildInventory(); this.buildBuildMenu();
-      this.mini = $('#minimap'); this.mctx = this.mini.getContext('2d');
+      this.mini = $('#minimap'); this.mctx = this.mini.getContext('2d'); this.sizeMinimap();
+      $('#inv-close').onclick = () => { this.closeAll(); G.Input.lock(); };
+      $('#build-close').onclick = () => { this.closeAll(); G.Input.lock(); };
+      for (const id of ['hp', 'food', 'water', 'stam']) { const c = $('#r-' + id); c._len = 2 * Math.PI * +c.getAttribute('r'); c.style.strokeDasharray = c._len; }
       G.inv.listeners.push(() => { this.refreshHotbar(); if (this.open === 'inv') this.refreshInventory(); });
       document.addEventListener('mousemove', e => { if (this.heldEl) { this.heldEl.style.left = e.clientX + 'px'; this.heldEl.style.top = e.clientY + 'px'; } this.moveTip(e); });
       document.addEventListener('contextmenu', e => e.preventDefault());
       this.toastBox = $('#toasts');
-      $('#btn-respawn').onclick = () => { $('#death').classList.add('hidden'); G.Player.respawn(); G.Input.lock(); };
     },
     costText(cost) { return Object.keys(cost).map(k => cost[k] + ' ' + G.ITEMS[k].name).join(', '); },
     toast(msg, icon, kind) {
@@ -278,8 +280,10 @@
     // -------------------------------------------------------------- HUD
     update(dt) {
       const P = G.Player;
-      const setBar = (id, v) => { const b = $(id); b.style.width = G.clamp(v, 0, 100) + '%'; b.parentNode.classList.toggle('low', v < 25); };
-      setBar('#bar-hp', P.hp); setBar('#bar-food', P.food); setBar('#bar-water', P.water); setBar('#bar-stam', P.stamina);
+      const ring = (id, v) => { const c = $('#r-' + id); v = G.clamp(v, 0, 100); c.style.strokeDashoffset = c._len * (1 - v / 100); c.classList.toggle('low', v < 25); };
+      ring('hp', P.hp); ring('food', P.food); ring('water', P.water); ring('stam', P.stamina);
+      const hv = Math.ceil(Math.max(0, P.hp)); if (hv !== this._hv) { this._hv = hv; $('#v-hp').textContent = hv; }
+      document.body.classList.toggle('ui-open', !!this.open || G.Input.paused || P.dead);
       $('#clock').textContent = G.World.clock() + (G.World.night > 0.5 ? '  ☾' : '  ☀');
       $('#underwater').style.opacity = G.camPos.y < G.WATER - 0.05 ? 1 : 0;
       // focus prompt + target panel
@@ -322,6 +326,7 @@
         } else if (f.kind === 'water') prompt = '<span>E</span> Drink';
       }
       if (P.mount) { prompt = '<span>R</span> Dismount &nbsp;<span>LMB</span> Attack/Gather &nbsp;<span>Shift</span> Sprint'; target = target || P.mount; }
+      if (G.touch) prompt = prompt.replace(/<span>LMB<\/span>/g, '<span>ACT</span>').replace(/<span>Shift<\/span> Sprint/g, '');
       if (prompt !== this._prompt) { $('#prompt').innerHTML = prompt; this._prompt = prompt; }
       $('#crosshair').classList.toggle('on', !!(f && f.t < 4.5));
       this.updateTarget(target);
@@ -357,6 +362,11 @@
       const h = '<b>' + name + '</b><div class="bar hp"><i style="width:' + (100 * hp / max) + '%"></i></div>' + (t.piece ? '<div class="sub">' + Math.ceil(hp) + ' / ' + max + '</div>' : '') + extra;
       if (h !== this._tgt) { box.innerHTML = h; this._tgt = h; }
     },
+    sizeMinimap() {
+      const css = window.innerWidth < 760 ? 112 : 148, dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+      this.mini.style.width = this.mini.style.height = css + 'px';
+      this.mini.width = this.mini.height = Math.round(css * dpr);
+    },
     drawMinimap() {
       const ctx = this.mctx, R = this.mini.width / 2, P = G.Player, s = R / 85;
       const px = P.pos.x, pz = P.pos.z;
@@ -364,7 +374,7 @@
       ctx.beginPath(); ctx.arc(R, R, R - 2, 0, Math.PI * 2); ctx.clip();
       ctx.fillStyle = '#1f5f86'; ctx.fillRect(0, 0, R * 2, R * 2);
       ctx.translate(R, R); ctx.rotate(P.yaw); ctx.scale(s, s);
-      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingEnabled = s * 600 / G.World.mapCanvas.width < 1.6;
       ctx.drawImage(G.World.mapCanvas, -300 - px, -300 - pz, 600, 600);
       ctx.fillStyle = 'rgba(240,230,210,0.9)';
       for (const p of G.Build.pieces) if (!p.edge && p.kind !== 'door') { const x = p.i * 3 - px, z = p.k * 3 - pz; if (x * x + z * z < 8000) ctx.fillRect(x, z, 3, 3); }
@@ -385,12 +395,13 @@
       if (P.bed) { const x = P.bed.x - px, z = P.bed.z - pz; ctx.fillStyle = '#fff'; ctx.fillRect(x - 2, z - 1, 4, 2); }
       ctx.restore();
       // player arrow + ring + compass
-      ctx.save(); ctx.translate(R, R);
+      const k = R / 74;
+      ctx.save(); ctx.translate(R, R); ctx.scale(k, k);
       ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#0b1218'; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(0, -8); ctx.lineTo(6, 6); ctx.lineTo(0, 3); ctx.lineTo(-6, 6); ctx.closePath(); ctx.stroke(); ctx.fill();
       ctx.rotate(P.yaw);
-      ctx.fillStyle = '#4ff0e0'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      [['N', 0, -1], ['E', 1, 0], ['S', 0, 1], ['W', -1, 0]].forEach(([l, x, y]) => { ctx.save(); ctx.translate(x * (R - 12), y * (R - 12)); ctx.rotate(-P.yaw); ctx.fillText(l, 0, 0); ctx.restore(); });
+      ctx.fillStyle = '#ffd27a'; ctx.font = '700 11px Inter, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      [['N', 0, -1], ['E', 1, 0], ['S', 0, 1], ['W', -1, 0]].forEach(([l, x, y]) => { ctx.save(); ctx.translate(x * (R / k - 11), y * (R / k - 11)); ctx.rotate(-P.yaw); ctx.fillText(l, 0, 0); ctx.restore(); });
       ctx.restore();
     },
     showDeath() {

@@ -168,6 +168,7 @@ window.G = window.G || {};
   G.Lights = {
     pool: [], sources: new Set(),
     init(scene, n) {
+      this.pool = []; this.sources = new Set();
       for (let i = 0; i < n; i++) { const l = new THREE.PointLight(0xffa64d, 0, 14, 1.6); scene.add(l); this.pool.push(l); }
     },
     add(src) { this.sources.add(src); return src; }, // src: {pos:Vector3, color, intensity, dist, flicker}
@@ -192,6 +193,7 @@ window.G = window.G || {};
   G.Particles = {
     max: 400, i: 0, list: [],
     init(scene) {
+      this.list = []; this.i = 0;
       const b = new G.Builder(3); b.box(1, 1, 1, 0xffffff);
       this.mesh = new THREE.InstancedMesh(b.geoFor('std'), G.M.std, this.max);
       this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);

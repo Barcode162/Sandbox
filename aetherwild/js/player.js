@@ -15,6 +15,11 @@
       this.buildViewModel();
       this.torchLight = { pos: new THREE.Vector3(), color: 0xffa44a, intensity: 1.1, dist: 10, flicker: true };
     },
+    reset() {
+      this.vel.set(0, 0, 0); this.yaw = 0; this.pitch = 0; this.hp = 100; this.food = 100; this.water = 100; this.stamina = 100;
+      this.mount = null; this.dead = false; this.bed = null; this.focus = null; this.combatTarget = null; this.crouch = false;
+      this.torchOn = false; this.sel = 0; this.swingT = 1; this.hitAt = -1; this.lastHurt = 99; this.intro = 0;
+    },
     spawnAt(x, z) {
       this.pos.set(x, G.World.height(x, z) + 0.5, z); this.vel.set(0, 0, 0);
     },
@@ -27,17 +32,19 @@
       if (this.dead) return;
       this.lastHurt += dt;
       // ---- look
-      this.yaw -= I.dx * 0.0023 * G.settings.sens; this.pitch -= I.dy * 0.0023 * G.settings.sens;
+      const look = Math.abs(I.dx) + Math.abs(I.dy); if (look) G.stats.looked = (G.stats.looked || 0) + look;
+      this.yaw -= I.dx * 0.0023 * G.settings.sens; this.pitch -= I.dy * 0.0023 * G.settings.sens * (G.settings.invertY ? -1 : 1);
       this.pitch = G.clamp(this.pitch, -1.5, 1.5);
       I.dx = I.dy = 0;
       const active = I.active();
       const k = I.keys;
       let mx = 0, mz = 0;
       if (active) { if (k.KeyW) mz -= 1; if (k.KeyS) mz += 1; if (k.KeyA) mx -= 1; if (k.KeyD) mx += 1; }
-      const len = Math.hypot(mx, mz); if (len > 0) { mx /= len; mz /= len; }
+      if (active && (I.ax || I.az)) { mx = I.ax; mz = I.az; }
+      let len = Math.hypot(mx, mz); if (len > 1) { mx /= len; mz /= len; len = 1; }
       const sy = Math.sin(this.yaw), cy = Math.cos(this.yaw);
       const wx = mx * cy + mz * sy, wz = -mx * sy + mz * cy; // camera-relative world dir
-      const wantSprint = active && k.ShiftLeft && len > 0 && !this.crouch;
+      const wantSprint = active && (k.ShiftLeft || I.touchSprint) && len > 0 && !this.crouch;
       this.sprinting = wantSprint && this.stamina > 1;
 
       if (this.mount) this.updateRide(dt, wx, wz, len);
@@ -49,7 +56,7 @@
       S.food = Math.max(0, S.food); S.water = Math.max(0, S.water);
       if (S.food <= 0 || S.water <= 0) this.hp -= dt * 1.2;
       else if (S.food > 35 && S.water > 35 && this.lastHurt > 4) this.hp = Math.min(100, this.hp + dt * 0.6);
-      if (this.sprinting) { this.stamina -= dt * 17; this.staminaWait = 1; }
+      if (this.sprinting) { this.stamina -= dt * 17; this.staminaWait = 1; G.stats.sprinted = true; }
       else { this.staminaWait -= dt; if (this.staminaWait <= 0) this.stamina = Math.min(100, this.stamina + dt * 16); }
       this.stamina = Math.max(0, this.stamina);
       if (this.hp <= 0) { this.die(); return; }
@@ -64,7 +71,8 @@
         const target = this.crouch ? 1.05 : 1.62; this.eye = G.damp(this.eye, target, 12, dt);
         this.eyeOff = G.damp(this.eyeOff, 0, 14, dt);
         const bob = this.onGround ? Math.sin(this.walkPh * 2) * 0.035 * Math.min(1, Math.hypot(this.vel.x, this.vel.z) / 4) : 0;
-        cam.position.set(this.pos.x, this.pos.y + this.eye + this.eyeOff + bob, this.pos.z);
+        let drop = 0; if (this.intro > 0) { this.intro = Math.max(0, this.intro - dt); const t = this.intro / 2.2; drop = t * t * (3 - 2 * t) * 7; }
+        cam.position.set(this.pos.x, this.pos.y + this.eye + this.eyeOff + bob + drop, this.pos.z);
       }
       cam.rotation.set(this.pitch, this.yaw, 0, 'YXZ');
       cam.updateMatrixWorld();
@@ -97,7 +105,7 @@
         if (this.pos.y > G.WATER - 1.3 && active && k.Space) this.vel.y = Math.max(this.vel.y, 2.5);
       } else {
         this.vel.y -= 22 * dt;
-        if (active && k.Space && this.onGround && this.stamina > 8) { this.vel.y = 7.2; this.onGround = false; this.stamina -= 8; this.staminaWait = 0.8; }
+        if (active && k.Space && this.onGround && this.stamina > 8) { this.vel.y = 7.2; this.onGround = false; this.stamina -= 8; this.staminaWait = 0.8; G.stats.jumped = true; }
       }
       const prevY = this.pos.y;
       // sub-stepped move
@@ -121,7 +129,7 @@
         if (g - this.pos.y > 0.05 && g - prevY < STEP + 0.01) this.eyeOff -= (g - this.pos.y); // smooth step-up
         this.pos.y = g; if (this.vel.y < 0) this.vel.y = 0; this.onGround = true;
       } else this.onGround = this.pos.y - g < 0.05;
-      if (len > 0 && this.onGround) this.walkPh += dt * (this.sprinting ? 9 : 6.5);
+      if (len > 0 && this.onGround) { this.walkPh += dt * (this.sprinting ? 9 : 6.5); G.stats.walked = (G.stats.walked || 0) + Math.hypot(this.vel.x, this.vel.z) * dt; }
       if (this.onGround && len > 0) { this.stepT = (this.stepT || 0) - dt; if (this.stepT <= 0) { this.stepT = this.sprinting ? 0.32 : 0.46; G.Audio.play('step'); } }
     },
     updateRide(dt, wx, wz, len) {
@@ -249,7 +257,7 @@
       if (it.food) this.food = Math.min(100, this.food + it.food);
       if (it.water) this.water = Math.min(100, this.water + it.water);
       if (it.hurt) { this.hp -= it.hurt; this.lastHurt = 0; G.UI.flash('#7a8a2a'); G.UI.toast('Raw meat is not great for you...', null, 'warn'); }
-      G.inv.remove(id, 1); G.Audio.play('eat');
+      G.inv.remove(id, 1); G.Audio.play('eat'); G.stats.ate = true;
     },
     interact() {
       const f = this.focus;
@@ -274,7 +282,7 @@
     },
     drink() {
       if (this.water > 98) { G.UI.toast('Not thirsty'); return; }
-      this.water = Math.min(100, this.water + 22); G.Audio.play('drink');
+      this.water = Math.min(100, this.water + 22); G.Audio.play('drink'); G.stats.drank = true;
       G.Particles.burst(V.copy(G.camPos).addScaledVector(G.camDir, 1.2), 0x6fb6d8, 6, 2, 0.06);
     },
     ride() {

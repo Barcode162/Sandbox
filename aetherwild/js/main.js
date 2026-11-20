@@ -5,41 +5,41 @@
 (function () {
   const G = window.G;
   const $ = s => document.querySelector(s);
-  const SEED = 16213;
 
   G.newStats = () => ({ crafted: {}, built: { foundation: 0, wall: 0, doorway: 0, window: 0, floor: 0, stairs: 0, door: 0 }, placed: {}, got: {}, tamed: 0, upgraded: 0, voidBuilt: false, tamedRex: false, kills: 0 });
   G.stats = G.newStats();
-  G.settings = { sens: 1 };
-  try { Object.assign(G.settings, JSON.parse(localStorage.getItem('aetherwild_settings') || '{}')); } catch (e) { }
   G.camPos = new THREE.Vector3(); G.camDir = new THREE.Vector3(0, 0, -1);
 
   // ------------------------------------------------------------------ input
   const I = G.Input = {
-    keys: {}, mouse: { l: false, r: false, lPressed: false }, dx: 0, dy: 0, locked: false, noLock: false, paused: false,
+    keys: {}, mouse: { l: false, r: false, lPressed: false }, dx: 0, dy: 0, ax: 0, az: 0, locked: false, noLock: false, paused: false, fails: 0,
     active() { return G.started && !G.UI.open && !G.Player.dead && !this.paused && (this.locked || this.noLock); },
     lock() {
-      if (this.noLock) { this.paused = false; $('#pause').classList.add('hidden'); return; }
+      if (this.noLock) { this.paused = false; return; }
       const c = G.renderer.domElement;
       try { const p = c.requestPointerLock(); if (p && p.catch) p.catch(() => this.fallback()); } catch (e) { this.fallback(); }
     },
     fallback() {
-      // a lock that worked before can be refused briefly after Esc: just show the pause/resume screen
-      if (this.everLocked) { if (G.started && !G.UI.open && !G.Player.dead) { this.paused = true; $('#pause').classList.remove('hidden'); } return; }
-      this.noLock = true; this.paused = false; $('#pause').classList.add('hidden'); G.UI.toast('Mouse lock unavailable here: hold Right Mouse to look around', null, 'warn'); },
+      // refused (e.g. right after Esc, or no gesture): show the pause menu so a click can resume.
+      // Only give up on mouse lock entirely if it keeps failing and never worked.
+      this.fails++;
+      if (!this.everLocked && this.fails >= 3) { this.noLock = true; this.paused = false; $('#pause').classList.add('hidden'); G.UI.toast('Mouse lock unavailable here: hold Right Mouse to look around', null, 'warn'); return; }
+      if (G.started && !G.UI.open && !G.Player.dead) G.Menu.pause();
+    },
     unlock() { if (document.pointerLockElement) document.exitPointerLock(); },
   };
   document.addEventListener('pointerlockchange', () => {
     I.locked = document.pointerLockElement === G.renderer.domElement;
-    if (I.locked) { I.everLocked = true; I.paused = false; $('#pause').classList.add('hidden'); }
-    else if (G.started && !G.UI.open && !G.Player.dead && !I.noLock) { I.paused = true; $('#pause').classList.remove('hidden'); G.save(true); }
+    if (I.locked) { I.everLocked = true; I.fails = 0; I.paused = false; $('#pause').classList.add('hidden'); }
+    else if (G.started && !G.UI.open && !G.Player.dead && !I.noLock && !I.paused) G.Menu.pause();
   });
   document.addEventListener('pointerlockerror', () => I.fallback());
   document.addEventListener('mousemove', e => {
-    if (I.locked || (I.noLock && I.mouse.r && I.active())) { I.dx += e.movementX || 0; I.dy += e.movementY || 0; }
+    if (I.locked || (I.noLock && !G.touch && I.mouse.r && I.active())) { I.dx += e.movementX || 0; I.dy += e.movementY || 0; }
   });
   document.addEventListener('mousedown', e => {
     G.Audio.start();
-    if (!G.started || G.UI.open) return;
+    if (!G.started || G.UI.open || G.touch) return;
     if (!I.locked && !I.noLock) { if (e.target === G.renderer.domElement) I.lock(); return; }
     if (e.button === 0) { I.mouse.l = true; I.mouse.lPressed = true; }
     if (e.button === 2) { I.mouse.r = true; if (G.Build.mode) G.Build.stopBuild(); }
@@ -52,16 +52,25 @@
   window.addEventListener('blur', () => { I.keys = {}; I.mouse.l = I.mouse.r = false; });
   document.addEventListener('keyup', e => { I.keys[e.code] = false; });
   document.addEventListener('keydown', e => {
-    if (e.code === 'Tab') e.preventDefault();
-    if (!G.started) return;
+    if (e.code === 'Tab' && G.started) e.preventDefault();
+    if (!G.started || e.target.tagName === 'INPUT') return;
     I.keys[e.code] = true;
     if (e.repeat) return;
     const U = G.UI, P = G.Player, B = G.Build;
     if (P.dead) return;
-    if (e.code === 'Escape') { if (U.open) { U.closeAll(); I.lock(); } else if (B.mode) B.stopBuild(); return; }
-    if (e.code === 'Tab' || e.code === 'KeyI') { if (U.open === 'inv') { U.closeAll(); I.lock(); } else if (!I.paused) U.openInventory(); return; }
-    if (e.code === 'KeyB') { if (U.open === 'build') { U.closeAll(); I.lock(); } else if (!I.paused && !P.mount) U.openBuild(); return; }
+    if (e.code === 'Escape') {
+      if (U.open) { U.closeAll(); I.lock(); }
+      else if (B.mode) B.stopBuild();
+      else if (!$('#settings').classList.contains('hidden')) { /* handled by menu */ }
+      else if (I.paused) G.Menu.resume();
+      else if (I.noLock) G.Menu.pause();
+      return;
+    }
+    if (I.paused) return;
+    if (e.code === 'Tab' || e.code === 'KeyI') { if (U.open === 'inv') { U.closeAll(); I.lock(); } else U.openInventory(); return; }
+    if (e.code === 'KeyB') { if (U.open === 'build') { U.closeAll(); I.lock(); } else if (!P.mount) U.openBuild(); return; }
     if (e.code === 'KeyH') { $('#help').classList.toggle('hidden'); return; }
+    if (e.code === 'KeyT') { G.Tutorial.skip(); return; }
     if (!I.active()) return;
     if (e.code.startsWith('Digit')) { const n = +e.code.slice(5); if (n >= 1 && n <= 8) { P.sel = n - 1; U.refreshHotbar(); } return; }
     const f = P.focus;
@@ -79,17 +88,65 @@
   });
 
   // ------------------------------------------------------------------ setup
+  let envTex = null;
+  // (re)builds the whole island for a seed into a fresh scene
+  G.buildWorld = function (seed) {
+    if (G.scene) G.scene.traverse(o => { if (o.geometry && !o.isPoints) o.geometry.dispose(); });
+    const scene = G.scene = new THREE.Scene();
+    scene.environment = envTex;
+    scene.add(G.camera);
+    G.Phys.reset();
+    G.Lights.init(scene, 6);
+    G.Particles.init(scene);
+    G.World.init(scene, seed);
+    G.Build.init(scene);
+    G.Creatures.init();
+    G.inv.load(new Array(G.inv.slots.length).fill(null));
+    G.stats = G.newStats();
+    G.Player.reset();
+    G.Player.spawnAt(G.World.spawn.x, G.World.spawn.z);
+    G.Creatures.spawnInitial();
+    G.loadedSeed = seed; G.pristine = true;
+    G.applyQuality();
+    G.Menu.titleCam();
+  };
+  G.enterWorld = function (w) {
+    if (!(G.pristine && G.loadedSeed === w.seed)) G.buildWorld(w.seed);
+    G.pristine = false;
+    G.current = w;
+    G.Tutorial.load(null);
+    const loaded = !w.fresh && G.loadSave(w);
+    if (!loaded) {
+      const sp = G.World.spawn;
+      G.Player.spawnAt(sp.x, sp.z);
+      G.Player.yaw = Math.atan2(sp.x, sp.z);
+      G.stats = G.newStats();
+      if (G.settings.tutorial) G.Tutorial.start(); else G.UI.toast('Welcome to ' + w.name + '. Punch trees to begin.', null, 'good');
+    }
+    G.Player.intro = 2.2;
+    G.started = true;
+    G.UI.refreshHotbar();
+    G.save(true);
+  };
+  G.applyQuality = function () {
+    const q = G.settings.quality, r = G.renderer;
+    r.setPixelRatio(Math.min(window.devicePixelRatio || 1, q === 'low' ? 1 : 1.5));
+    r.setSize(window.innerWidth, window.innerHeight);
+    const sun = G.World.sun, n = q === 'low' ? 1024 : 2048;
+    if (sun && sun.shadow.mapSize.x !== n) { sun.shadow.mapSize.set(n, n); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } }
+    if (G.World.grass) { G.World.grassN = G.World.grassN || G.World.grass.count; G.World.grass.count = q === 'low' ? Math.min(9000, G.World.grassN) : G.World.grassN; }
+  };
+  G.applyView = function () {
+    G.camera.fov = G.settings.fov; G.camera.updateProjectionMatrix();
+  };
+
   function init() {
     const r = G.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-    r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
-    r.setSize(window.innerWidth, window.innerHeight);
     r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
     r.outputEncoding = THREE.sRGBEncoding; r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.0;
     r.autoClear = false;
     document.body.prepend(r.domElement);
-    const scene = G.scene = new THREE.Scene();
-    G.camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 1000);
-    scene.add(G.camera);
+    G.camera = new THREE.PerspectiveCamera(G.settings.fov, window.innerWidth / window.innerHeight, 0.1, 1000);
 
     // image-based ambient from a soft gradient sky (keeps metals readable)
     const envScene = new THREE.Scene();
@@ -99,64 +156,32 @@
     for (let i = 0; i < pa.count; i++) { const y = pa.getY(i) / 10; const c = y > 0 ? hor.clone().lerp(top, y) : hor.clone().lerp(bot, -y * 2); ec.push(c.r, c.g, c.b); }
     eg.setAttribute('color', new THREE.Float32BufferAttribute(ec, 3));
     envScene.add(new THREE.Mesh(eg, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide })));
-    const pm = new THREE.PMREMGenerator(r);
-    scene.environment = pm.fromScene(envScene, 0.04).texture;
+    envTex = new THREE.PMREMGenerator(r).fromScene(envScene, 0.04).texture;
 
-    G.Lights.init(scene, 6);
-    G.Particles.init(scene);
-    G.World.init(scene, SEED);
-    G.Build.init(scene);
     G.inv = new G.Inventory(30); G.inv.hotbar = 8;
     G.Player.init();
-    G.Player.vmScene.environment = scene.environment;
+    G.Player.vmScene.environment = envTex;
+    G.Menu.init();
     G.UI.init();
-    G.Player.spawnAt(G.World.spawn.x, G.World.spawn.z);
-    G.Creatures.spawnInitial();
+    G.Touch.init();
+    // the island behind the title is the last world you played (or a showcase island)
+    const last = G.Worlds.list()[0];
+    G.buildWorld(last ? last.seed : 16213);
+    G.World.tod = 0.29; // golden morning light for the title
     G.UI.refreshHotbar();
 
     window.addEventListener('resize', () => {
       r.setSize(window.innerWidth, window.innerHeight);
       G.camera.aspect = window.innerWidth / window.innerHeight; G.camera.updateProjectionMatrix();
       G.Player.vmCam.aspect = G.camera.aspect; G.Player.vmCam.updateProjectionMatrix();
+      G.UI.sizeMinimap();
     });
     G.Player.vmCam.aspect = G.camera.aspect; G.Player.vmCam.updateProjectionMatrix();
-
-    // title / menus
-    const cont = $('#btn-continue');
-    if (G.hasSave()) cont.classList.remove('hidden');
-    cont.onclick = () => start(true);
-    // two-step confirm inside the page (native confirm() dialogs are not available everywhere)
-    const confirmBtn = (btn, label, fn) => {
-      const orig = btn.textContent; let armed = false, t = 0;
-      btn.onclick = () => {
-        if (!armed) { armed = true; btn.textContent = label; btn.classList.add('armed'); clearTimeout(t); t = setTimeout(() => { armed = false; btn.textContent = orig; btn.classList.remove('armed'); }, 3500); return; }
-        clearTimeout(t); fn();
-      };
-    };
-    if (G.hasSave()) confirmBtn($('#btn-new'), 'Erase save and start over?', () => { G.wipeSave(); start(false); });
-    else $('#btn-new').onclick = () => start(false);
-    $('#btn-resume').onclick = () => I.lock();
-    $('#btn-save').onclick = () => G.save();
-    $('#btn-help').onclick = () => $('#help').classList.toggle('hidden');
-    confirmBtn($('#btn-wipe'), 'Click again to erase this world', () => { G.wipeSave(); G.started = false; G.noSave = true; location.reload(); });
-    const sens = $('#sens'); sens.value = G.settings.sens;
-    sens.oninput = () => { G.settings.sens = +sens.value; try { localStorage.setItem('aetherwild_settings', JSON.stringify(G.settings)); } catch (e) { } };
-    $('#loading').classList.add('hidden'); $('#title').classList.remove('hidden');
+    $('#btn-respawn').onclick = () => { $('#death').classList.add('hidden'); G.Player.respawn(); G.Input.lock(); };
+    // the camera is already flying when the start screen fades in
     requestAnimationFrame(loop);
-  }
-
-  function start(load) {
-    G.Audio.start();
-    if (load && !G.loadSave()) load = false;
-    if (!load) {
-      G.Player.spawnAt(G.World.spawn.x, G.World.spawn.z);
-      G.Player.yaw = Math.atan2(-(0 - G.World.spawn.x), -(0 - G.World.spawn.z));
-      G.UI.toast('Welcome to the Aetherwild. Punch trees to begin.', null, 'good');
-    }
-    G.started = true;
-    $('#title').classList.add('hidden'); $('#hud').classList.remove('hidden');
-    G.UI.refreshHotbar();
-    I.lock();
+    setTimeout(() => { $('#loading').classList.add('gone'); G.Menu.set('start'); }, 350);
+    setTimeout(() => $('#loading').classList.add('hidden'), 1600);
   }
 
   let last = performance.now(), saveT = 60, fpsT = 0, frames = 0;
@@ -168,13 +193,9 @@
     const r = G.renderer, cam = G.camera;
     if (!G.started) {
       G.time += dt;
-      const sp = G.World.spawn, a = G.time * 0.04;
-      const cx = sp.x + Math.cos(a) * 70, cz = sp.z + Math.sin(a) * 70;
-      G._ty = G.damp(G._ty || 40, Math.max(G.World.height(cx, cz) + 18, G.World.height(sp.x, sp.z) + 30), 2, dt);
-      cam.position.set(cx, G._ty, cz);
-      cam.lookAt(sp.x, G.World.height(sp.x, sp.z) + 4, sp.z);
+      G.Menu.updateTitleCam(dt, cam);
       cam.updateMatrixWorld(); G.camPos.copy(cam.position); cam.getWorldDirection(G.camDir);
-      G.World.update(dt * 0.3, cam); G.Creatures.update(dt); G.Lights.update(cam);
+      G.World.update(dt * 0.15, cam); G.Creatures.update(dt); G.Particles.update(dt); G.Lights.update(cam);
       r.clear(); r.render(G.scene, cam);
       return;
     }
@@ -195,6 +216,7 @@
     G.Particles.update(dt);
     G.Lights.update(cam);
     G.UI.update(dt);
+    G.Tutorial.update(dt);
     G.Audio.update();
     saveT -= dt; if (saveT <= 0) { saveT = 60; G.save(true); }
     r.clear(); r.render(G.scene, cam);

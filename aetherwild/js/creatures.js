@@ -274,7 +274,7 @@
 
   G.Creatures = {
     list: [], spawnT: 5,
-    init() { },
+    init() { this.list = []; this.spawnT = 5; },
     spawn(sp, x, z, o) { const c = new Creature(sp, x, z, o); this.list.push(c); return c; },
     landPoint(sp, minD, tries) {
       const W = G.World, P = G.Player.pos, nrm = new THREE.Vector3();

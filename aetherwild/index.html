@@ -2,50 +2,104 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Aetherwild</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="loading" class="screen"><div class="logo">AETHERWILD</div><div class="sub">Growing the island…</div></div>
+<div id="loading" class="screen"><div class="load-mark"></div></div>
 
-<div id="title" class="screen hidden">
-  <div class="title-card">
-    <div class="logo">AETHERWILD</div>
-    <div class="tagline">Survive. Build. Tame the island.</div>
-    <div class="req">Keyboard and mouse required · Progress saves in this browser</div>
-    <div class="btns">
-      <button id="btn-continue" class="big hidden">Continue</button>
-      <button id="btn-new" class="big">New World</button>
-    </div>
-    <div class="controls">
-      <div><span>WASD</span> Move</div><div><span>Shift</span> Sprint</div><div><span>Space</span> Jump / swim up</div><div><span>C</span> Crouch (sneak)</div>
-      <div><span>LMB</span> Gather / attack / use</div><div><span>E</span> Interact / feed / drink</div><div><span>Tab</span> Inventory &amp; crafting</div><div><span>B</span> Build menu</div>
-      <div><span>U</span> Upgrade piece</div><div><span>X</span> Demolish / pick up</div><div><span>R</span> Ride / rotate</div><div><span>F</span> Pet follow / stay</div>
-    </div>
+<!-- ======================= front end ======================= -->
+<div id="front" class="st-hidden">
+  <div class="vignette"></div>
+  <div id="brand">
+    <div id="emblem"></div>
+    <h1 class="logo" id="logo" aria-label="Aetherwild"></h1>
   </div>
+  <div id="press"><i></i><span id="press-text">Press anywhere</span><i></i></div>
+
+  <nav id="menu-main" class="menu-col" aria-label="Main menu">
+    <button class="mbtn primary hidden" id="m-continue"><b>Continue</b><small id="m-continue-name"></small></button>
+    <button class="mbtn" id="m-play"><b>Worlds</b></button>
+    <button class="mbtn" id="m-settings"><b>Settings</b></button>
+  </nav>
+
+  <section id="menu-worlds" class="menu-col wide" aria-label="Worlds">
+    <header class="mhead"><button class="back" id="w-back" aria-label="Back">‹</button><h2>Your Worlds</h2></header>
+    <div class="newworld" id="newworld">
+      <button class="mbtn primary" id="w-new"><b>New World</b></button>
+      <form id="w-form" class="hidden" autocomplete="off">
+        <label for="w-name">Name</label><input id="w-name" maxlength="28">
+        <label for="w-seed">Seed</label><input id="w-seed" placeholder="Random" maxlength="24">
+        <button type="submit" class="mbtn primary" id="w-create"><b>Enter the Wild</b></button>
+      </form>
+    </div>
+    <div id="world-list"></div>
+  </section>
 </div>
 
+<!-- shared settings sheet (front end & pause) -->
+<section id="settings" class="sheet hidden" aria-label="Settings">
+  <header class="mhead"><button class="back" id="s-back" aria-label="Back">‹</button><h2>Settings</h2></header>
+  <div class="srow"><label for="s-sens">Look sensitivity</label><input id="s-sens" type="range" min="0.3" max="2.5" step="0.05"><output id="o-sens"></output></div>
+  <div class="srow"><label for="s-fov">Field of view</label><input id="s-fov" type="range" min="60" max="100" step="1"><output id="o-fov"></output></div>
+  <div class="srow"><label for="s-vol">Volume</label><input id="s-vol" type="range" min="0" max="1" step="0.05"><output id="o-vol"></output></div>
+  <div class="srow"><label>Graphics</label><div class="seg" id="s-quality"><button data-v="low">Performance</button><button data-v="high">Quality</button></div></div>
+  <div class="srow"><label for="s-invert">Invert look</label><button class="toggle" id="s-invert" role="switch"></button></div>
+  <div class="srow"><label for="s-tut">Tutorial in new worlds</label><button class="toggle" id="s-tut" role="switch"></button></div>
+  <div class="srow" id="s-replay-row"><label>Tutorial</label><button class="chip" id="s-replay">Replay now</button></div>
+</section>
+
+<div id="warp" class="hidden"><div class="warp-in"><div class="warp-name" id="warp-name"></div><div class="warp-sub">Shaping the island</div><div class="warp-bar"><i></i></div></div></div>
+
+<!-- ======================= in-game HUD ======================= -->
 <div id="hud" class="hidden">
   <div id="crosshair"><i></i></div>
   <div id="prompt"></div>
   <div id="target" class="hidden"></div>
   <div id="objective"><div id="obj-n">GOAL</div><div id="obj-text"></div></div>
-  <div id="mapwrap"><canvas id="minimap" width="180" height="180"></canvas><div id="clock"></div></div>
+  <div id="tutorial"><div class="tut-step"></div><div class="tut-title"></div><div class="tut-text"></div><div class="tut-dots"></div><div class="tut-skip"></div></div>
+  <div id="mapwrap"><canvas id="minimap"></canvas><div id="clock"></div></div>
   <div id="toasts"></div>
   <div id="buildhud" class="hidden"></div>
-  <div id="stats">
-    <div class="stat"><label>HP</label><div class="bar hp"><i id="bar-hp"></i></div></div>
-    <div class="stat"><label>FOOD</label><div class="bar food"><i id="bar-food"></i></div></div>
-    <div class="stat"><label>WATER</label><div class="bar water"><i id="bar-water"></i></div></div>
-    <div class="stat"><label>STAMINA</label><div class="bar stam"><i id="bar-stam"></i></div></div>
-  </div>
   <div id="held-name"></div>
-  <div id="hotbar"></div>
+  <div id="dock">
+    <div id="vitals" title="Health · Food · Water · Stamina">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle class="trk" cx="32" cy="32" r="28"/><circle class="arc hp" id="r-hp" cx="32" cy="32" r="28"/>
+        <circle class="trk" cx="32" cy="32" r="22"/><circle class="arc food" id="r-food" cx="32" cy="32" r="22"/>
+        <circle class="trk" cx="32" cy="32" r="16"/><circle class="arc water" id="r-water" cx="32" cy="32" r="16"/>
+        <circle class="trk" cx="32" cy="32" r="10"/><circle class="arc stam" id="r-stam" cx="32" cy="32" r="10"/>
+      </svg>
+      <div class="vnum" id="v-hp">100</div>
+    </div>
+    <div id="hotbar"></div>
+  </div>
   <div id="flash"></div>
   <div id="underwater"></div>
+</div>
+
+<!-- touch controls -->
+<div id="touch-ui">
+  <div id="touch-zone"></div>
+  <div id="stick"><i></i></div>
+  <div class="tbtns">
+    <button data-btn="mouse" class="tb big">ACT</button>
+    <button data-btn="Space" class="tb mid">JUMP</button>
+    <button data-btn="KeyE" class="tb sm e">E</button>
+    <button data-btn="KeyC" class="tb sm c">C</button>
+    <button data-btn="KeyR" class="tb sm r">R</button>
+    <button data-btn="KeyF" class="tb sm f">F</button>
+  </div>
+  <div class="tbtop">
+    <button data-btn="Tab" class="tb pill">BAG</button>
+    <button data-btn="KeyB" class="tb pill">BUILD</button>
+    <button data-btn="KeyU" class="tb pill">U</button>
+    <button data-btn="KeyX" class="tb pill">X</button>
+    <button data-btn="Pause" class="tb pill">II</button>
+  </div>
 </div>
 
 <div id="inv-screen" class="overlay hidden">
@@ -55,7 +109,7 @@
     <div class="note">Top row is your hotbar (keys 1–8)</div>
   </div>
   <div class="panel" id="side-panel">
-    <div class="tabs"><button id="tab-craft" class="on">Crafting</button><button id="tab-chest" class="hidden">Storage</button></div>
+    <div class="tabs"><button id="tab-craft" class="on">Crafting</button><button id="tab-chest" class="hidden">Storage</button><button class="tclose" id="inv-close" aria-label="Close">✕</button></div>
     <div id="craft-list"></div>
     <div id="chest-wrap" class="hidden"><div id="chest-grid" class="grid"></div><div class="note">Shift-click to move stacks</div></div>
   </div>
@@ -63,7 +117,7 @@
 
 <div id="build-screen" class="overlay hidden">
   <div class="panel" id="build-panel">
-    <h2>Build</h2>
+    <div class="tabs"><h2>Build</h2><button class="tclose" id="build-close" aria-label="Close">✕</button></div>
     <div id="tier-row"></div>
     <div id="piece-grid"></div>
     <div class="note">Snap foundations to the ground, then walls &amp; floors onto them. Aim at any piece and press <b>U</b> to upgrade it: Wood → Stone → Metal → Aetherium → Voidglass.</div>
@@ -73,20 +127,18 @@
 <div id="tooltip" class="hidden"></div>
 
 <div id="pause" class="screen dim hidden">
-  <div class="title-card small">
-    <div class="logo sm">PAUSED</div>
-    <div class="btns">
-      <button id="btn-resume" class="big">Resume</button>
-      <button id="btn-save">Save Game</button>
-      <button id="btn-help">Controls</button>
-      <button id="btn-wipe" class="danger">New World</button>
-    </div>
-    <label class="sens">Mouse sensitivity <input id="sens" type="range" min="0.3" max="2.5" step="0.05"></label>
-  </div>
+  <nav class="menu-col pausecol" aria-label="Paused">
+    <div class="ptitle">Paused</div>
+    <button class="mbtn primary" id="p-resume"><b>Resume</b></button>
+    <button class="mbtn" id="p-settings"><b>Settings</b></button>
+    <button class="mbtn" id="p-save"><b>Save</b></button>
+    <button class="mbtn" id="p-help"><b>Field Guide</b></button>
+    <button class="mbtn" id="p-quit"><b>Quit to Menu</b></button>
+  </nav>
 </div>
 
 <div id="help" class="panel hidden">
-  <h2>Field Guide</h2>
+  <div class="tabs"><h2>Field Guide</h2><button class="tclose" id="help-close" aria-label="Close">✕</button></div>
   <div class="controls">
     <div><span>WASD</span> Move</div><div><span>Shift</span> Sprint</div><div><span>Space</span> Jump / swim</div><div><span>C</span> Crouch</div>
     <div><span>LMB</span> Gather / attack</div><div><span>E</span> Interact</div><div><span>Tab</span> Inventory</div><div><span>B</span> Build</div>
@@ -102,10 +154,10 @@
 </div>
 
 <div id="death" class="screen dim hidden">
-  <div class="title-card small">
-    <div class="logo sm red">YOU DIED</div>
+  <div class="deathcard">
+    <div class="ptitle red">You Died</div>
     <p>Your items are in a glowing backpack where you fell.</p>
-    <button id="btn-respawn" class="big">Respawn</button>
+    <button class="mbtn primary" id="btn-respawn"><b>Respawn</b></button>
   </div>
 </div>
 
@@ -120,7 +172,11 @@
 <script src="js/creatures.js"></script>
 <script src="js/player.js"></script>
 <script src="js/audio.js"></script>
+<script src="js/save.js"></script>
+<script src="js/tutorial.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/touch.js"></script>
+<script src="js/menu.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

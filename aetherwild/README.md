@@ -9,7 +9,12 @@ No build step and no install. The engine (three.js r149) is vendored, so it also
 - **Easiest:** open `index.html` in Chrome, Edge or Firefox.
 - **Or serve it:** `cd aetherwild && python3 -m http.server 8000`, then open <http://localhost:8000>.
 
-Click the game to capture the mouse. Press **Esc** to pause; progress autosaves every minute and on pause (browser `localStorage`).
+Click or tap the start screen to open the menu, then pick **Worlds** to create or enter a world. Each world has its own name, seed and save. Progress autosaves every minute and whenever you pause (browser `localStorage`). New worlds start with a short guided tutorial; turn it off or replay it in **Settings**.
+
+On phones and tablets, touch controls appear automatically:
+- drag the left side to move (push to the edge to sprint)
+- drag the right side to look
+- buttons for ACT (gather/attack), Jump, E, C, R, F, plus Bag, Build, Upgrade, Demolish and Pause
 
 ## Controls
 
@@ -92,5 +97,9 @@ Inventory icons are rendered live from the same 3D models, so they always match 
 | `js/creatures.js` | Dinosaur AI, taming, knockouts, combat, spawning |
 | `js/player.js` | Movement, survival stats, gathering and combat, riding, first-person view model |
 | `js/ui.js` | HUD, inventory and crafting, build menu, minimap, icon renderer |
-| `js/audio.js` | Synthesised sound effects, save and load |
-| `js/main.js` | Bootstrap, input, main loop |
+| `js/audio.js` | Synthesised sound effects |
+| `js/save.js` | Saved worlds: list, create, delete, save/load per world |
+| `js/menu.js` | Start screen, menu, world select, settings, world transition, title flyover |
+| `js/tutorial.js` | First-time guided tutorial |
+| `js/touch.js` | Touch controls |
+| `js/main.js` | Bootstrap, world rebuild, input, main loop |

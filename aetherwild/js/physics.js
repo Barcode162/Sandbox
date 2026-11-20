@@ -7,6 +7,7 @@
   const CELL = 4;
   const P = G.Phys = {
     grid: new Map(), stamp: 0,
+    reset() { this.grid = new Map(); },
     key(i, j) { return (i + 500) * 2000 + (j + 500); },
     addBox(b) { // b: {x0,y0,z0,x1,y1,z1, owner}
       b._keys = [];

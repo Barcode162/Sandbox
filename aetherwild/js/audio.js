@@ -6,10 +6,11 @@
   const G = window.G;
   const A = G.Audio = {
     ctx: null, vol: 0.5,
+    setVolume(v) { this.vol = v; if (this.master) this.master.gain.value = v; },
     start() {
       if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
       try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
-      this.master = this.ctx.createGain(); this.master.gain.value = this.vol; this.master.connect(this.ctx.destination);
+      this.master = this.ctx.createGain(); this.master.gain.value = (G.settings && G.settings.volume !== undefined) ? G.settings.volume : this.vol; this.master.connect(this.ctx.destination);
       const len = this.ctx.sampleRate * 2; const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
       const d = buf.getChannelData(0); for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
       this.noise = buf;
@@ -63,6 +64,7 @@
           const base = 180 / sc + 40;
           this.tone(base * 1.6, base * 0.6, 0.9, 0.35, 'sawtooth'); this.tone(base * 1.2, base * 0.5, 0.9, 0.25, 'square'); this.noiseHit(base * 3, 0.7, 0.8, 0.3, 'lowpass'); break;
         }
+        case 'warp': { const c = this.ctx, t = c.currentTime; const s = c.createBufferSource(); s.buffer = this.noise; const f = c.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 2; f.frequency.setValueAtTime(200, t); f.frequency.exponentialRampToValueAtTime(2400, t + 1.1); const gg = c.createGain(); this.env(gg, t, 0.5, 0.9, 0.35); s.connect(f); f.connect(gg); gg.connect(this.out); s.start(t); s.stop(t + 1.6); this.tone(110, 220, 1.4, 0.12, 'sine'); break; }
         case 'ui': this.tone(880, 880, 0.04, 0.08, 'triangle'); break;
       }
     },
@@ -71,25 +73,4 @@
     },
   };
 
-  // ------------------------------------------------------------------ save/load
-  const KEY = 'aetherwild_save_v1';
-  G.hasSave = function () { try { return !!localStorage.getItem(KEY); } catch (e) { return false; } };
-  G.save = function (quiet) {
-    if (!G.started || G.Player.dead) return;
-    const data = {
-      v: 1, tod: G.World.tod, player: G.Player.serialize(), inv: G.inv.toJSON(), stats: G.stats,
-      build: G.Build.serialize(), tames: G.Creatures.serialize(),
-    };
-    try { localStorage.setItem(KEY, JSON.stringify(data)); if (!quiet) G.UI.toast('Game saved', null, 'good'); }
-    catch (e) { if (!quiet) G.UI.toast('Could not save (storage blocked)', null, 'warn'); }
-  };
-  G.loadSave = function () {
-    let data; try { data = JSON.parse(localStorage.getItem(KEY)); } catch (e) { return false; }
-    if (!data) return false;
-    G.World.tod = data.tod; G.Player.load(data.player); G.inv.load(data.inv);
-    G.stats = Object.assign(G.newStats(), data.stats);
-    G.Build.load(data.build); G.Creatures.load(data.tames);
-    return true;
-  };
-  G.wipeSave = function () { try { localStorage.removeItem(KEY); } catch (e) { } };
 })();
