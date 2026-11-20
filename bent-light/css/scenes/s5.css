@@ -1,0 +1,30 @@
+/* scenes/s5.css: Scene 5 *Agreement* (spec §4 Scene 5). Owner chain: WO-011 → WO-014 → WO-025 → WO-024.
+ * Static boxes only: every per-frame change is a transform or an opacity written by s5-agreement.js.
+ * Guard 1: no overflow hidden/auto/scroll, no vh/dvh units. */
+
+/* The ink room under the stage, including the 100lvh ground strip below the U × V box. */
+#scene-agreement > .art { background: var(--ink, #0C0F1A); }
+
+/* One instance (main, a or b): the ink room at U × V, with the bands, hairlines and overlay on it. */
+.s5 {
+  position: absolute; top: 0; left: 0;
+  background: var(--ink, #0C0F1A);
+  pointer-events: none;
+}
+
+/* Hairlines (§4 `hair`): 1 px of ink on each beam's left edge, drawn normally above the screened
+ * bands so neighbours stay legible where they first touch. The group carries the opacity. */
+.s5-hairs { position: absolute; top: 0; left: 0; width: 0; height: 0; opacity: 0; }
+.s5-hair {
+  position: absolute; top: 0; left: 0;
+  width: 1px;
+  background: var(--ink, #0C0F1A);
+}
+
+/* The white overlay (§4 `ov`): a U × V box placed and scaled by transform, origin 0 0. */
+.s5-overlay {
+  position: absolute; top: 0; left: 0;
+  transform-origin: 0 0;
+  background: var(--beam, #FFFFFF);
+  opacity: 0;
+}

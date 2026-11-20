@@ -1,0 +1,12 @@
+/* colophon.css: the closing page, in normal flow on the wall (spec §8.1). */
+.colophon { padding: 12svh var(--gutter, 24px) 16svh; color: var(--ink); font: var(--type-colophon); }
+.colophon > * { max-width: var(--type-colophon-measure); margin-left: auto; margin-right: auto; }
+.colophon h2 { font: var(--type-label); letter-spacing: var(--type-label-tracking); text-transform: uppercase; margin-bottom: 24px; }
+.colophon p { margin-top: 0; margin-bottom: 1em; }
+.chip-button {
+  display: inline-block; margin: 8px 8px 8px 0; padding: 12px 20px; border: 0; cursor: pointer;
+  font: var(--type-label); letter-spacing: var(--type-label-tracking); text-transform: uppercase;
+}
+.chip-button:hover { background: var(--ink); }
+.chip-button:active { transform: translateY(1px); }
+.colophon-credit { margin-top: 32px !important; font: var(--type-caption); opacity: 0.8; }

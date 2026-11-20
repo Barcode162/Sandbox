@@ -1,0 +1,45 @@
+/* scenes/s1.css: Scene 1 *Incidence* (spec §4). The wall and its gallery spot live on .s1-incidence
+ * and fade (--wall-alpha) as the rays stand up into full-bleed bands. Title type lives outside .uv. */
+.s1-incidence { position: absolute; inset: 0; overflow: clip; pointer-events: none; }
+.s1-incidence::before {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(circle at 36% 52%, var(--wall) 0, var(--wall-deep) 120vmin);
+  opacity: var(--wall-alpha, 1);
+}
+.s1-svg, .s6-svg { position: absolute; left: 0; top: 0; overflow: visible; }
+.prism-beam { stroke: var(--beam); stroke-width: 2; }
+.prism-beam-under { stroke: var(--wall-deep); stroke-width: 1; }
+.prism-edge { fill: none; stroke: rgba(12, 15, 26, 0.55); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.prism-fringe { stroke-width: 1; vector-effect: non-scaling-stroke; }
+.prism-fringe-c { stroke: var(--fringe-c); }
+.prism-fringe-m { stroke: var(--fringe-m); }
+.prism-glint { fill: var(--beam); filter: drop-shadow(0 0 4px #fff); }
+#scene-incidence .title,
+#scene-incidence .plate {
+  position: absolute; left: var(--gutter, 32px); bottom: calc(var(--gutter, 32px) + 56px);
+  margin: 0; font: var(--type-display); letter-spacing: var(--type-display-tracking);
+  color: var(--ink); white-space: nowrap;
+}
+#scene-incidence .title { font-size: var(--type-display-size); }
+#scene-incidence .plate { mix-blend-mode: multiply; pointer-events: none; }
+#scene-incidence .plate--c { color: var(--plate-c); }
+#scene-incidence .plate--m { color: var(--plate-m); }
+#scene-incidence .plate--y { color: var(--plate-y); }
+#scene-incidence .subtitle {
+  position: absolute; left: var(--gutter, 32px); bottom: calc(var(--gutter, 32px) + 22px);
+  margin: 0; font: var(--type-subtitle); color: var(--ink);
+}
+#scene-incidence .cue {
+  position: absolute; left: 50%; bottom: var(--gutter, 32px); transform: translateX(-50%);
+  margin: 0; font: var(--type-label); letter-spacing: var(--type-label-tracking); text-transform: uppercase;
+  color: var(--ink); white-space: nowrap;
+}
+@media (prefers-reduced-motion: no-preference) {
+  #scene-incidence .cue { animation: cue-nudge 2.4s var(--ease-standard, ease-in-out) infinite; }
+}
+@keyframes cue-nudge { 50% { translate: 0 4px; } }
+@media (max-width: 767px) {
+  #scene-incidence .title, #scene-incidence .plate { bottom: calc(var(--gutter, 16px) + 104px); }
+  #scene-incidence .subtitle { bottom: calc(var(--gutter, 16px) + 48px); white-space: normal; right: var(--gutter, 16px); }
+  #scene-incidence .cue { left: var(--gutter, 16px); transform: none; bottom: calc(var(--gutter, 16px) + 160px); }
+}

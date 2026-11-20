@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en-GB" data-boot="pending" data-admire="off" data-placard="off" data-font="fallback" data-rewind="off">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bent Light: six refractions of one white beam</title>
+  <meta name="description" content="A scroll piece about white light: split it, stand in its colours, bend them through glass, and put them back together.">
+  <link rel="preload" href="fonts/space-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/chrome.css">
+  <link rel="stylesheet" href="css/colophon.css">
+  <link rel="stylesheet" href="css/scenes/s1.css">
+  <link rel="stylesheet" href="css/scenes/s2.css">
+  <link rel="stylesheet" href="css/scenes/s3.css">
+  <link rel="stylesheet" href="css/scenes/s4.css">
+  <link rel="stylesheet" href="css/scenes/s5.css">
+  <link rel="stylesheet" href="css/scenes/s6.css">
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <a class="skip-link chip chip--dark" href="#colophon">Skip to the colophon</a>
+  <noscript>
+    <p class="noscript chip chip--dark">Bent Light moves when JavaScript is on. Without it you see the first frame, which is also the last.</p>
+    <style>
+      /* JS off: the page is the opening frame followed by the colophon (document height ≤ 100svh + colophon). */
+      #track { height: 100svh !important; }
+      .anchor { top: 0 !important; }
+      #rewind, #jump, .colophon-p3 { display: none !important; }
+    </style>
+  </noscript>
+
+  <header id="chrome" class="chrome">
+    <a id="wordmark" class="wordmark" href="#incidence">Bent Light</a>
+    <span id="scene-label" class="scene-label">01 · Incidence</span>
+    <div id="rail" class="rail" aria-hidden="true"><span class="rail-track"></span><span class="rail-fill"></span><span class="rail-dot"></span></div>
+    <nav id="ticks" aria-label="Scenes">
+      <ol>
+        <li><a class="tick" href="#incidence" data-scene="1" aria-current="true"><span class="tick-mark"></span><span class="tick-label">01 Incidence</span></a></li>
+        <li><a class="tick" href="#field" data-scene="2"><span class="tick-mark"></span><span class="tick-label">02 Field</span></a></li>
+        <li><a class="tick" href="#refraction" data-scene="3"><span class="tick-mark"></span><span class="tick-label">03 Refraction</span></a></li>
+        <li><a class="tick" href="#dichroic" data-scene="4"><span class="tick-mark"></span><span class="tick-label">04 Dichroic</span></a></li>
+        <li><a class="tick" href="#agreement" data-scene="5"><span class="tick-mark"></span><span class="tick-label">05 Agreement</span></a></li>
+        <li><a class="tick" href="#return" data-scene="6"><span class="tick-mark"></span><span class="tick-label">06 Return</span></a></li>
+      </ol>
+    </nav>
+  </header>
+
+  <button id="pause" class="pause" type="button" aria-pressed="false"><span class="pause-glyph"></span><span class="pause-label">Pause breathing</span></button>
+  <div id="placard" class="placard" aria-hidden="true"><p class="placard-label"></p><p class="placard-phrase"></p></div>
+  <p id="error-chip" class="error-chip chip chip--dark" hidden>This scene couldn't draw on this device, so you're seeing its still.</p>
+  <div id="status" class="vh" role="status" aria-live="polite"></div>
+
+  <main id="piece">
+    <div id="track">
+      <span class="anchor" id="incidence"></span>
+      <span class="anchor" id="field"></span>
+      <span class="anchor" id="refraction"></span>
+      <span class="anchor" id="dichroic"></span>
+      <span class="anchor" id="agreement"></span>
+      <span class="anchor" id="return"></span>
+      <div id="stage" class="stage">
+        <span id="svh-probe" aria-hidden="true"></span>
+
+        <section class="scene" id="scene-incidence" data-scene="1" aria-labelledby="h-incidence">
+          <h2 class="vh" id="h-incidence">01 Incidence</h2>
+          <div class="art" role="img" aria-label="A glass prism on a white wall splits a thin beam into a fan of seven colours that widens until it fills the wall.">
+            <div class="uv"><!-- bake:s1:start --><!-- bake:s1:end --></div>
+            <h1 class="title">Bent Light</h1>
+            <span class="plate plate--c" aria-hidden="true">Bent Light</span>
+            <span class="plate plate--m" aria-hidden="true">Bent Light</span>
+            <span class="plate plate--y" aria-hidden="true">Bent Light</span>
+            <p class="subtitle">Six refractions of one white beam.</p>
+            <p class="cue" aria-hidden="true">Scroll to bend the light</p>
+          </div>
+          <p class="caption">White light is every colour, waiting for an angle.</p>
+        </section>
+
+        <section class="scene" id="scene-field" data-scene="2" aria-labelledby="h-field" inert>
+          <h2 class="vh" id="h-field">02 Field</h2>
+          <div class="art" role="img" aria-label="Seven bands of colour take turns filling the screen, from vermilion to cobalt, until a grid of white dots appears."><div class="uv"></div></div>
+          <p class="caption">Stand inside a colour long enough and it becomes the room.</p>
+        </section>
+
+        <section class="scene" id="scene-refraction" data-scene="3" aria-labelledby="h-refraction" inert>
+          <h2 class="vh" id="h-refraction">03 Refraction</h2>
+          <div class="art" role="img" aria-label="Three glass shapes, a triangle, a circle and a diamond, drift over a grid of dots and magnify it, splitting each dot into red, green and blue at their edges."><div class="uv"></div></div>
+          <p class="caption">Glass slows light down, and every colour disagrees about by how much.</p>
+        </section>
+
+        <section class="scene" id="scene-dichroic" data-scene="4" aria-labelledby="h-dichroic" inert>
+          <h2 class="vh" id="h-dichroic">04 Dichroic</h2>
+          <div class="art" role="img" aria-label="The dot grid becomes a faceted crystal whose colours shift as a point of light moves across it, then settles into seven bands."><div class="uv"></div></div>
+          <p class="caption">Turn the surface, and the colour turns with it.</p>
+        </section>
+
+        <section class="scene" id="scene-agreement" data-scene="5" aria-labelledby="h-agreement" inert>
+          <h2 class="vh" id="h-agreement">05 Agreement</h2>
+          <div class="art" role="img" aria-label="Seven beams of coloured light in a dark room slide together and add up to a single white beam."><div class="uv"></div></div>
+          <p class="caption">Put every colour back together and they agree on white.</p>
+        </section>
+
+        <section class="scene" id="scene-return" data-scene="6" aria-labelledby="h-return" inert>
+          <h2 class="vh" id="h-return">06 Return</h2>
+          <div class="art" role="img" aria-label="The white beam widens back into the gallery wall, and the prism is drawn again where the piece began."><div class="uv"></div></div>
+          <p class="caption">Where you came in. The beam is still white.</p>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer id="colophon" class="colophon">
+    <h2 tabindex="-1">Colophon</h2>
+    <p class="colophon-p1">Bent Light is a scroll piece in six scenes. Where you are on the page decides the picture: scroll back and it rewinds exactly; stop anywhere and it waits for you.</p>
+    <p class="colophon-p2" data-claim="font">Seven colours, one beam, no images. Drawn with HTML, SVG and canvas, and set in your system's own sans-serif.</p>
+    <p class="colophon-p3">If you stop for a moment, the controls step aside, a label appears, and the scene breathes on top of its picture. The button in the corner stops the breathing.</p>
+    <button id="rewind" class="chip-button" type="button">Run it backwards</button>
+    <button id="jump" class="chip-button" type="button">Jump to the first beam</button>
+    <p class="colophon-credit">The Space Grotesk typeface ships with this page under the SIL Open Font License 1.1, © 2020 The Space Grotesk Project Authors.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,125 @@
+/* Bent Light: base.css
+ * Reset, faces, the stage pin contract (K4), layers, the (u, v) box and its portrait transpose (K5),
+ * the visually-hidden utility, the focus ring (§9) and scroll behaviour.
+ * Owner chain: WO-001 → WO-014 → WO-025 → WO-024. Tokens live in tokens.css (WO-003); every var()
+ * below carries the token's hex as a fallback so the skeleton renders before tokens.css lands.
+ * Guard 1: no overflow hidden/auto/scroll, no vh/dvh units; only svh and lvh.
+ */
+
+/* ── Faces (§13.2, Mode G) ─────────────────────────────────────────────────────────────── */
+@font-face { font-family: "Space Grotesk"; src: url(../fonts/space-grotesk-latin-wght-normal.woff2) format("woff2"); font-weight: 300 700; font-display: swap; }
+
+/* Metric-matched fallback faces, verbatim from experience.md §13.2. */
+@font-face { font-family: "Bent Light Fallback"; font-weight: 600 800;
+  src: local("Arial Bold"), local("Arial-BoldMT"), local("Liberation Sans Bold"), local("LiberationSans-Bold"), local("Helvetica Neue Bold"), local("HelveticaNeue-Bold");
+  size-adjust: 102.3%; ascent-override: 96.2%; descent-override: 28.5%; line-gap-override: 0%; }
+@font-face { font-family: "Bent Light Fallback"; font-weight: 300 599;
+  src: local("Arial"), local("ArialMT"), local("Liberation Sans"), local("LiberationSans"), local("Helvetica Neue"), local("HelveticaNeue");
+  size-adjust: 109.2%; ascent-override: 90.1%; descent-override: 26.7%; line-gap-override: 0%; }
+
+:root {
+  --font: "Space Grotesk", "Bent Light Fallback", "Helvetica Neue", Arial, "Liberation Sans", sans-serif;
+}
+
+/* ── Reset ─────────────────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font);
+  color: var(--ink, #0C0F1A);
+  background: var(--wall, #F6F3ED);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, p { margin: 0; }
+ol { margin: 0; padding: 0; list-style: none; }
+button { font: inherit; color: inherit; }
+
+/* Native scroll only (K3). Smooth only when the visitor allows motion; engine scrolls pass
+ * behavior:'instant' explicitly (C6). */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+/* ── The pin contract (K4) ─────────────────────────────────────────────────────────────────
+ * #track is D + 100svh tall (the engine writes --track-h in px; 1600svh = 1500 + 100 is the
+ * pre-boot value). #stage is sticky at top 0 for every scrollY in [0, D].
+ * No ancestor of #stage may use overflow other than clip or visible: html, body, #piece and
+ * #track set none. Overscan is clipped on the stage only (#25: never on html or body). */
+#piece { display: block; }
+#track { position: relative; height: var(--track-h, 1600svh); }
+
+.anchor { position: absolute; left: 0; width: 1px; height: 1px; pointer-events: none; }
+/* Pre-boot anchor tops in svh (§3.1 starts); the engine overwrites them in px. */
+#incidence { top: 0; }
+#field { top: 220svh; }
+#refraction { top: 520svh; }
+#dichroic { top: 780svh; }
+#agreement { top: 1100svh; }
+#return { top: 1320svh; }
+
+#stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow-x: clip;
+}
+
+#svh-probe {
+  position: absolute; top: 0; left: 0;
+  width: 1px; height: 100svh;
+  visibility: hidden; pointer-events: none;
+}
+
+/* ── Layers ───────────────────────────────────────────────────────────────────────────────
+ * Six stacked scene layers; exactly one .art is visible. Inactive sections are [inert]. */
+.scene { position: absolute; inset: 0; }
+.art {
+  position: absolute; top: 0; left: 0;
+  width: 100%;
+  height: 100lvh;          /* the ground extends to 100lvh under a retracting mobile toolbar */
+  overflow-x: clip;
+}
+.scene[inert] > .art { visibility: hidden; }
+.scene[inert] > .caption { visibility: hidden; }
+.caption { position: absolute; }
+
+/* The (u, v) box (K5): U × V px, transposed in portrait. Text never lives inside .uv. */
+.uv {
+  position: absolute; top: 0; left: 0;
+  width: var(--U, 100vw);
+  height: var(--V, 100svh);
+}
+html[data-orient=portrait] .uv { transform: matrix(0, 1, 1, 0, 0, 0); transform-origin: 0 0; }
+
+/* Fixed chrome is out of flow, so it can never move the pin. Its look is chrome.css (WO-017). */
+#chrome, #pause, #placard, #error-chip, .noscript { position: fixed; z-index: 10; }
+#chrome { top: 0; left: 0; }
+#pause { right: 0; bottom: 0; }
+#placard, #error-chip { left: 0; bottom: 0; }
+.noscript { top: 0; left: 0; margin: 0; }
+.skip-link { position: fixed; top: 0; left: 0; z-index: 20; transform: translateY(-120%); }
+.skip-link:focus-visible { transform: translateY(0); }
+
+/* Colophon: normal flow after the track (COLOPHON_SVH = 70). Layout is colophon.css (WO-018). */
+.colophon { position: relative; min-height: 70svh; background: var(--wall, #F6F3ED); }
+
+/* ── Utilities ────────────────────────────────────────────────────────────────────────── */
+.vh {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  overflow: clip;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ── Focus (§9, #24) ─────────────────────────────────────────────────────────────────────
+ * Dual ring: a 2 px #FFFFFF inner ring and a 2 px --ink outer ring, the outer one offset 2 px
+ * from the element (outside the white). Visible on wall, saffron, cobalt, mosaic and ink. */
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid var(--ink, #0C0F1A);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px #FFFFFF;
+}

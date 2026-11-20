@@ -1,0 +1,29 @@
+/* scenes/s2.css: Scene 2 *Field* (spec §4). Owner chain: WO-008 → WO-014 → WO-025 → WO-024.
+ *
+ * .s2-field   the scene's own U × V box inside .uv; clips the 140% overscan (overflow: clip, never
+ *             hidden: P4, guard 1). It has no background on purpose: if the overscan ever failed,
+ *             the ground beneath would show, and the #5 edge scan would catch it.
+ * .s2-shear   the band group; s2-field.js writes its skewX per frame. Sheared about the stage
+ *             centre, so the band edges at v = V/2 stay where the state puts them.
+ * .s2-dots    the dot grid and the white point, above the bands and unsheared (§3.4).
+ * Bands are flat (§13.4): bands-dom.js paints each as var(--band-i).
+ */
+
+.s2-field {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  pointer-events: none;
+}
+
+.s2-shear {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+}
+
+.s2-dots {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
