@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-20T18:39:33.671Z",
+  "generated": "2026-11-20T18:41:01.454Z",
   "mode": "quick",
   "VERIFY_PHASE": 0,
   "ok": true,
@@ -10,14 +10,14 @@
       "name": "preflight",
       "status": "pass",
       "gating": true,
-      "ms": 3
+      "ms": 2
     },
     {
       "n": 1,
       "name": "typecheck",
       "status": "pass",
       "gating": true,
-      "ms": 1874,
+      "ms": 1771,
       "cmd": "tsc -p tsconfig.json"
     },
     {
@@ -32,7 +32,7 @@
       "name": "unit (dev)",
       "status": "pass",
       "gating": true,
-      "ms": 320,
+      "ms": 336,
       "counts": {
         "tests": 107,
         "pass": 107,
@@ -47,7 +47,7 @@
       "name": "unit (spec, printed only)",
       "status": "info",
       "gating": false,
-      "ms": 44,
+      "ms": 46,
       "counts": {
         "tests": 0,
         "pass": 0,
@@ -63,7 +63,7 @@
       "name": "size and assets",
       "status": "pass",
       "gating": true,
-      "ms": 41,
+      "ms": 48,
       "cmd": "node scripts/check-size.mjs"
     }
   ],

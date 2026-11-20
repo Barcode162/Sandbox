@@ -13,7 +13,7 @@ const SITE = path.join(PROJECT, 'site');
 const KB = 1024;
 
 export const BUDGETS = {
-  js: 40 * KB, // site/js/**/*.js, gzip
+  js: 80 * KB, // site/js/**/*.js, gzip (sum of per-file gzip; CEO ruling M-0001 log, wave-0 join)
   css: 12 * KB, // site/css/**/*.css, gzip
   html: 16 * KB, // site/**/*.html, gzip (with the baked Scene 1 SVG)
   firstLoad: 95 * KB, // js + css + html gzip + font bytes
