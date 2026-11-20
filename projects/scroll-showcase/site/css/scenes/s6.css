@@ -1,1 +1,8 @@
-/* scenes/s6.css: Scene 6 local styles. Stub from WO-001; filled by WO-015. */
+/* scenes/s6.css: Scene 6 *Return* (spec §4). Ink ground; the beam is a full-width white block scaled
+ * down to the beam's width from the left edge, so it widens with a transform only. */
+.s6-return { position: absolute; inset: 0; overflow: clip; background: var(--ink); pointer-events: none; }
+.s6-beam { position: absolute; inset: 0; transform-origin: 0 0; background: var(--beam); }
+.s6-spot {
+  position: absolute; inset: 0; opacity: 0;
+  background: radial-gradient(circle at 36% 52%, var(--wall) 0, var(--wall-deep) 120vmin);
+}

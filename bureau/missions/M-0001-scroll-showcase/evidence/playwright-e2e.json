@@ -1,0 +1,2034 @@
+{
+  "config": {
+    "argv": [
+      "/opt/node22/bin/node",
+      "/home/user/Sandbox/projects/scroll-showcase/node_modules/.bin/playwright",
+      "test",
+      "--project=e2e",
+      "--reporter=json,list"
+    ],
+    "configFile": "/home/user/Sandbox/projects/scroll-showcase/playwright.config.js",
+    "rootDir": "/home/user/Sandbox/projects/scroll-showcase",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/user/Sandbox/projects/scroll-showcase/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "e2e",
+        "name": "e2e",
+        "testDir": "/home/user/Sandbox/projects/scroll-showcase/tests/e2e",
+        "testIgnore": [
+          "**/evidence/check-index.mjs"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/user/Sandbox/projects/scroll-showcase/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "perf",
+        "name": "perf",
+        "testDir": "/home/user/Sandbox/projects/scroll-showcase/tests/perf",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.perf.js"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ],
+      [
+        "list"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 2,
+    "webServer": {
+      "command": "node scripts/serve.mjs",
+      "url": "http://127.0.0.1:4173/",
+      "reuseExistingServer": false,
+      "timeout": 15000,
+      "env": {
+        "PORT": "4173",
+        "SITE_DIR": "site"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "tests/e2e/animation.spec.js",
+      "file": "tests/e2e/animation.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "1 · scroll position decides the picture",
+          "file": "tests/e2e/animation.spec.js",
+          "line": 66,
+          "column": 6,
+          "specs": [
+            {
+              "title": "the same scroll position always draws the same pixels, in every scene",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4330,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:04.472Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5fb1b9c16d4f60713cdc-4e10bab542811f6d57c1",
+              "file": "tests/e2e/animation.spec.js",
+              "line": 67,
+              "column": 3
+            },
+            {
+              "title": "a fresh visit draws the same frame too: nothing depends on chance or the clock",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1801,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:08.886Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5fb1b9c16d4f60713cdc-4fc0a90312b64817ce10",
+              "file": "tests/e2e/animation.spec.js",
+              "line": 79,
+              "column": 3
+            },
+            {
+              "title": "a stopped frame holds still: nothing drifts while you look",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2958,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:10.701Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5fb1b9c16d4f60713cdc-1986e2a9e81211c3a8cb",
+              "file": "tests/e2e/animation.spec.js",
+              "line": 98,
+              "column": 3
+            },
+            {
+              "title": "scrolling back rewinds every scene exactly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 643,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:13.680Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5fb1b9c16d4f60713cdc-2173be2ab916acac0f84",
+              "file": "tests/e2e/animation.spec.js",
+              "line": 108,
+              "column": 3
+            },
+            {
+              "title": "the first 40 px of scroll already visibly changes the opening frame",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 211,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:14.333Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5fb1b9c16d4f60713cdc-2a5fb31169fc6cba723b",
+              "file": "tests/e2e/animation.spec.js",
+              "line": 125,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "2 · every scene starts and ends where the spec says",
+          "file": "tests/e2e/animation.spec.js",
+          "line": 134,
+          "column": 6,
+          "specs": [
+            {
+              "title": "documented endpoints",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 209,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:14.552Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5fb1b9c16d4f60713cdc-6e05e5d5bda07c84d5e8",
+              "file": "tests/e2e/animation.spec.js",
+              "line": 135,
+              "column": 3
+            },
+            {
+              "title": "each scene ends on the same seven bands the next one starts with",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 191,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:14.772Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5fb1b9c16d4f60713cdc-b750c7a1f89da2ab1879",
+              "file": "tests/e2e/animation.spec.js",
+              "line": 159,
+              "column": 3
+            },
+            {
+              "title": "every 5% of the scroll draws a finished frame with no errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 895,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:14.972Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5fb1b9c16d4f60713cdc-6b2ff9208b8c1a0ebf04",
+              "file": "tests/e2e/animation.spec.js",
+              "line": 168,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "3 · stopping is rewarded",
+          "file": "tests/e2e/animation.spec.js",
+          "line": 186,
+          "column": 6,
+          "specs": [
+            {
+              "title": "admire mode: controls step aside, a placard names the frame, any key brings them back",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3459,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:15.877Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5fb1b9c16d4f60713cdc-12440644c14115f10647",
+              "file": "tests/e2e/animation.spec.js",
+              "line": 187,
+              "column": 3
+            },
+            {
+              "title": "the scene breathes while you admire it, and the pause control stops it without leaving",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8965,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:19.350Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5fb1b9c16d4f60713cdc-9c440cd574691d2b8eec",
+              "file": "tests/e2e/animation.spec.js",
+              "line": 207,
+              "column": 3
+            },
+            {
+              "title": "\"Run it backwards\" plays the whole piece in reverse to the first beam",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8307,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:28.328Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5fb1b9c16d4f60713cdc-95e0179359be1c5521d5",
+              "file": "tests/e2e/animation.spec.js",
+              "line": 240,
+              "column": 3
+            },
+            {
+              "title": "scene ticks jump to each scene and mark it current",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1989,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:36.644Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5fb1b9c16d4f60713cdc-7540fc1eca5c30efcb28",
+              "file": "tests/e2e/animation.spec.js",
+              "line": 253,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "4 · safe and usable",
+          "file": "tests/e2e/animation.spec.js",
+          "line": 262,
+          "column": 6,
+          "specs": [
+            {
+              "title": "reduced motion: admire mode still works, but nothing breathes",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5102,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:38.644Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5fb1b9c16d4f60713cdc-1e75d801958ac9d36441",
+              "file": "tests/e2e/animation.spec.js",
+              "line": 263,
+              "column": 3
+            },
+            {
+              "title": "375×812: no horizontal scroll and no serious accessibility violations",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 820,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:43.756Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5fb1b9c16d4f60713cdc-4d3cfd8accfe79b83733",
+              "file": "tests/e2e/animation.spec.js",
+              "line": 279,
+              "column": 5
+            },
+            {
+              "title": "768×1024: no horizontal scroll and no serious accessibility violations",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 767,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:44.584Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5fb1b9c16d4f60713cdc-759c5e42acc67df44105",
+              "file": "tests/e2e/animation.spec.js",
+              "line": 279,
+              "column": 5
+            },
+            {
+              "title": "1440×900: no horizontal scroll and no serious accessibility violations",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 808,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:45.359Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5fb1b9c16d4f60713cdc-797ff899cb3fbbc599b5",
+              "file": "tests/e2e/animation.spec.js",
+              "line": 279,
+              "column": 5
+            },
+            {
+              "title": "1920×1080: no horizontal scroll and no serious accessibility violations",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 784,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:46.178Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5fb1b9c16d4f60713cdc-66a2d8fdfc19a276bca8",
+              "file": "tests/e2e/animation.spec.js",
+              "line": 279,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "tests/e2e/contracts/clock-probe.spec.js",
+      "file": "tests/e2e/contracts/clock-probe.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "[K11] clock probe",
+          "file": "tests/e2e/contracts/clock-probe.spec.js",
+          "line": 33,
+          "column": 6,
+          "specs": [
+            {
+              "title": "[K11] probe 1: rAF is frozen while the clock is paused",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 742,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[K11] probe 1: paused page rAF callbacks: 0 while a free page ran 32 rAF over 514 ms of real time\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:04.394Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7fd0f1f922dc650bcd68-411562f22565c86ecfe0",
+              "file": "tests/e2e/contracts/clock-probe.spec.js",
+              "line": 34,
+              "column": 3
+            },
+            {
+              "title": "[K11] probe 2: setTimeout is advanced by clock.runFor",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 102,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[K11] probe 2: after runFor(1199): fired=false · after runFor(1): fired=true\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:05.221Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7fd0f1f922dc650bcd68-f5350808ad96bfabfec0",
+              "file": "tests/e2e/contracts/clock-probe.spec.js",
+              "line": 56,
+              "column": 3
+            },
+            {
+              "title": "[K11] probe 3: CSS transitions are NOT advanced by clock.runFor while paused",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1471,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[K11] probe 3: opacity after runFor(450): 1 · after ≥ 1300 ms of real time: 0\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:05.334Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7fd0f1f922dc650bcd68-1fdceaf9a2f319e74ded",
+              "file": "tests/e2e/contracts/clock-probe.spec.js",
+              "line": 74,
+              "column": 3
+            },
+            {
+              "title": "[K11] probe 4: seeking a paused CSSTransition currentTime gives exact values",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 69,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[K11] probe 4: 900 ms / 200 ms-delay linear fade 1 → 0: {\"0\":1,\"200\":1,\"650\":0.5,\"1100\":0} · timing {\"duration\":900,\"delay\":200,\"easing\":\"linear\"}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:06.821Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7fd0f1f922dc650bcd68-d1e427391b96f211163d",
+              "file": "tests/e2e/contracts/clock-probe.spec.js",
+              "line": 96,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "tests/e2e/dev/components/components.spec.js",
+      "file": "tests/e2e/dev/components/components.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "svg.js",
+          "file": "tests/e2e/dev/components/components.spec.js",
+          "line": 79,
+          "column": 6,
+          "specs": [
+            {
+              "title": "WO-004 · el() picks the SVG namespace for SVG tags and SVG parents, HTML otherwise",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 141,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:06.920Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1607856b68c132b70db2-6b08266caf90c52db384",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 80,
+              "column": 3
+            },
+            {
+              "title": "WO-004 · setAttrs and setStyles skip repeats but re-write a value restored after a different one",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 126,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:07.079Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1607856b68c132b70db2-703140bb529811f4d529",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 109,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Bands",
+          "file": "tests/e2e/dev/components/components.spec.js",
+          "line": 158,
+          "column": 6,
+          "specs": [
+            {
+              "title": "WO-004 · a call writes only transform and opacity, and a repeated call writes nothing",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 129,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:16.694Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1607856b68c132b70db2-ff78d5589c381cabc426",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 194,
+              "column": 3
+            },
+            {
+              "title": "WO-004 · a frame restored after a different one is pixel-identical (the write cache never goes stale)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 292,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:16.833Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1607856b68c132b70db2-ec3a442c7d976c8611a7",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 224,
+              "column": 3
+            },
+            {
+              "title": "WO-004 · screen bands keep exact token colours over ink, and screen together where they overlap",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 218,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:17.137Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1607856b68c132b70db2-49dee864b22d5c3c3c67",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 239,
+              "column": 3
+            }
+          ],
+          "suites": [
+            {
+              "title": "1440×900 at DPR 1",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 166,
+              "column": 12,
+              "specs": [
+                {
+                  "title": "WO-004 · every device pixel along v = V/2 is exactly one band colour: no gap, no overlap, no seam",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e",
+                      "projectName": "e2e",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 677,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-11-20T19:08:07.216Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "1607856b68c132b70db2-61256adfce7b3a6072e1",
+                  "file": "tests/e2e/dev/components/components.spec.js",
+                  "line": 169,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "1920×1080 at DPR 1",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 166,
+              "column": 12,
+              "specs": [
+                {
+                  "title": "WO-004 · every device pixel along v = V/2 is exactly one band colour: no gap, no overlap, no seam",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e",
+                      "projectName": "e2e",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 752,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-11-20T19:08:07.902Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "1607856b68c132b70db2-8f3d5c7aee270b0bd986",
+                  "file": "tests/e2e/dev/components/components.spec.js",
+                  "line": 169,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "375×812 at DPR 1",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 166,
+              "column": 12,
+              "specs": [
+                {
+                  "title": "WO-004 · every device pixel along v = V/2 is exactly one band colour: no gap, no overlap, no seam",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e",
+                      "projectName": "e2e",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 502,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-11-20T19:08:08.663Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "1607856b68c132b70db2-9286603a114fcd2fda56",
+                  "file": "tests/e2e/dev/components/components.spec.js",
+                  "line": 169,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "1440×900 at DPR 1.5",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 166,
+              "column": 12,
+              "specs": [
+                {
+                  "title": "WO-004 · every device pixel along v = V/2 is exactly one band colour: no gap, no overlap, no seam",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e",
+                      "projectName": "e2e",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 1095,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-11-20T19:08:09.174Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "1607856b68c132b70db2-2020a34dbd47d7392f54",
+                  "file": "tests/e2e/dev/components/components.spec.js",
+                  "line": 169,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "1920×1080 at DPR 1.5",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 166,
+              "column": 12,
+              "specs": [
+                {
+                  "title": "WO-004 · every device pixel along v = V/2 is exactly one band colour: no gap, no overlap, no seam",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e",
+                      "projectName": "e2e",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 1325,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-11-20T19:08:10.279Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "1607856b68c132b70db2-ac407c365a7afdf7f019",
+                  "file": "tests/e2e/dev/components/components.spec.js",
+                  "line": 169,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "375×812 at DPR 1.5",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 166,
+              "column": 12,
+              "specs": [
+                {
+                  "title": "WO-004 · every device pixel along v = V/2 is exactly one band colour: no gap, no overlap, no seam",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e",
+                      "projectName": "e2e",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 665,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-11-20T19:08:11.612Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "1607856b68c132b70db2-a5beef89f036949bb65b",
+                  "file": "tests/e2e/dev/components/components.spec.js",
+                  "line": 169,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "1440×900 at DPR 2",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 166,
+              "column": 12,
+              "specs": [
+                {
+                  "title": "WO-004 · every device pixel along v = V/2 is exactly one band colour: no gap, no overlap, no seam",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e",
+                      "projectName": "e2e",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 1486,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-11-20T19:08:12.287Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "1607856b68c132b70db2-1709ccf8ab93b598ef78",
+                  "file": "tests/e2e/dev/components/components.spec.js",
+                  "line": 169,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "1920×1080 at DPR 2",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 166,
+              "column": 12,
+              "specs": [
+                {
+                  "title": "WO-004 · every device pixel along v = V/2 is exactly one band colour: no gap, no overlap, no seam",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e",
+                      "projectName": "e2e",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 2028,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-11-20T19:08:13.798Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "1607856b68c132b70db2-4a7299728faa96efa208",
+                  "file": "tests/e2e/dev/components/components.spec.js",
+                  "line": 169,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "375×812 at DPR 2",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 166,
+              "column": 12,
+              "specs": [
+                {
+                  "title": "WO-004 · every device pixel along v = V/2 is exactly one band colour: no gap, no overlap, no seam",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e",
+                      "projectName": "e2e",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 828,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-11-20T19:08:15.857Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "1607856b68c132b70db2-b8bd968e7ea7727d87e2",
+                  "file": "tests/e2e/dev/components/components.spec.js",
+                  "line": 169,
+                  "column": 9
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "DotGrid",
+          "file": "tests/e2e/dev/components/components.spec.js",
+          "line": 253,
+          "column": 6,
+          "specs": [
+            {
+              "title": "WO-004 · four pattern fills per grid, ids carry idPrefix, and two grids with different pitches coexist",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 409,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:18.883Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1607856b68c132b70db2-a33f09a2dd7f7104c47a",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 315,
+              "column": 3
+            }
+          ],
+          "suites": [
+            {
+              "title": "1440×900 at DPR 1",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 278,
+              "column": 10,
+              "specs": [
+                {
+                  "title": "WO-004 · a vertex dot is centred exactly on (U/2, V/2), none at (U/2 + pitch/2, V/2), fill dots one pitch away",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e",
+                      "projectName": "e2e",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 392,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-11-20T19:08:17.363Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "1607856b68c132b70db2-60a36acae5043d424377",
+                  "file": "tests/e2e/dev/components/components.spec.js",
+                  "line": 281,
+                  "column": 7
+                }
+              ]
+            },
+            {
+              "title": "1440×900 at DPR 2",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 278,
+              "column": 10,
+              "specs": [
+                {
+                  "title": "WO-004 · a vertex dot is centred exactly on (U/2, V/2), none at (U/2 + pitch/2, V/2), fill dots one pitch away",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e",
+                      "projectName": "e2e",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 711,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-11-20T19:08:17.770Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "1607856b68c132b70db2-839684d4ba5750d843b2",
+                  "file": "tests/e2e/dev/components/components.spec.js",
+                  "line": 281,
+                  "column": 7
+                }
+              ]
+            },
+            {
+              "title": "375×812 at DPR 2",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 278,
+              "column": 10,
+              "specs": [
+                {
+                  "title": "WO-004 · a vertex dot is centred exactly on (U/2, V/2), none at (U/2 + pitch/2, V/2), fill dots one pitch away",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e",
+                      "projectName": "e2e",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 369,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-11-20T19:08:18.502Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "1607856b68c132b70db2-da89c401492124cbe9fc",
+                  "file": "tests/e2e/dev/components/components.spec.js",
+                  "line": 281,
+                  "column": 7
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "WhitePoint",
+          "file": "tests/e2e/dev/components/components.spec.js",
+          "line": 358,
+          "column": 6,
+          "specs": [
+            {
+              "title": "WO-004 · an HTML host places the point at (u, v) from its top-left corner, pure white at the centre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 205,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:21.913Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1607856b68c132b70db2-e054848b04daf75c74c1",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 395,
+              "column": 3
+            },
+            {
+              "title": "WO-004 · an unknown ring is a thrown error, not a silent default",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 180,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:22.132Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1607856b68c132b70db2-630d2df1dd866413bb34",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 405,
+              "column": 3
+            }
+          ],
+          "suites": [
+            {
+              "title": "DPR 1",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 360,
+              "column": 10,
+              "specs": [
+                {
+                  "title": "WO-004 · the disc is never wider than 6 px, the ring adds 1 px each side, and null hides it",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e",
+                      "projectName": "e2e",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 768,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-11-20T19:08:19.306Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "1607856b68c132b70db2-bc30fc62919112639300",
+                  "file": "tests/e2e/dev/components/components.spec.js",
+                  "line": 363,
+                  "column": 7
+                }
+              ]
+            },
+            {
+              "title": "DPR 2",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 360,
+              "column": 10,
+              "specs": [
+                {
+                  "title": "WO-004 · the disc is never wider than 6 px, the ring adds 1 px each side, and null hides it",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e",
+                      "projectName": "e2e",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 1820,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-11-20T19:08:20.085Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "1607856b68c132b70db2-9b7bd72f4b5128f6d3b5",
+                  "file": "tests/e2e/dev/components/components.spec.js",
+                  "line": 363,
+                  "column": 7
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Gallery",
+          "file": "tests/e2e/dev/components/components.spec.js",
+          "line": 414,
+          "column": 6,
+          "specs": [
+            {
+              "title": "WO-004 · the gallery shows each component at three states and saves its evidence",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1422,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:22.332Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1607856b68c132b70db2-9c39e00943a069e36969",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 417,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Static",
+          "file": "tests/e2e/dev/components/components.spec.js",
+          "line": 439,
+          "column": 6,
+          "specs": [
+            {
+              "title": "WO-004 · components contain no layout reads, clocks or randomness",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 54,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:23.769Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1607856b68c132b70db2-3f2f43aeb393782085b6",
+              "file": "tests/e2e/dev/components/components.spec.js",
+              "line": 440,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "tests/e2e/smoke.spec.js",
+      "file": "tests/e2e/smoke.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "[smoke] skeleton",
+          "file": "tests/e2e/smoke.spec.js",
+          "line": 27,
+          "column": 6,
+          "specs": [
+            {
+              "title": "[smoke] boots: data-boot=ready, hook shape per C5, no page errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 167,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:23.843Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2c14808d47b386fba9eb-3fe8155b67b867aaf12b",
+              "file": "tests/e2e/smoke.spec.js",
+              "line": 30,
+              "column": 3
+            },
+            {
+              "title": "[smoke] C7 skeleton: one h1, six labelled scenes, nav, live region, colophon credit",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 214,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:24.024Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2c14808d47b386fba9eb-9dd1d7548d7ec6abc410",
+              "file": "tests/e2e/smoke.spec.js",
+              "line": 51,
+              "column": 3
+            },
+            {
+              "title": "[smoke] pin contract: stage top = 0 at y = 0, D/2 and D (1440×900)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 227,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:24.246Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2c14808d47b386fba9eb-5eadbc9764bb7869e404",
+              "file": "tests/e2e/smoke.spec.js",
+              "line": 69,
+              "column": 3
+            },
+            {
+              "title": "[smoke] JS off: opening frame plus colophon, document ≤ 100svh + colophon",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e",
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 121,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-20T19:08:24.482Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2c14808d47b386fba9eb-2518dc30ec2a1e7b63e8",
+              "file": "tests/e2e/smoke.spec.js",
+              "line": 90,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-20T19:08:03.752Z",
+    "duration": 43280.958,
+    "expected": 49,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

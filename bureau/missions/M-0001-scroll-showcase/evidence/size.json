@@ -1,16 +1,16 @@
 {
-  "generated": "2026-11-20T18:48:42.607Z",
+  "generated": "2026-11-20T19:08:03.312Z",
   "ok": true,
   "rows": [
     {
       "budget": "JS gzip",
-      "actual": 40110,
+      "actual": 61435,
       "limit": 81920,
       "ok": true
     },
     {
       "budget": "CSS gzip",
-      "actual": 6419,
+      "actual": 10229,
       "limit": 12288,
       "ok": true
     },
@@ -40,7 +40,7 @@
     },
     {
       "budget": "First-load transfer",
-      "actual": 71285,
+      "actual": 96420,
       "limit": 97280,
       "ok": true
     }
@@ -49,8 +49,8 @@
     "files": [
       {
         "file": "js/chrome/chrome.js",
-        "bytes": 360,
-        "gzip": 270
+        "bytes": 2550,
+        "gzip": 1043
       },
       {
         "file": "js/chrome/font-claim.js",
@@ -119,38 +119,38 @@
       },
       {
         "file": "js/engine/admire.js",
-        "bytes": 569,
-        "gzip": 333
+        "bytes": 5222,
+        "gzip": 1923
       },
       {
         "file": "js/engine/ambient.js",
-        "bytes": 1072,
-        "gzip": 557
+        "bytes": 2171,
+        "gzip": 912
       },
       {
         "file": "js/engine/engine.js",
-        "bytes": 10352,
-        "gzip": 3455
+        "bytes": 14447,
+        "gzip": 4846
       },
       {
         "file": "js/engine/hook.js",
-        "bytes": 1185,
-        "gzip": 628
+        "bytes": 2136,
+        "gzip": 1001
       },
       {
         "file": "js/engine/layers.js",
-        "bytes": 250,
-        "gzip": 204
+        "bytes": 9051,
+        "gzip": 3090
       },
       {
         "file": "js/engine/rewind.js",
-        "bytes": 524,
-        "gzip": 351
+        "bytes": 2754,
+        "gzip": 1186
       },
       {
         "file": "js/main.js",
-        "bytes": 1388,
-        "gzip": 573
+        "bytes": 2438,
+        "gzip": 1037
       },
       {
         "file": "js/scenes/index.js",
@@ -159,13 +159,13 @@
       },
       {
         "file": "js/scenes/prism-svg.js",
-        "bytes": 258,
-        "gzip": 213
+        "bytes": 6119,
+        "gzip": 2365
       },
       {
         "file": "js/scenes/s1-incidence.js",
-        "bytes": 2084,
-        "gzip": 1024
+        "bytes": 3972,
+        "gzip": 1613
       },
       {
         "file": "js/scenes/s2-field.js",
@@ -174,42 +174,32 @@
       },
       {
         "file": "js/scenes/s3-refraction.js",
-        "bytes": 2038,
-        "gzip": 1008
-      },
-      {
-        "file": "js/scenes/s4-contact.js",
-        "bytes": 236,
-        "gzip": 204
+        "bytes": 17624,
+        "gzip": 6342
       },
       {
         "file": "js/scenes/s4-dichroic.js",
-        "bytes": 2113,
-        "gzip": 1040
-      },
-      {
-        "file": "js/scenes/s4-fallback.js",
-        "bytes": 256,
-        "gzip": 225
+        "bytes": 11506,
+        "gzip": 4165
       },
       {
         "file": "js/scenes/s4-lut.js",
-        "bytes": 215,
-        "gzip": 187
+        "bytes": 2655,
+        "gzip": 1298
       },
       {
         "file": "js/scenes/s5-agreement.js",
-        "bytes": 7584,
-        "gzip": 3091
+        "bytes": 8004,
+        "gzip": 3271
       },
       {
         "file": "js/scenes/s6-return.js",
-        "bytes": 2033,
-        "gzip": 1010
+        "bytes": 3704,
+        "gzip": 1606
       }
     ],
-    "bytes": 92663,
-    "gzip": 40110
+    "bytes": 154499,
+    "gzip": 61435
   },
   "css": {
     "files": [
@@ -220,18 +210,18 @@
       },
       {
         "file": "css/chrome.css",
-        "bytes": 146,
-        "gzip": 145
+        "bytes": 5796,
+        "gzip": 1844
       },
       {
         "file": "css/colophon.css",
-        "bytes": 118,
-        "gzip": 125
+        "bytes": 866,
+        "gzip": 411
       },
       {
         "file": "css/scenes/s1.css",
-        "bytes": 79,
-        "gzip": 92
+        "bytes": 2620,
+        "gzip": 923
       },
       {
         "file": "css/scenes/s2.css",
@@ -240,13 +230,13 @@
       },
       {
         "file": "css/scenes/s3.css",
-        "bytes": 79,
-        "gzip": 92
+        "bytes": 1457,
+        "gzip": 746
       },
       {
         "file": "css/scenes/s4.css",
-        "bytes": 79,
-        "gzip": 93
+        "bytes": 245,
+        "gzip": 204
       },
       {
         "file": "css/scenes/s5.css",
@@ -255,8 +245,8 @@
       },
       {
         "file": "css/scenes/s6.css",
-        "bytes": 79,
-        "gzip": 93
+        "bytes": 536,
+        "gzip": 322
       },
       {
         "file": "css/tokens.css",
@@ -264,8 +254,8 @@
         "gzip": 2366
       }
     ],
-    "bytes": 15827,
-    "gzip": 6419
+    "bytes": 26767,
+    "gzip": 10229
   },
   "html": {
     "files": [
@@ -286,5 +276,5 @@
     "bytes": 4401,
     "sha256": "18a4de52385f6b988782639d5d0cc1326e5a8c2de9a7f01d7b20d9aedcc60943"
   },
-  "firstLoad": 71285
+  "firstLoad": 96420
 }

@@ -1,1 +1,3 @@
-/* scenes/s4.css: Scene 4 local styles. Stub from WO-001; filled by WO-010. */
+/* scenes/s4.css: Scene 4 *Dichroic* (spec §4). One canvas fills the (u, v) box; its backing size is
+ * set by s4-dichroic.js, its CSS size here. */
+.s4-canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; }

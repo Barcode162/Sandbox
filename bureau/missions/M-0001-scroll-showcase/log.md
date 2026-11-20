@@ -40,3 +40,5 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-20T18:41:34Z` **ceo** — Convened 2× test-engineer — wave 1 WO-012, WO-013
 - `2026-11-20T18:49:30Z` **ceo** — Rate limit hit during wave 1 (resets 23:30 UTC). WO-006..013 paused mid-work; files checkpointed. Resume all 8 via SendMessage after reset.
 - `2026-11-20T18:51:05Z` **ceo** — HALTED by Owner over cost. CEO error: tier 3 + bake-off was oversized for a test site. All agents stopped, scheduled resume deleted. Awaiting Owner direction.
+- `2026-11-20T18:52:20Z` **ceo** — Owner: keep working but finish within the current 5-hour plan window. CEO: Owner override -> tier-1 path (CEO builds directly, no further agents), reusing frozen core/components; scope trimmed to fit.
+- `2026-11-20T19:08:47Z` **ceo** — Owner-override lean finish (CEO direct, no agents): built S1/S4/S6, ambient, admire, rewind, chrome, styles; tests/e2e/animation.spec.js (17 tests; 2 planted bugs caught). npm run verify PASSED: typecheck, 140 unit, size, 49 e2e. Gates 2/review/retro not run (Owner cost cap). Known limitations in README.

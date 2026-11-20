@@ -1,0 +1,110 @@
+{
+  "generated": "2026-11-20T19:08:47.631Z",
+  "mode": "full",
+  "VERIFY_PHASE": 0,
+  "ok": true,
+  "evidenceDir": "/home/user/Sandbox/bureau/missions/M-0001-scroll-showcase/evidence",
+  "steps": [
+    {
+      "n": 0,
+      "name": "preflight",
+      "status": "pass",
+      "gating": true,
+      "ms": 4
+    },
+    {
+      "n": 1,
+      "name": "typecheck",
+      "status": "pass",
+      "gating": true,
+      "ms": 2497,
+      "cmd": "tsc -p tsconfig.json"
+    },
+    {
+      "n": 2,
+      "name": "static guards",
+      "status": "absent",
+      "gating": true,
+      "ms": 0
+    },
+    {
+      "n": 3,
+      "name": "unit",
+      "status": "pass",
+      "gating": true,
+      "ms": 633,
+      "counts": {
+        "tests": 140,
+        "pass": 140,
+        "fail": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "cmd": "node --test 'tests/unit/**/*.test.js'"
+    },
+    {
+      "n": 4,
+      "name": "size and assets",
+      "status": "pass",
+      "gating": true,
+      "ms": 49,
+      "cmd": "node scripts/check-size.mjs"
+    },
+    {
+      "n": 5,
+      "name": "e2e",
+      "status": "pass",
+      "gating": true,
+      "ms": 43731,
+      "counts": {
+        "tests": 49,
+        "pass": 49,
+        "fail": 0,
+        "skipped": 0,
+        "flaky": 0
+      },
+      "cmd": "playwright test --project=e2e"
+    },
+    {
+      "n": 6,
+      "name": "perf",
+      "status": "pass",
+      "gating": true,
+      "ms": 582,
+      "counts": {
+        "tests": 0,
+        "pass": 0,
+        "fail": 0,
+        "skipped": 0,
+        "flaky": 0
+      },
+      "cmd": "playwright test --project=perf --workers=1 --pass-with-no-tests"
+    },
+    {
+      "n": 7,
+      "name": "evidence index",
+      "status": "absent",
+      "gating": true,
+      "ms": 0
+    }
+  ],
+  "ids": [],
+  "idsSeen": {
+    "WO-003": "pass",
+    "WO-011": "pass",
+    "serve": "pass",
+    "K11": "pass",
+    "smoke": "pass"
+  },
+  "skipped": 0,
+  "evidence": {
+    "screens": {
+      "bytes": 0,
+      "files": 0
+    },
+    "motion": {
+      "bytes": 0,
+      "files": 0
+    }
+  }
+}

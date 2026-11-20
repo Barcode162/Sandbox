@@ -1,64 +1,103 @@
-// scenes/s6-return.js: Scene 6 *Return*. WO-001 STUB, replaced by WO-015.
-// It satisfies the C3 SceneModule contract so the engine, harness and tests run end to end:
-// `meta` equals SCENES[5] (a local literal until core/geometry.js is imported), `state()` is pure
-// and returns a valid SceneState with null geometry, and `mount()` paints one flat band colour.
+// scenes/s6-return.js: Scene 6 *Return* (spec §4 Scene 6, 180 svh; release).
+//
+// The single white beam from Scene 5 widens into a doorway and then into the whole gallery wall.
+// After a rest on the empty wall, the prism is drawn again in fine line, its glass fills in, the
+// beam reaches it and the small spectrum card unfolds: Scene 1's opening frame, without the title.
 
-/** @typedef {import('../types.js').SceneState} SceneState */
-/** @typedef {import('../types.js').Viewport} Viewport */
-/** @typedef {import('../types.js').SceneHost} SceneHost */
-/** @typedef {import('../types.js').SceneView} SceneView */
+import { clamp, fin, glide, lerp, r } from '../core/math.js';
+import { SCENES, beamW } from '../core/geometry.js';
+import { TOKENS } from '../core/tokens.js';
+import { el, setAttrs, setStyles } from '../components/svg.js';
+import { createPrism } from './prism-svg.js';
 
 /** @type {import('../types.js').SceneMeta} */
-export const meta = { id: 6, slug: 'return', name: 'Return', track: 180, hold: [0.4, 0.52], creep: null };
+export const meta = SCENES[5];
 
-/** The §4 driving parameters, named exactly as in C1. */
-const PARAMS = ['widen', 'mix', 'spot', 'draw', 'beam', 'glass', 'card'];
+const BREATHE_SPOT = 0.03;
+const BREATHE_S = 11;
+
+/** @param {[number, number, number]} a @param {[number, number, number]} b @param {number} t */
+const mixHex = (a, b, t) =>
+  `#${a.map((x, i) => Math.round(lerp(x, b[i], t)).toString(16).padStart(2, '0')).join('')}`;
 
 /**
- * PURE (K6). Stub: every driving parameter is 0 and every seam field is absent.
- * @param {number} p  local progress, clamped to [0, 1] by the caller
- * @param {Viewport} vp
- * @returns {SceneState}
+ * PURE (K6).
+ * @param {number} p
+ * @param {import('../types.js').Viewport} vp
+ * @returns {import('../types.js').SceneState}
  */
 export function state(p, vp) {
-  /** @type {Record<string, number>} */
-  const params = {};
-  for (const k of PARAMS) params[k] = 0;
+  const q = clamp(fin(p), 0, 1);
+  const widen = glide(r(q, 0, 0.4));
+  const mix = glide(r(q, 0.05, 0.4));
+  const spot = r(q, 0.3, 0.4);
+  const draw = glide(r(q, 0.52, 0.74));
+  const beam = glide(r(q, 0.64, 0.8));
+  const glass = r(q, 0.7, 0.84);
+  const card = glide(r(q, 0.8, 0.96));
+  const width = lerp(beamW(vp), vp.U, widen);
+  const color = mixHex(TOKENS.beam.rgb, TOKENS.wall.rgb, mix);
   return {
     scene: 6,
-    p: p + 0,
-    params,
+    p: q,
+    params: { widen: fin(widen), mix: fin(mix), spot: fin(spot), draw: fin(draw), beam: fin(beam), glass: fin(glass), card: fin(card) },
     geom: {
-      ground: 'ink',
+      ground: widen >= 1 ? 'wall' : 'ink',
       bandRects: null,
       dotGrid: null,
       whitePoint: null,
       shelf: null,
       channelScales: null,
-      glassAlpha: 0,
-      beamRect: null,
-      otherOpacity: 0,
+      glassAlpha: fin(glass),
+      beamRect: { centreU: vp.U / 2, width: fin(width), v0: 0, v1: vp.V, color },
+      otherOpacity: fin(Math.max(draw, card)),
     },
-    stub: true,
   };
 }
 
 /**
- * Paints one flat band colour inside .uv. Writes only; reads nothing.
- * @param {SceneHost} host
- * @returns {SceneView}
+ * @param {import('../types.js').SceneHost} host
+ * @returns {import('../types.js').SceneView}
  */
 export function mount(host) {
-  const fill = host.uv.ownerDocument.createElement('div');
-  fill.className = 'stub-fill';
-  fill.dataset.instance = host.instance;
-  fill.style.cssText = 'position:absolute;inset:0;background:var(--band-6, #2154D8)';
-  host.uv.appendChild(fill);
+  let vp = host.vp;
+  const root = el('div', { class: 's6-return', 'data-instance': host.instance }, host.uv);
+  const door = el('div', { class: 's6-beam' }, root);
+  const spot = el('div', { class: 's6-spot' }, root);
+  const svg = /** @type {SVGSVGElement} */ (el('svg', { class: 's6-svg', 'aria-hidden': 'true', focusable: 'false' }, root));
+  const prism = createPrism(svg, `scene6-${host.instance}`);
+  const size = (/** @type {import('../types.js').Viewport} */ v) => setAttrs(svg, { width: v.U, height: v.V, viewBox: `0 0 ${v.U} ${v.V}` });
+  size(vp);
+
   return {
-    apply() {},
-    resize() {},
+    apply(st, amb) {
+      const k = st.params;
+      const b = /** @type {import('../types.js').BeamRect} */ (st.geom.beamRect);
+      const wave = amb.a > 0 ? amb.a * Math.sin((2 * Math.PI * amb.t) / BREATHE_S) : 0;
+      setStyles(door, {
+        transform: `translateX(${fin(b.centreU - b.width / 2)}px) scaleX(${fin(b.width / vp.U)})`,
+        'background-color': b.color,
+      });
+      setStyles(spot, { opacity: fin(k.spot), transform: wave ? `scale(${fin(1 + BREATHE_SPOT * wave)})` : null });
+      prism.set(vp, {
+        rot: 0,
+        spread: 6 * k.card + (k.draw > 0 ? 1.5 * wave : 0),
+        s: 0,
+        fan: k.card,
+        prism: 1,
+        shift: 0,
+        draw: k.draw,
+        glass: k.glass,
+        beam: k.beam,
+        glintSlide: k.draw > 0 ? 0.06 * wave : 0,
+      });
+    },
+    resize(next) {
+      vp = next;
+      size(next);
+    },
     destroy() {
-      fill.remove();
+      root.remove();
     },
   };
 }

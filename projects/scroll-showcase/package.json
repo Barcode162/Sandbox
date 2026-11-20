@@ -19,9 +19,8 @@
     "check:size": "node scripts/check-size.mjs",
     "verify:quick": "node scripts/verify.mjs --quick",
     "verify": "node scripts/verify.mjs",
-    "verify:mutants": "node scripts/mutants.mjs",
-    "evidence:motion": "node tests/motion/record.mjs",
-    "lighthouse": "CHROME_PATH=${CHROME_PATH:-/opt/pw-browsers/chromium} npx --yes lighthouse@13.6.0 http://127.0.0.1:${PORT:-4173}/ --quiet --chrome-flags='--headless=new --no-sandbox' --only-categories=performance,accessibility,best-practices --output=json --output-path=evidence-local/lighthouse.json"
+    "lighthouse": "CHROME_PATH=${CHROME_PATH:-/opt/pw-browsers/chromium} npx --yes lighthouse@13.6.0 http://127.0.0.1:${PORT:-4173}/ --quiet --chrome-flags='--headless=new --no-sandbox' --only-categories=performance,accessibility,best-practices --output=json --output-path=evidence-local/lighthouse.json",
+    "test": "node scripts/verify.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",
