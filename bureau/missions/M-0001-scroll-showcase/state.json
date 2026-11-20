@@ -15,7 +15,8 @@
   "headcount": {
     "scout": 3,
     "experience-designer": 4,
-    "director-vision": 1
+    "director-vision": 1,
+    "architect": 1
   },
   "history": [
     {
@@ -31,5 +32,5 @@
       "at": "2026-11-20T12:15:51Z"
     }
   ],
-  "updated": "2026-11-20T12:33:57Z"
+  "updated": "2026-11-20T13:31:56Z"
 }
