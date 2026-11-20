@@ -1,0 +1,21 @@
+name: Bureau integrity
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate the Bureau (roles, roster, config, ledgers, missions)
+        run: python3 bureau/bin/bureau validate
+      - name: Records-office test suite
+        run: python3 -m unittest discover -s bureau/tests -v

@@ -1,0 +1,24 @@
+# Bureau records-office lock (runtime only)
+bureau/.bureau.lock
+*.json.tmp
+
+# Python
+__pycache__/
+*.pyc
+
+# Node / builds (projects keep their own lockfiles in git)
+node_modules/
+dist/
+.vite/
+coverage/
+playwright-report/
+test-results/
+
+# Scratch areas inside dossiers
+bureau/missions/*/intel/scratch/
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/

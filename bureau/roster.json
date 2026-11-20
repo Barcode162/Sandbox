@@ -1,0 +1,40 @@
+{
+  "departments": {
+    "board": {
+      "title": "Board of Directors",
+      "mandate": "approves plans and shipments, approves structural upgrades, holds the veto",
+      "roles": ["director-vision", "director-engineering", "director-risk"]
+    },
+    "strategy": {
+      "title": "Strategy Division",
+      "mandate": "finds the truth, sets the ambition, designs the plan",
+      "roles": ["scout", "experience-designer", "architect"]
+    },
+    "engineering": {
+      "title": "Engineering Division",
+      "mandate": "builds it, joins it up, and builds the machinery that proves it",
+      "roles": ["engineer", "integrator", "test-engineer"]
+    },
+    "quality": {
+      "title": "Quality Division",
+      "mandate": "tries to break it, judges its craft, and audits every claim",
+      "roles": ["code-reviewer", "qa-tester", "red-team", "polish-critic", "inspector-general"]
+    },
+    "institute": {
+      "title": "The Institute",
+      "mandate": "remembers, reforms and grows the Bureau itself",
+      "roles": ["historian", "reformer", "recruiter"]
+    }
+  },
+  "disciplines": {
+    "game": ["gameplay", "game-feel", "camera", "controls", "rendering", "shaders-vfx", "lighting", "world-building",
+             "level-design", "ai-behavior", "physics", "vehicles", "animation", "audio", "music", "ui-hud",
+             "narrative", "progression", "economy", "procedural-generation", "save-system", "netcode"],
+    "web": ["frontend", "design-system", "motion", "data-viz", "accessibility", "responsive-layout", "3d-web",
+            "forms-validation", "state-management", "offline-pwa", "seo", "copywriting"],
+    "software": ["backend", "api-design", "database", "auth-security", "cli", "library-design", "concurrency",
+                 "performance", "devops-ci", "packaging", "observability", "data-pipeline", "ml-integration",
+                 "llm-integration"],
+    "content": ["technical-writing", "research", "editing", "fact-checking", "documentation", "localization"]
+  }
+}

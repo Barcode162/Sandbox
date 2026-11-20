@@ -1,0 +1,73 @@
+{
+  "ship_threshold": 8.0,
+  "dimension_floor": 7.0,
+  "floors": {
+    "ship_threshold": 8.0,
+    "dimension_floor": 7.0,
+    "_note": "Owner-set floors. The ratchet rule: thresholds may rise above these, never fall below. Only the owner edits this block."
+  },
+  "max_parallel_agents": 8,
+  "institute_review_every": 5,
+  "tiers": {
+    "1": {
+      "name": "Desk",
+      "summary": "Trivial, fully specified change. The CEO does it directly, with one independent check.",
+      "typical_headcount": "1-3",
+      "plan_docs": ["brief.md"],
+      "plan_board": [],
+      "ship_board": [],
+      "required_reviews": [],
+      "max_remediation_rounds": 1,
+      "retro": false
+    },
+    "2": {
+      "name": "Squad",
+      "summary": "A contained feature, fix or document. Small team, real review, one director at each gate.",
+      "typical_headcount": "6-14",
+      "plan_docs": ["brief.md", "plan.md"],
+      "plan_board": ["director-engineering"],
+      "ship_board": ["director-engineering", "director-vision"],
+      "required_reviews": ["code-reviewer", "qa-tester", "inspector-general"],
+      "max_remediation_rounds": 2,
+      "retro": true
+    },
+    "3": {
+      "name": "Division",
+      "summary": "A real product or major feature. Full design, parallel build, the whole Quality Division, the full board.",
+      "typical_headcount": "15-40",
+      "plan_docs": ["brief.md", "design/experience.md", "design/architecture.md", "plan.md"],
+      "plan_board": ["director-vision", "director-engineering", "director-risk"],
+      "ship_board": ["director-vision", "director-engineering", "director-risk"],
+      "required_reviews": ["code-reviewer", "qa-tester", "red-team", "polish-critic", "inspector-general"],
+      "max_remediation_rounds": 3,
+      "retro": true
+    },
+    "4": {
+      "name": "Full Bureau",
+      "summary": "Flagship build. Bake-offs on key creative and technical calls, multiple reviewers per area, many build waves.",
+      "typical_headcount": "40-120",
+      "plan_docs": ["brief.md", "design/experience.md", "design/architecture.md", "plan.md"],
+      "plan_board": ["director-vision", "director-engineering", "director-risk"],
+      "ship_board": ["director-vision", "director-engineering", "director-risk"],
+      "required_reviews": ["code-reviewer", "qa-tester", "red-team", "polish-critic", "inspector-general"],
+      "max_remediation_rounds": 4,
+      "retro": true
+    },
+    "5": {
+      "name": "Program",
+      "summary": "Umbrella for work bigger than one mission. Its plan is a roadmap whose work orders are milestones, each run as its own tier 3-4 mission; milestone 1 is a vertical slice at full polish. Each milestone's delivery report is filed as the umbrella's WO report.",
+      "typical_headcount": "hundreds, across milestones",
+      "plan_docs": ["brief.md", "design/experience.md", "design/architecture.md", "plan.md"],
+      "plan_board": ["director-vision", "director-engineering", "director-risk"],
+      "ship_board": ["director-vision", "director-engineering", "director-risk"],
+      "required_reviews": ["inspector-general"],
+      "max_remediation_rounds": 4,
+      "retro": true
+    }
+  },
+  "upgrade_approvals": {
+    "patch": {"min_directors": 0, "ceo_may_approve": true, "_kinds": "prompt, playbook, template, tooling"},
+    "minor": {"min_directors": 2, "_kinds": "role, process, rubric, gate"},
+    "major": {"owner": true, "_kinds": "charter"}
+  }
+}

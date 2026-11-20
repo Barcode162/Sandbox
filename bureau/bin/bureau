@@ -1,0 +1,934 @@
+#!/usr/bin/env python3
+"""bureau — the Bureau's records office.
+
+Keeps the books for every mission: dossiers, headcount, findings, board votes,
+gates, institutional memory (lessons) and the self-upgrade ledger. It also
+enforces the rules the Charter says must not depend on anyone's good intentions:
+separation of duties on findings, waiver authority, upgrade approvals, and the
+gate criteria.
+
+Stdlib only, Python 3.9+. Every member of the Bureau may call it.
+Set BUREAU_ROOT to operate on another checkout (the test suite does this).
+
+    python3 bureau/bin/bureau --help
+"""
+from __future__ import annotations
+
+import argparse
+import fcntl
+import json
+import os
+import re
+import shutil
+import sys
+from contextlib import contextmanager
+from datetime import datetime, timezone
+from pathlib import Path
+
+ROOT = Path(os.environ.get("BUREAU_ROOT") or Path(__file__).resolve().parents[2]).resolve()
+BUREAU = ROOT / "bureau"
+MISSIONS = BUREAU / "missions"
+MISSION_TEMPLATE = BUREAU / "templates" / "mission"
+AGENTS_DIR = ROOT / ".claude" / "agents"
+SKILLS_DIR = ROOT / ".claude" / "skills"
+LESSONS = BUREAU / "memory" / "LESSONS.md"
+UPGRADES = BUREAU / "memory" / "UPGRADES.md"
+VERSION_FILE = BUREAU / "VERSION"
+CONFIG_FILE = BUREAU / "config.json"
+ROSTER_FILE = BUREAU / "roster.json"
+LOCK_FILE = BUREAU / ".bureau.lock"
+
+TEMPLATE_MARKER = "<!-- bureau:template -->"
+PHASES = ("intake", "intel", "design", "plan-review", "build", "integration", "review",
+          "remediation", "ship-review", "delivery", "retro", "closed", "blocked")
+SEVERITIES = ("S0", "S1", "S2", "S3")
+VERDICTS = ("APPROVE", "CONDITIONAL", "REJECT")
+GATES = ("plan", "ship")
+UPGRADE_KINDS = {
+    "charter": "major",
+    "role": "minor", "process": "minor", "rubric": "minor", "gate": "minor",
+    "prompt": "patch", "playbook": "patch", "template": "patch", "tooling": "patch", "roster": "patch",
+}
+STATUS_AFTER = {"resolve": "resolved", "verify": "verified", "reopen": "open", "waive": "waived"}
+CLOSED_STATUSES = ("verified", "waived")
+MODEL_ALIASES = {"inherit", "opus", "sonnet", "haiku", "fable"}
+
+
+class BureauError(Exception):
+    """A rule was broken or a record is missing. Printed without a traceback."""
+
+
+# ───────────────────────────── utilities ──────────────────────────────
+
+def now() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def today() -> str:
+    return now()[:10]
+
+
+def rel(path: Path) -> str:
+    try:
+        return str(Path(path).resolve().relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
+@contextmanager
+def locked():
+    """Serialise writers. Many agents file findings and votes concurrently."""
+    LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(LOCK_FILE, "a+") as fh:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(fh, fcntl.LOCK_UN)
+
+
+def load_json(path: Path):
+    try:
+        return json.loads(path.read_text())
+    except FileNotFoundError:
+        raise BureauError(f"missing {rel(path)}")
+    except json.JSONDecodeError as exc:
+        raise BureauError(f"{rel(path)} is not valid JSON: {exc}")
+
+
+def write_json(path: Path, data) -> None:
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+    os.replace(tmp, path)
+
+
+def read_jsonl(path: Path) -> list:
+    if not path.exists():
+        return []
+    events = []
+    for n, line in enumerate(path.read_text().splitlines(), 1):
+        if line.strip():
+            try:
+                events.append(json.loads(line))
+            except json.JSONDecodeError as exc:
+                raise BureauError(f"{rel(path)} line {n} is not valid JSON: {exc}")
+    return events
+
+
+def append_jsonl(path: Path, obj) -> None:
+    with open(path, "a") as fh:
+        fh.write(json.dumps(obj, ensure_ascii=False) + "\n")
+
+
+def slugify(text: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
+    return slug[:48].strip("-") or "mission"
+
+
+def table(rows, headers) -> str:
+    rows = [[str(c) for c in r] for r in rows]
+    widths = [max(len(x) for x in col) for col in zip(headers, *rows)]
+
+    def fmt(r):
+        return "  ".join(c.ljust(w) for c, w in zip(r, widths)).rstrip()
+
+    return "\n".join([fmt(headers), fmt(["-" * w for w in widths])] + [fmt(r) for r in rows])
+
+
+def load_config() -> dict:
+    return load_json(CONFIG_FILE)
+
+
+def load_roster() -> dict:
+    return load_json(ROSTER_FILE)
+
+
+def roster_roles(roster: dict | None = None) -> dict:
+    """role -> department key"""
+    roster = roster or load_roster()
+    return {role: dept for dept, d in roster["departments"].items() for role in d["roles"]}
+
+
+def board_roles() -> list:
+    return list(load_roster()["departments"]["board"]["roles"])
+
+
+def parse_frontmatter(path: Path):
+    """Minimal YAML-frontmatter reader: top-level `key: value` lines only."""
+    text = path.read_text()
+    if not text.startswith("---\n"):
+        return None, None, text
+    end = text.find("\n---", 4)
+    if end == -1:
+        return None, None, text
+    parsed, raw = {}, {}
+    for line in text[4:end].splitlines():
+        if not line.strip() or line.lstrip().startswith("#") or line[:1].isspace():
+            continue
+        if ":" in line:
+            key, value = line.split(":", 1)
+            key, value = key.strip(), value.strip()
+            raw[key] = value
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+                value = value[1:-1]
+            parsed[key] = value
+    body = text[end + 4:].lstrip("-\n")
+    return parsed, raw, body
+
+
+# ───────────────────────────── missions ───────────────────────────────
+
+def mission_dirs() -> list:
+    if not MISSIONS.exists():
+        return []
+    return sorted(p for p in MISSIONS.iterdir() if p.is_dir() and re.match(r"M-\d{4}-", p.name))
+
+
+def find_mission(ref: str) -> Path:
+    ref = ref.strip().rstrip("/").split("/")[-1]
+    num = re.fullmatch(r"(?:M-)?(\d{1,4})", ref, re.I)
+    for p in mission_dirs():
+        if num and p.name.startswith(f"M-{int(num.group(1)):04d}-"):
+            return p
+        if p.name == ref or p.name.split("-", 2)[2] == ref:
+            return p
+    raise BureauError(f"no mission matches {ref!r} (see `bureau status`)")
+
+
+def load_state(mdir: Path) -> dict:
+    return load_json(mdir / "state.json")
+
+
+def save_state(mdir: Path, state: dict) -> None:
+    state["updated"] = now()
+    write_json(mdir / "state.json", state)
+
+
+def append_log(mdir: Path, message: str, who: str = "ceo") -> None:
+    with open(mdir / "log.md", "a") as fh:
+        fh.write(f"- `{now()}` **{who}** — {message}\n")
+
+
+def findings(mdir: Path) -> dict:
+    """Replay the findings event log into current state."""
+    state = {}
+    for ev in read_jsonl(mdir / "findings.jsonl"):
+        kind = ev.get("ev")
+        if kind == "add":
+            state[ev["id"]] = {**ev, "status": "open", "history": [ev], "reopened": 0}
+            continue
+        f = state.get(ev.get("id"))
+        if f is None or kind not in STATUS_AFTER:
+            continue
+        f["history"].append(ev)
+        f["status"] = STATUS_AFTER[kind]
+        if kind == "resolve":
+            f["resolved_by"] = ev["by"]
+        if kind == "reopen":
+            f["reopened"] += 1
+    return state
+
+
+def norm_fid(ref: str) -> str:
+    m = re.fullmatch(r"(?:F-)?(\d+)", ref.strip(), re.I)
+    if not m:
+        raise BureauError(f"bad finding id {ref!r} (expected F-007 or 7)")
+    return f"F-{int(m.group(1)):03d}"
+
+
+def current_votes(mdir: Path, gate: str, state: dict) -> dict:
+    rnd = state["rounds"][gate]
+    latest = {}
+    for v in read_jsonl(mdir / "votes.jsonl"):
+        if v.get("gate") == gate and v.get("round") == rnd:
+            latest[v["director"]] = v
+    return latest
+
+
+def tier_cfg(cfg: dict, tier) -> dict:
+    try:
+        return cfg["tiers"][str(tier)]
+    except KeyError:
+        raise BureauError(f"unknown tier {tier!r}; tiers are {', '.join(cfg['tiers'])}")
+
+
+# ───────────────────────────── commands ───────────────────────────────
+
+def cmd_new(a):
+    cfg = load_config()
+    tier = tier_cfg(cfg, a.tier)
+    if not MISSION_TEMPLATE.is_dir():
+        raise BureauError(f"mission template missing at {rel(MISSION_TEMPLATE)}")
+    slug = slugify(a.slug or a.title)
+    output = a.output or f"projects/{slug}"
+    with locked():
+        MISSIONS.mkdir(parents=True, exist_ok=True)
+        n = max((int(p.name[2:6]) for p in mission_dirs()), default=0) + 1
+        mid = f"M-{n:04d}"
+        mdir = MISSIONS / f"{mid}-{slug}"
+        shutil.copytree(MISSION_TEMPLATE, mdir)
+        subs = {
+            "{{MISSION_ID}}": mid, "{{TITLE}}": a.title, "{{TIER}}": str(a.tier),
+            "{{TIER_NAME}}": tier["name"], "{{DATE}}": today(), "{{OUTPUT}}": output,
+            "{{DOSSIER}}": rel(mdir),
+        }
+        for f in mdir.rglob("*.md"):
+            text = f.read_text()
+            for k, v in subs.items():
+                text = text.replace(k, v)
+            f.write_text(text)
+        (mdir / "findings.jsonl").touch()
+        (mdir / "votes.jsonl").touch()
+        save_state(mdir, {
+            "id": mid, "title": a.title, "slug": slug, "tier": a.tier,
+            "domain": a.domain or "", "output": output, "phase": "intake",
+            "created": now(), "rounds": {"plan": 1, "ship": 1}, "gates": {},
+            "headcount": {}, "history": [{"phase": "intake", "at": now()}],
+        })
+        append_log(mdir, f"Mission opened — tier {a.tier} ({tier['name']}), output `{output}`.")
+    print(rel(mdir))
+
+
+def cmd_phase(a):
+    with locked():
+        mdir = find_mission(a.mission)
+        st = load_state(mdir)
+        prev = st["phase"]
+        st["phase"] = a.phase
+        st["history"].append({"phase": a.phase, "at": now(), **({"note": a.note} if a.note else {})})
+        if a.phase == "closed":
+            st["closed"] = now()
+        save_state(mdir, st)
+        append_log(mdir, f"Phase {prev} → **{a.phase}**" + (f". {a.note}" if a.note else ""))
+    print(f"{st['id']}: {prev} → {a.phase}")
+
+
+def cmd_convene(a):
+    if a.n < 1:
+        raise BureauError("--n must be at least 1")
+    roles = roster_roles()
+    if a.role not in roles:
+        print(f"warning: {a.role!r} is not on the roster (see `bureau roster`)", file=sys.stderr)
+    with locked():
+        mdir = find_mission(a.mission)
+        st = load_state(mdir)
+        st["headcount"][a.role] = st["headcount"].get(a.role, 0) + a.n
+        save_state(mdir, st)
+        append_log(mdir, f"Convened {a.n}× {a.role}" + (f" — {a.note}" if a.note else ""))
+    total = sum(st["headcount"].values())
+    print(f"{st['id']}: {a.role} ×{a.n} (mission headcount {total})")
+
+
+def cmd_log(a):
+    with locked():
+        mdir = find_mission(a.mission)
+        append_log(mdir, a.message, a.by)
+    print("logged")
+
+
+def cmd_finding_add(a):
+    with locked():
+        mdir = find_mission(a.mission)
+        fid = f"F-{len(findings(mdir)) + 1:03d}"
+        append_jsonl(mdir / "findings.jsonl", {
+            "ev": "add", "id": fid, "sev": a.sev, "by": a.by, "title": a.title,
+            "where": a.where or "", "detail": a.detail or "", "wo": a.wo or "", "at": now(),
+        })
+        append_log(mdir, f"{fid} [{a.sev}] filed: {a.title}", a.by)
+    print(fid)
+
+
+def _transition(a, kind: str, note_field: str, note_value: str, check):
+    with locked():
+        mdir = find_mission(a.mission)
+        fid = norm_fid(a.id)
+        f = findings(mdir).get(fid)
+        if f is None:
+            raise BureauError(f"{fid} not found in {mdir.name}")
+        check(f)
+        append_jsonl(mdir / "findings.jsonl",
+                     {"ev": kind, "id": fid, "by": a.by, note_field: note_value, "at": now()})
+        append_log(mdir, f"{fid} {STATUS_AFTER[kind]}: {note_value}", a.by)
+    print(f"{fid} → {STATUS_AFTER[kind]}")
+
+
+def cmd_finding_resolve(a):
+    def check(f):
+        if f["status"] != "open":
+            raise BureauError(f"{f['id']} is {f['status']}; only open findings can be resolved")
+    _transition(a, "resolve", "evidence", a.evidence, check)
+
+
+def cmd_finding_verify(a):
+    def check(f):
+        if f["status"] != "resolved":
+            raise BureauError(f"{f['id']} is {f['status']}; only resolved findings can be verified")
+        if f.get("resolved_by") == a.by:
+            raise BureauError(f"separation of duties: {a.by} resolved {f['id']} and cannot verify it")
+    _transition(a, "verify", "note", a.note or "verified", check)
+
+
+def cmd_finding_reopen(a):
+    def check(f):
+        if f["status"] == "open":
+            raise BureauError(f"{f['id']} is already open")
+    _transition(a, "reopen", "reason", a.reason, check)
+
+
+def cmd_finding_waive(a):
+    def check(f):
+        if f["status"] in CLOSED_STATUSES:
+            raise BureauError(f"{f['id']} is already {f['status']}")
+        if f["sev"] in ("S0", "S1") and a.by != "owner":
+            raise BureauError(f"{f['id']} is {f['sev']}; only the owner can waive S0/S1 findings")
+        if a.by not in ("owner", "ceo") and not a.by.startswith("director-"):
+            raise BureauError("waivers are granted by a director, the ceo (S2/S3 only) or the owner")
+    _transition(a, "waive", "reason", a.reason, check)
+
+
+def cmd_finding_list(a):
+    mdir = find_mission(a.mission)
+    fs = list(findings(mdir).values())
+    if a.open:
+        fs = [f for f in fs if f["status"] not in CLOSED_STATUSES]
+    if a.sev:
+        fs = [f for f in fs if f["sev"] in a.sev]
+    if a.json:
+        print(json.dumps(fs, indent=2, ensure_ascii=False))
+        return
+    if not fs:
+        print("no findings match")
+        return
+    fs.sort(key=lambda f: (SEVERITIES.index(f["sev"]), f["id"]))
+    print(table([[f["id"], f["sev"], f["status"] + ("*" if f["reopened"] else ""), f["by"],
+                  f["where"][:40], f["title"][:70]] for f in fs],
+                ["ID", "SEV", "STATUS", "BY", "WHERE", "TITLE"]))
+
+
+def cmd_vote(a):
+    if a.director not in board_roles():
+        raise BureauError(f"{a.director!r} is not on the board ({', '.join(board_roles())})")
+    if not 0 <= a.score <= 10:
+        raise BureauError("score must be between 0 and 10")
+    with locked():
+        mdir = find_mission(a.mission)
+        report = Path(a.report)
+        if not ((mdir / report).exists() or (ROOT / report).exists()):
+            raise BureauError(f"board report {a.report!r} not found — write it before voting")
+        st = load_state(mdir)
+        rnd = st["rounds"][a.gate]
+        append_jsonl(mdir / "votes.jsonl", {
+            "gate": a.gate, "round": rnd, "director": a.director, "verdict": a.verdict,
+            "score": round(a.score, 2), "report": a.report, "note": a.note or "", "at": now(),
+        })
+        append_log(mdir, f"{a.gate} gate r{rnd}: {a.verdict} ({a.score:.1f})", a.director)
+    print(f"recorded {a.director} {a.verdict} {a.score:.1f} on {a.gate} gate, round {rnd}")
+
+
+def cmd_round(a):
+    with locked():
+        mdir = find_mission(a.mission)
+        st = load_state(mdir)
+        st["rounds"][a.gate] += 1
+        st.get("gates", {}).pop(a.gate, None)
+        save_state(mdir, st)
+        append_log(mdir, f"{a.gate} gate opened round {st['rounds'][a.gate]}"
+                   + (f" — {a.note}" if a.note else "") + " (earlier votes no longer count)")
+    print(f"{st['id']}: {a.gate} gate now in round {st['rounds'][a.gate]}")
+
+
+def evaluate_gate(mdir: Path, gate: str, cfg: dict | None = None):
+    cfg = cfg or load_config()
+    st = load_state(mdir)
+    tier = tier_cfg(cfg, st["tier"])
+    checks = []
+
+    def check(ok, msg):
+        checks.append((bool(ok), msg))
+
+    if gate == "plan":
+        for doc in tier["plan_docs"]:
+            p = mdir / doc
+            if not p.exists():
+                check(False, f"{doc} is missing")
+            elif TEMPLATE_MARKER in p.read_text():
+                check(False, f"{doc} is still a template (remove the marker once it is written)")
+            else:
+                check(True, f"{doc} written")
+        voters = tier["plan_board"]
+        votes = current_votes(mdir, "plan", st)
+        if not voters:
+            check(True, "no board review required at this tier")
+        for d in voters:
+            v = votes.get(d)
+            if not v:
+                check(False, f"{d} has not voted (plan round {st['rounds']['plan']})")
+            elif v["verdict"] == "REJECT":
+                check(False, f"{d} REJECTED ({v['score']:.1f}) — see {v['report']}")
+            else:
+                check(True, f"{d} {v['verdict']} ({v['score']:.1f})")
+        return all(ok for ok, _ in checks), checks
+
+    plan_ok, _ = evaluate_gate(mdir, "plan", cfg)
+    check(plan_ok, "plan gate passes" if plan_ok else "plan gate does not pass — run `bureau gate <m> plan`")
+
+    fs = findings(mdir).values()
+    blocking = sorted(f["id"] for f in fs if f["sev"] in ("S0", "S1") and f["status"] not in CLOSED_STATUSES)
+    s2 = sorted(f["id"] for f in fs if f["sev"] == "S2" and f["status"] not in CLOSED_STATUSES)
+    check(not blocking, "no unverified S0/S1 findings" if not blocking
+          else f"S0/S1 not yet verified: {', '.join(blocking)}")
+    check(not s2, "every S2 verified or waived" if not s2
+          else f"S2 not yet verified or waived: {', '.join(s2)}")
+
+    plan = mdir / "plan.md"
+    if plan.exists() and TEMPLATE_MARKER not in plan.read_text():
+        wos = sorted(set(re.findall(r"^#{2,4}\s+(WO-\d+)\b", plan.read_text(), re.M)))
+        missing = [w for w in wos if not list((mdir / "reports").glob(f"{w}*.md"))]
+        check(not missing, f"completion reports for all {len(wos)} work orders" if not missing
+              else f"work orders without a completion report: {', '.join(missing)}")
+
+    for role in tier["required_reviews"]:
+        found = sorted((mdir / "reviews").glob(f"{role}*.md"))
+        check(found, f"{role} review on file" if found else f"no {role} review in reviews/")
+
+    threshold = cfg["ship_threshold"]
+    votes = current_votes(mdir, "ship", st)
+    if not tier["ship_board"]:
+        check(True, "no board ship vote required at this tier")
+    for d in tier["ship_board"]:
+        v = votes.get(d)
+        if not v:
+            check(False, f"{d} has not voted (ship round {st['rounds']['ship']})")
+        elif v["verdict"] != "APPROVE":
+            check(False, f"{d} voted {v['verdict']} ({v['score']:.1f}) — see {v['report']}")
+        elif v["score"] < threshold:
+            check(False, f"{d} approved at {v['score']:.1f}, below the ship threshold {threshold:.1f}")
+        else:
+            check(True, f"{d} APPROVE ({v['score']:.1f})")
+    return all(ok for ok, _ in checks), checks
+
+
+def cmd_gate(a):
+    with locked():
+        mdir = find_mission(a.mission)
+        passed, checks = evaluate_gate(mdir, a.gate)
+        st = load_state(mdir)
+        if not a.dry_run:
+            st.setdefault("gates", {})[a.gate] = {"passed": passed, "round": st["rounds"][a.gate], "at": now()}
+            save_state(mdir, st)
+            append_log(mdir, f"{a.gate} gate {'PASSED' if passed else 'FAILED'} (round {st['rounds'][a.gate]})")
+    print(f"{st['id']} · {a.gate} gate · round {st['rounds'][a.gate]}")
+    for ok, msg in checks:
+        print(f"  {'✓' if ok else '✗'} {msg}")
+    print("PASS" if passed else "FAIL")
+    return 0 if passed else 1
+
+
+def cmd_status(a):
+    if a.mission:
+        return _status_one(find_mission(a.mission))
+    cfg = load_config()
+    dirs = mission_dirs()
+    states = [load_state(d) for d in dirs]
+    convened = sum(sum(s["headcount"].values()) for s in states)
+    closed = sum(1 for s in states if s["phase"] == "closed")
+    lessons = len(re.findall(r"^## L-\d+", LESSONS.read_text(), re.M)) if LESSONS.exists() else 0
+    upgrades = len(re.findall(r"^## U-\d+", UPGRADES.read_text(), re.M)) if UPGRADES.exists() else 0
+    print(f"The Bureau v{VERSION_FILE.read_text().strip()} · {plural(len(roster_roles()), 'role')} · "
+          f"{plural(len(dirs), 'mission')} ({closed} closed) · {plural(convened, 'agent')} convened · "
+          f"{plural(lessons, 'lesson')} · {plural(upgrades, 'upgrade')}")
+    every = cfg.get("institute_review_every", 0)
+    if every and closed and closed % every == 0:
+        print(f"note: {closed} missions closed — an Institute Review is due (see /bureau-retro)")
+    if not states:
+        print("no missions yet — start one with /bureau <request>")
+        return
+    rows = []
+    for d, s in zip(dirs, states):
+        open_f = [f for f in findings(d).values() if f["status"] not in CLOSED_STATUSES]
+        rows.append([s["id"], s["title"][:44], f"T{s['tier']}", s["phase"],
+                     sum(s["headcount"].values()), len(open_f)])
+    print(table(rows, ["ID", "TITLE", "TIER", "PHASE", "AGENTS", "OPEN"]))
+
+
+def _status_one(mdir: Path):
+    cfg = load_config()
+    st = load_state(mdir)
+    tier = tier_cfg(cfg, st["tier"])
+    head = st["headcount"]
+    print(f"{st['id']} · {st['title']}")
+    print(f"  tier {st['tier']} ({tier['name']}) · phase {st['phase']} · domain {st.get('domain') or '—'}")
+    print(f"  dossier {rel(mdir)} · output {st['output']}")
+    print(f"  headcount {sum(head.values())}"
+          + (" — " + ", ".join(f"{r} {n}" for r, n in sorted(head.items(), key=lambda x: -x[1])) if head else ""))
+    fs = findings(mdir).values()
+    parts = []
+    for sev in SEVERITIES:
+        tot = [f for f in fs if f["sev"] == sev]
+        if tot:
+            op = [f for f in tot if f["status"] not in CLOSED_STATUSES]
+            parts.append(f"{sev} {len(op)} open / {len(tot)}")
+    print("  findings " + (" · ".join(parts) if parts else "none"))
+    for gate in GATES:
+        votes = current_votes(mdir, gate, st)
+        g = st.get("gates", {}).get(gate)
+        state = ("PASSED" if g["passed"] else "FAILED") if g else "not run"
+        vline = ", ".join(f"{d.replace('director-', '')} {v['verdict']} {v['score']:.1f}" for d, v in votes.items())
+        print(f"  {gate} gate (round {st['rounds'][gate]}): {state}" + (f" · votes: {vline}" if vline else ""))
+
+
+def cmd_lesson_add(a):
+    tags = [t.strip().lower() for t in (a.tags or "").split(",") if t.strip()]
+    if not tags:
+        raise BureauError("give at least one tag (--tags role-or-domain,topic)")
+    if a.mission:
+        find_mission(a.mission)
+    with locked():
+        text = LESSONS.read_text()
+        n = max((int(x) for x in re.findall(r"^## L-(\d+)", text, re.M)), default=0) + 1
+        lid = f"L-{n:04d}"
+        entry = (f"\n## {lid} · {today()} · {a.mission or 'general'} · tags: {', '.join(tags)}\n\n"
+                 f"{a.text.strip()}\n")
+        with open(LESSONS, "a") as fh:
+            fh.write(entry)
+    print(lid)
+
+
+def _lesson_entries():
+    text = LESSONS.read_text() if LESSONS.exists() else ""
+    for chunk in re.split(r"(?=^## L-\d+)", text, flags=re.M):
+        if chunk.startswith("## L-"):
+            header = chunk.splitlines()[0]
+            m = re.search(r"tags:\s*(.*)$", header)
+            tags = {t.strip() for t in m.group(1).split(",")} if m else set()
+            yield chunk.strip(), tags
+
+
+def cmd_lesson_list(a):
+    want = {t.strip().lower() for t in (a.tag or "").split(",") if t.strip()}
+    shown = 0
+    for chunk, tags in _lesson_entries():
+        if want and not (want & tags):
+            continue
+        if a.grep and a.grep.lower() not in chunk.lower():
+            continue
+        print(chunk + "\n")
+        shown += 1
+    if not shown:
+        print("no lessons match")
+
+
+def _bump(version: str, level: str) -> str:
+    major, minor, patch = (int(x) for x in version.split("."))
+    if level == "major":
+        return f"{major + 1}.0.0"
+    if level == "minor":
+        return f"{major}.{minor + 1}.0"
+    return f"{major}.{minor}.{patch + 1}"
+
+
+def cmd_upgrade_add(a):
+    cfg = load_config()
+    level = UPGRADE_KINDS[a.kind]
+    approvers = [x.strip() for x in a.approved_by.split(",") if x.strip()]
+    rule = cfg["upgrade_approvals"][level]
+    directors = {x for x in approvers if x.startswith("director-")}
+    unknown = [x for x in approvers if x not in ("owner", "ceo") and x not in board_roles()]
+    if unknown:
+        raise BureauError(f"unknown approver(s): {', '.join(unknown)}")
+    if "owner" not in approvers:
+        if rule.get("owner"):
+            raise BureauError(f"{a.kind} upgrades ({level}) require the owner's approval")
+        if len(directors) < rule.get("min_directors", 0):
+            raise BureauError(f"{a.kind} upgrades ({level}) need at least {rule['min_directors']} "
+                              f"directors' approval; got {len(directors)}")
+        if not rule.get("ceo_may_approve") and not directors:
+            raise BureauError(f"{a.kind} upgrades need a director's approval")
+    with locked():
+        text = UPGRADES.read_text()
+        n = max((int(x) for x in re.findall(r"^## U-(\d+)", text, re.M)), default=0) + 1
+        uid = f"U-{n:04d}"
+        version = _bump(VERSION_FILE.read_text().strip(), level)
+        entry = (f"\n## {uid} · v{version} · {a.kind} · {today()}\n\n"
+                 f"- **Title:** {a.title}\n- **Trigger:** {a.trigger}\n- **Change:** {a.change}\n"
+                 f"- **Files:** {a.files}\n- **Approved by:** {', '.join(approvers)}\n")
+        with open(UPGRADES, "a") as fh:
+            fh.write(entry)
+        VERSION_FILE.write_text(version + "\n")
+    print(f"{uid} recorded · Bureau is now v{version}")
+
+
+def _gist(description: str, width: int = 96) -> str:
+    """A one-line summary of an agent description for the roster table."""
+    text = re.sub(r"^Bureau [^—]*— ?", "", description).strip()
+    sentences = re.split(r"(?<=\.)\s+", text)
+    gist = sentences[0]
+    if len(gist) < 40 and len(sentences) > 1:
+        gist = f"{gist} {sentences[1]}"
+    if len(gist) > width:
+        gist = gist[:width].rsplit(" ", 1)[0].rstrip(",;") + "…"
+    return gist[:1].upper() + gist[1:]
+
+
+def plural(n: int, word: str) -> str:
+    return f"{n} {word}" + ("" if n == 1 else "s")
+
+
+def cmd_roster(a):
+    roster = load_roster()
+    descs = {}
+    for f in sorted(AGENTS_DIR.glob("*.md")):
+        fm, _, _ = parse_frontmatter(f)
+        if fm:
+            descs[fm.get("name", f.stem)] = fm.get("description", "")
+    for key, dept in roster["departments"].items():
+        print(f"\n{dept['title']} — {dept['mandate']}")
+        for role in dept["roles"]:
+            d = descs.get(role, "(no agent file)")
+            print(f"  {role:<22} {_gist(d)}")
+    disc = roster.get("disciplines", {})
+    total = sum(len(v) for v in disc.values())
+    print(f"\nDisciplines ({total}) — assigned to engineers and reviewers in briefs:")
+    for area, items in disc.items():
+        print(f"  {area:<10} {', '.join(items)}")
+    cfg = load_config()
+    print(f"\nCapacity: {len(roster_roles(roster))} roles × {total} disciplines · "
+          f"up to {cfg['max_parallel_agents']} agents per wave · unlimited waves per mission")
+
+
+def cmd_validate(a):
+    errors, passed = [], 0
+
+    def ok(cond, msg):
+        nonlocal passed
+        if cond:
+            passed += 1
+        else:
+            errors.append(msg)
+        return cond
+
+    try:
+        cfg, roster = load_config(), load_roster()
+    except BureauError as exc:
+        print(f"✗ {exc}")
+        return 1
+    roles = roster_roles(roster)
+    board = roster["departments"].get("board", {}).get("roles", [])
+    ok(len(board) >= 3, "roster: the board needs at least three directors")
+
+    # agents
+    agent_names = set()
+    for f in sorted(AGENTS_DIR.glob("*.md")):
+        fm, raw, body = parse_frontmatter(f)
+        where = rel(f)
+        if not ok(fm is not None, f"{where}: missing YAML frontmatter"):
+            continue
+        name = fm.get("name", "")
+        agent_names.add(name)
+        ok(name == f.stem, f"{where}: name {name!r} must match the file name {f.stem!r}")
+        ok(re.fullmatch(r"[a-z][a-z0-9-]*", name or "-"), f"{where}: name must be lowercase-hyphenated")
+        ok(len(fm.get("description", "")) >= 40, f"{where}: description is missing or too thin")
+        rd = raw.get("description", "")
+        ok(rd[:1] in "\"'" or (": " not in rd and " #" not in rd),
+           f"{where}: unquoted description contains ': ' or ' #' (invalid YAML) — quote it")
+        model = fm.get("model")
+        ok(model is None or model in MODEL_ALIASES or model.startswith("claude-"),
+           f"{where}: unknown model {model!r}")
+        ok(len(body.strip()) >= 400, f"{where}: system prompt is too short to be a real role")
+        ok("STATUS:" in body, f"{where}: prompt must define the Return format (STATUS: ...)")
+    for role in roles:
+        ok(role in agent_names, f"roster: {role} has no agent file in .claude/agents/")
+    for name in agent_names:
+        ok(name in roles, f"roster: agent {name} is not registered in bureau/roster.json")
+
+    # skills
+    for d in sorted(p for p in SKILLS_DIR.iterdir() if p.is_dir()) if SKILLS_DIR.exists() else []:
+        sk = d / "SKILL.md"
+        if not ok(sk.exists(), f"{rel(d)}: missing SKILL.md"):
+            continue
+        fm, _, _ = parse_frontmatter(sk)
+        ok(fm and fm.get("name") == d.name, f"{rel(sk)}: name must match directory {d.name!r}")
+        ok(fm and len(fm.get("description", "")) >= 40, f"{rel(sk)}: description missing or too thin")
+
+    # config
+    ok(0 < cfg.get("ship_threshold", 0) <= 10, "config: ship_threshold must be in (0, 10]")
+    floors = cfg.get("floors", {})
+    ok(cfg.get("ship_threshold", 0) >= floors.get("ship_threshold", 0),
+       "config: ship_threshold is below the owner's floor (ratchet rule)")
+    ok(cfg.get("dimension_floor", 0) >= floors.get("dimension_floor", 0),
+       "config: dimension_floor is below the owner's floor (ratchet rule)")
+    for t, tc in cfg.get("tiers", {}).items():
+        for key in ("name", "plan_docs", "plan_board", "ship_board", "required_reviews", "max_remediation_rounds"):
+            ok(key in tc, f"config: tier {t} is missing {key!r}")
+        for d in tc.get("plan_board", []) + tc.get("ship_board", []):
+            ok(d in board, f"config: tier {t} names {d!r}, who is not on the board")
+        for r in tc.get("required_reviews", []):
+            ok(r in roles, f"config: tier {t} requires a review from unknown role {r!r}")
+        for doc in tc.get("plan_docs", []):
+            ok((MISSION_TEMPLATE / doc).exists(), f"config: tier {t} plan doc {doc!r} has no template")
+    ok(set(cfg.get("upgrade_approvals", {})) == {"major", "minor", "patch"},
+       "config: upgrade_approvals must define major, minor and patch")
+
+    # ledgers
+    version = VERSION_FILE.read_text().strip() if VERSION_FILE.exists() else ""
+    ok(re.fullmatch(r"\d+\.\d+\.\d+", version), "VERSION must be semver (x.y.z)")
+    for path, prefix in ((LESSONS, "L"), (UPGRADES, "U")):
+        if not ok(path.exists(), f"{rel(path)} is missing"):
+            continue
+        ids = [int(x) for x in re.findall(rf"^## {prefix}-(\d+)", path.read_text(), re.M)]
+        ok(ids == list(range(1, len(ids) + 1)), f"{rel(path)}: ids must run 1..n without gaps or repeats")
+    if UPGRADES.exists():
+        versions = re.findall(r"^## U-\d+ · v(\d+\.\d+\.\d+)", UPGRADES.read_text(), re.M)
+        keyed = [tuple(int(x) for x in v.split(".")) for v in versions]
+        ok(keyed == sorted(set(keyed)), "UPGRADES.md: versions must strictly increase")
+        ok(not versions or versions[-1] == version,
+           f"VERSION ({version}) must equal the last upgrade's version ({versions[-1] if versions else '-'})")
+
+    # missions
+    for d in mission_dirs():
+        try:
+            st = load_state(d)
+            ok(st.get("phase") in PHASES, f"{d.name}: unknown phase {st.get('phase')!r}")
+            ok(str(st.get("tier")) in cfg["tiers"], f"{d.name}: unknown tier {st.get('tier')!r}")
+            findings(d)
+            read_jsonl(d / "votes.jsonl")
+            passed += 1
+        except (BureauError, KeyError, TypeError) as exc:
+            errors.append(f"{d.name}: {exc}")
+
+    for e in errors:
+        print(f"✗ {e}")
+    print(f"{'FAIL' if errors else 'OK'} — {passed} checks passed, {len(errors)} failed")
+    return 1 if errors else 0
+
+
+# ───────────────────────────── CLI wiring ─────────────────────────────
+
+def build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(prog="bureau", description="The Bureau's records office.")
+    sub = p.add_subparsers(dest="cmd", required=True, metavar="<command>")
+
+    s = sub.add_parser("new", help="open a mission dossier")
+    s.add_argument("title")
+    s.add_argument("--tier", type=int, required=True)
+    s.add_argument("--slug")
+    s.add_argument("--domain", help="game | interactive-web | software | general")
+    s.add_argument("--output", help="where the product lives (default projects/<slug>)")
+    s.set_defaults(fn=cmd_new)
+
+    s = sub.add_parser("status", help="org overview, or one mission in detail")
+    s.add_argument("mission", nargs="?")
+    s.set_defaults(fn=cmd_status)
+
+    s = sub.add_parser("phase", help="move a mission to a phase")
+    s.add_argument("mission")
+    s.add_argument("phase", choices=PHASES)
+    s.add_argument("--note")
+    s.set_defaults(fn=cmd_phase)
+
+    s = sub.add_parser("convene", help="record agents convened for a mission")
+    s.add_argument("mission")
+    s.add_argument("role")
+    s.add_argument("--n", type=int, default=1)
+    s.add_argument("--note")
+    s.set_defaults(fn=cmd_convene)
+
+    s = sub.add_parser("log", help="append a line to the mission log")
+    s.add_argument("mission")
+    s.add_argument("message")
+    s.add_argument("--by", default="ceo")
+    s.set_defaults(fn=cmd_log)
+
+    f = sub.add_parser("finding", help="file and track findings").add_subparsers(dest="fcmd", required=True)
+    s = f.add_parser("add")
+    s.add_argument("mission")
+    s.add_argument("--sev", required=True, type=str.upper, choices=SEVERITIES)
+    s.add_argument("--by", required=True)
+    s.add_argument("--title", required=True)
+    s.add_argument("--where", help="path:line, URL, screen, or flow")
+    s.add_argument("--detail", help="repro steps, expected vs actual, suggested fix")
+    s.add_argument("--wo", help="work order the defect belongs to")
+    s.set_defaults(fn=cmd_finding_add)
+    for name, fn, extra, required in (("resolve", cmd_finding_resolve, "--evidence", True),
+                                      ("verify", cmd_finding_verify, "--note", False),
+                                      ("reopen", cmd_finding_reopen, "--reason", True),
+                                      ("waive", cmd_finding_waive, "--reason", True)):
+        s = f.add_parser(name)
+        s.add_argument("mission")
+        s.add_argument("id")
+        s.add_argument("--by", required=True)
+        s.add_argument(extra, required=required)
+        s.set_defaults(fn=fn)
+    s = f.add_parser("list")
+    s.add_argument("mission")
+    s.add_argument("--open", action="store_true", help="only findings not yet verified or waived")
+    s.add_argument("--sev", nargs="+", type=str.upper, choices=SEVERITIES)
+    s.add_argument("--json", action="store_true")
+    s.set_defaults(fn=cmd_finding_list)
+
+    s = sub.add_parser("vote", help="record a director's vote at a gate")
+    s.add_argument("mission")
+    s.add_argument("gate", choices=GATES)
+    s.add_argument("--director", required=True)
+    s.add_argument("--verdict", required=True, type=str.upper, choices=VERDICTS)
+    s.add_argument("--score", required=True, type=float)
+    s.add_argument("--report", required=True, help="the board review file (relative to the dossier)")
+    s.add_argument("--note")
+    s.set_defaults(fn=cmd_vote)
+
+    s = sub.add_parser("round", help="open a new review round at a gate (earlier votes stop counting)")
+    s.add_argument("mission")
+    s.add_argument("gate", choices=GATES)
+    s.add_argument("--note")
+    s.set_defaults(fn=cmd_round)
+
+    s = sub.add_parser("gate", help="check a gate; exit 0 on PASS, 1 on FAIL")
+    s.add_argument("mission")
+    s.add_argument("gate", choices=GATES)
+    s.add_argument("--dry-run", action="store_true", help="check without recording the result")
+    s.set_defaults(fn=cmd_gate)
+
+    l = sub.add_parser("lesson", help="institutional memory").add_subparsers(dest="lcmd", required=True)
+    s = l.add_parser("add")
+    s.add_argument("text")
+    s.add_argument("--tags", required=True)
+    s.add_argument("--mission")
+    s.set_defaults(fn=cmd_lesson_add)
+    s = l.add_parser("list")
+    s.add_argument("--tag", help="comma-separated; matches any")
+    s.add_argument("--grep")
+    s.set_defaults(fn=cmd_lesson_list)
+
+    u = sub.add_parser("upgrade", help="the self-upgrade ledger").add_subparsers(dest="ucmd", required=True)
+    s = u.add_parser("add")
+    s.add_argument("--kind", required=True, choices=sorted(UPGRADE_KINDS))
+    s.add_argument("--title", required=True)
+    s.add_argument("--trigger", required=True, help="mission / finding / lesson that motivated it")
+    s.add_argument("--change", required=True)
+    s.add_argument("--files", required=True)
+    s.add_argument("--approved-by", required=True, help="comma-separated: ceo, director-*, owner")
+    s.set_defaults(fn=cmd_upgrade_add)
+
+    s = sub.add_parser("roster", help="departments, roles, disciplines and capacity")
+    s.set_defaults(fn=cmd_roster)
+
+    s = sub.add_parser("validate", help="check the Bureau's own integrity; exit 1 on any failure")
+    s.set_defaults(fn=cmd_validate)
+    return p
+
+
+def main(argv=None) -> int:
+    args = build_parser().parse_args(argv)
+    try:
+        return args.fn(args) or 0
+    except BureauError as exc:
+        print(f"bureau: {exc}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except BrokenPipeError:  # output piped into `head` and friends
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        sys.exit(0)
