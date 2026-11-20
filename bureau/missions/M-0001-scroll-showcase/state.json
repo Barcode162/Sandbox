@@ -14,7 +14,8 @@
   "gates": {},
   "headcount": {
     "scout": 3,
-    "experience-designer": 3
+    "experience-designer": 3,
+    "director-vision": 1
   },
   "history": [
     {
@@ -30,5 +31,5 @@
       "at": "2026-11-20T12:15:51Z"
     }
   ],
-  "updated": "2026-11-20T12:15:51Z"
+  "updated": "2026-11-20T12:30:14Z"
 }

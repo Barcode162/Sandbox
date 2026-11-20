@@ -9,3 +9,4 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-20T12:15:51Z` **ceo** — Intel decisions: JS rAF loop with pure per-scene state(p) (testability > CSS timelines); native scroll, sticky stages at 100svh, overflow:clip, no scroll-jacking/smoothing; admire = 1.2s idle timer reset by any input (scrollend unusable as stop signal); pin playwright/@playwright/test/playwright-core 1.63.0; axe via @axe-core/playwright; frame timing measured not asserted (SwiftShader); <=1000 animated nodes per active scene; Lighthouse optional.
 - `2026-11-20T12:15:51Z` **ceo** — Phase intel → **design**
 - `2026-11-20T12:15:51Z` **ceo** — Convened 3× experience-designer — visual-direction bake-off A/B/C
+- `2026-11-20T12:30:14Z` **ceo** — Convened 1× director-vision — bake-off judgement
