@@ -1,0 +1,32 @@
+{
+  "id": "M-0002",
+  "title": "Tower defense vertical slice",
+  "slug": "tower-defense-vertical-slice",
+  "tier": 3,
+  "domain": "game",
+  "output": "projects/tower-defense-vertical-slice",
+  "phase": "design",
+  "created": "2026-11-20T21:00:43Z",
+  "rounds": {
+    "plan": 1,
+    "ship": 1
+  },
+  "gates": {},
+  "headcount": {
+    "experience-designer": 1
+  },
+  "levers": [
+    "polish"
+  ],
+  "history": [
+    {
+      "phase": "intake",
+      "at": "2026-11-20T21:00:43Z"
+    },
+    {
+      "phase": "design",
+      "at": "2026-11-20T21:01:23Z"
+    }
+  ],
+  "updated": "2026-11-20T21:01:23Z"
+}
