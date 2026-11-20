@@ -294,7 +294,7 @@ const FROG_BODY = (() => {
 
 /** Leg polyline points, folded (0) → open V (1). Hip, knee, foot for the +y side (mirrored for −y). */
 const LEG_FOLD = [-2.2, 1.9, -3.6, 3.2, -1.2, 3.7];
-const LEG_OPEN = [-2.6, 1.5, -5.2, 3.4, -7.8, 4.6];
+const LEG_OPEN = [-2.6, 1.6, -4.6, 3.3, -6.6, 3.9];
 const legPts = new Float32Array(6);
 
 function legPath(ctx: CanvasRenderingContext2D, legs: number, side: 1 | -1): void {
@@ -317,7 +317,7 @@ export function drawFrog(ctx: CanvasRenderingContext2D, p: FrogPose, alpha: numb
   ctx.fillStyle = PALETTE.ink;
   ctx.fill(FROG_BODY!);
   ctx.strokeStyle = PALETTE.ink;
-  ctx.lineWidth = 1.3;
+  ctx.lineWidth = 1.9;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   ctx.beginPath();
@@ -334,7 +334,7 @@ export function drawFrog(ctx: CanvasRenderingContext2D, p: FrogPose, alpha: numb
   const dark = FROG_DARK_SINK[sink]!;
   // Hind legs under the body; webbed feet when open.
   ctx.strokeStyle = dark;
-  ctx.lineWidth = 1.3;
+  ctx.lineWidth = 1.9;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   ctx.beginPath();
@@ -346,9 +346,9 @@ export function drawFrog(ctx: CanvasRenderingContext2D, p: FrogPose, alpha: numb
     for (const side of [1, -1] as const) {
       const fx = legPts[4]!, fy = legPts[5]! * side;
       ctx.beginPath();
-      ctx.moveTo(fx + 0.6, fy);
-      ctx.lineTo(fx - 1.1, fy + 1.0 * side);
-      ctx.lineTo(fx - 1.2, fy - 0.6 * side);
+      ctx.moveTo(fx + 0.8, fy);
+      ctx.lineTo(fx - 1.5, fy + 1.5 * side);
+      ctx.lineTo(fx - 1.7, fy - 0.9 * side);
       ctx.closePath();
       ctx.fill();
     }

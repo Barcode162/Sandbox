@@ -10,6 +10,7 @@ import type { Pad, Renderer, SimEvent, SimState, Slot, Vec2, ViewState } from '.
 import { heartbeatPhase } from '../sim/sim';
 import { createCamera, createView, stepCamera, sx, sy, updateView, winGoal, wx, wy, DANGER_ZOOM } from './camera';
 import { advancePresentation } from './clock';
+import { eyeScale, jawRad, vignetteAlpha } from './danger';
 import { SHADOW, rgba } from './color';
 import { VISUAL_CUES, cueImpulse } from './cues';
 import { buildPadShapes, createHeadLook, drawBubble, drawChip, drawFrog, drawGatorBody, drawGatorHead, drawPad, drawPadShadow, drawScutes, type ChipGlyph, type PadShapes } from './draw';
@@ -40,6 +41,10 @@ export interface RenderProbe {
   frogAlong: number;
   frogScale: number;
   frogH: number;
+  frogLegs: number;
+  /** Gator head centre in client px (as drawn). */
+  headX: number;
+  headY: number;
   /** Frog centre in client px. */
   frogX: number;
   frogY: number;
@@ -59,6 +64,8 @@ export interface RenderProbe {
   chips: number;
   pressedChipInverted: boolean;
   cues: Record<string, number>;
+  /** Renderer.pickPad, for tests that cannot synthesise a tap at an exact point. */
+  pick: (x: number, y: number) => number | null;
 }
 
 declare global {
@@ -67,7 +74,6 @@ declare global {
   }
 }
 
-const SK = (k: string) => String((globalThis as any).__skip ?? '').includes(k);
 const DASH = [3, 3];
 const NO_DASH: number[] = [];
 
@@ -149,10 +155,11 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
 
   const probe: RenderProbe = {
     frames: 0, drawnFrames: 0, hitStop: false, hitStops: 0, quality, frameP95: 0,
-    frogStage: 'ground', frogAcross: 1, frogAlong: 1, frogScale: 1, frogH: 0, frogX: 0, frogY: 0,
+    frogStage: 'ground', frogAcross: 1, frogAlong: 1, frogScale: 1, frogH: 0, frogLegs: 0, headX: 0, headY: 0, frogX: 0, frogY: 0,
     camY: 0, zoom: 1, shake: 0, tau: 0, vignette: 0, eyeScale: 1, jawDeg: 0, toothFlashFrames: 0,
     gatorVisible: false, flankJaws: false, traceProgress: 0, inviteRing: false, chips: 0, pressedChipInverted: false,
     cues: Object.fromEntries(Object.keys(VISUAL_CUES).map((k) => [k, 0])),
+    pick: (x, y) => renderer.pickPad(x, y),
   };
   canvas.__lilyRender = probe;
 
@@ -568,10 +575,10 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
         ctx.fillStyle = PALETTE.bank;
         ctx.fillRect(0, 0, w, h);
       }
-      ctx.fillStyle = SK('water') ? PALETTE.waterA : water;
+      ctx.fillStyle = water;
       ctx.fillRect(colL, 0, colR - colL, h);
       setWorld();
-      if (!SK('pools')) drawDeepPools();
+      drawDeepPools();
 
       const gatorAwake = g.phase !== 'dormant' || hookAt >= 0;
       if (gatorAwake && hookAt < 0) hookAt = jt - 5000;
@@ -597,7 +604,7 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
       // Head: interpolated sim head, with render-only offsets for the clack and the lunge.
       gatorHeadPos(sim, v.alpha, tmp);
       let hx = tmp.x, hy = tmp.y;
-      let jaw = 28 * DEG * smooth(remap(tau, 0.4, 1));
+      let jaw = jawRad(tau);
       if (clackAt >= 0) {
         const e = jt - clackAt;
         if (e < 260) {
@@ -653,8 +660,8 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
       // ── Shore, ripples, water life, decor.
       setWorld();
       const seed = sim.river.seed;
-      if (!SK('banks')) drawBanks(ctx, bounds, northY, seed);
-      if (!SK('detail')) drawBankDetail(ctx, bounds, northY, seed);
+      drawBanks(ctx, bounds, northY, seed);
+      drawBankDetail(ctx, bounds, northY, seed);
       ripples.step(dts);
       ctx.strokeStyle = PALETTE.paper;
       for (let i = 0; i < ripples.cap; i++) {
@@ -668,7 +675,7 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
       }
       ctx.globalAlpha = 1;
       life.update((dt / 1000) * (reduced ? 0.5 : 1), bounds, lifeWorld);
-      if (!SK('life')) life.drawWater(ctx);
+      life.drawWater(ctx);
       drawDecor(ctx, sim.river.decor, bounds, at);
       drawLog(ctx, northY, bounds, at);
 
@@ -728,7 +735,7 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
       head.heading = g.heading;
       if (eatAt >= 0) head.heading = Math.atan2(eatY - tmp.y, eatX - tmp.x) || g.heading;
       head.jaw = jaw;
-      head.eyeScale = 1 + 0.5 * tau;
+      head.eyeScale = eyeScale(tau);
       head.scale = 1;
       head.lookX = pose.x;
       head.lookY = pose.y;
@@ -937,28 +944,29 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
 
       // ── Reeds and the air layer.
       const nr = collectReeds(bounds, northY, seed, reeds);
-      if (!SK('reeds')) drawReeds(ctx, reeds, nr, at, true);
-      if (!SK('reeds')) drawReeds(ctx, reeds, nr, at, false);
+      drawReeds(ctx, reeds, nr, at, true);
+      drawReeds(ctx, reeds, nr, at, false);
       life.drawAir(ctx);
 
       // ── Print grain and the danger vignette (screen space).
       setScreen();
-      if (!low && !SK('grain')) {
+      if (!low) {
         ctx.fillStyle = patGrain;
         ctx.fillRect(0, 0, w, h);
       }
       // Vignette: alpha 0.35τ, pulsing on the shared heartbeat (polish 14).
-      const hb = heartbeatPhase(sim);
-      const beatGap = (0.12 * (60 + 80 * tau)) / 60;
-      const pulse = Math.max(Math.exp(-hb * 9), hb > beatGap ? 0.75 * Math.exp(-(hb - beatGap) * 9) : 0);
-      const va = 0.35 * tau * (0.72 + 0.28 * pulse) * (winAt >= 0 ? 1 - clamp01((jt - winAt) / 400) : 1);
+      const va = vignetteAlpha(tau, heartbeatPhase(sim)) * (winAt >= 0 ? 1 - clamp01((jt - winAt) / 400) : 1);
       probe.vignette = va;
       if (va > 0.004) {
         vignette ??= makeVignette();
+        // Centre high (bottom and sides weigh most); full colour at the side and bottom edges.
+        const ex = w / 2, ey = h * 0.62, cy = h * 0.38;
+        ctx.setTransform(dpr * ex, 0, 0, dpr * ey, dpr * (w / 2), dpr * cy);
         ctx.globalAlpha = va;
         ctx.fillStyle = vignette;
-        ctx.fillRect(0, 0, w, h);
+        ctx.fillRect(-1, -cy / ey, 2, h / ey);
         ctx.globalAlpha = 1;
+        setScreen();
       }
 
       // Win stamp shake (the stamp itself is DOM, §7.5 step 5).
@@ -974,6 +982,9 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
       probe.frogAlong = pose.along;
       probe.frogScale = pose.scale;
       probe.frogH = pose.h;
+      probe.frogLegs = pose.legs;
+      probe.headX = sx(view, head.x);
+      probe.headY = sy(view, head.y);
       probe.frogX = sx(view, pose.x);
       probe.frogY = sy(view, pose.y);
       probe.camY = camera.y.x;
@@ -1007,11 +1018,12 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
     },
   };
 
+  /** Unit-circle gradient, drawn stretched to an ellipse that reaches the bottom and side edges (§4.3, 0.35τ). */
   function makeVignette(): CanvasGradient {
-    const g = ctx!.createRadialGradient(w / 2, h * 0.4, Math.min(w, h) * 0.32, w / 2, h * 0.4, Math.hypot(w / 2, h * 0.62));
+    const g = ctx!.createRadialGradient(0, 0, 0.5, 0, 0, 1);
     g.addColorStop(0, rgba(PALETTE.jaw, 0));
-    g.addColorStop(0.55, rgba(PALETTE.jaw, 0.45));
-    g.addColorStop(1, rgba(PALETTE.jaw, 1));
+    g.addColorStop(0.62, rgba(PALETTE.jaw, 0.5));
+    g.addColorStop(0.86, rgba(PALETTE.jaw, 1));
     return g;
   }
 

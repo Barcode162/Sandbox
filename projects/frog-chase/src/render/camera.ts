@@ -7,7 +7,7 @@ export const ANCHOR = 0.64;
 export const CAMERA_OMEGA = 10;
 /** §4.6: eases to 0.96 when τ > 0.7, over ≈400 ms. */
 export const DANGER_ZOOM = 0.96;
-export const ZOOM_OMEGA = 7.5;
+export const ZOOM_OMEGA = 12;
 
 /** §4.1 viewport scale: px per wu. */
 export function baseScale(w: number, h: number): number {
@@ -108,8 +108,8 @@ export function winGoal(w: number, h: number, riverTopY: number, riverHeight: nu
   const floor = w < 700 ? 0.33 : 0.4;
   const fit = h / (riverHeight * s);
   const zoom = Math.max(floor, Math.min(1, fit));
-  // riverTopY lands 8% below the top edge; the anchor stays at 64% so nothing jumps.
+  // riverTopY lands 22% below the top edge (the finish bank and frog clear the HUD); the anchor stays at 64%.
   const visible = h / (s * zoom);
-  const focusY = riverTopY - visible * (ANCHOR - 0.08);
+  const focusY = riverTopY - visible * (ANCHOR - 0.22);
   return { zoom, focusY };
 }

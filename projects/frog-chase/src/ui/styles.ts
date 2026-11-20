@@ -69,6 +69,7 @@ export function uiCss(): string {
 #ui .ly-card.ly-in { opacity: 1; translate: 0 0; }
 #ui .ly-card h2 { margin: 0; font-size: var(--t-title); line-height: 1.05; font-weight: 800; }
 #ui .ly-card h2 .ly-ttime { margin-left: .3em; }
+#ui .ly-cardwrap.ly-bottom h2 { font-size: calc(var(--t-title) * .8); white-space: nowrap; }
 #ui .ly-card p { margin: 8px 0 0; font-size: var(--t-body); line-height: 1.25; }
 #ui .ly-card .ly-sub { font-size: calc(var(--t-body) * .82); opacity: .78; }
 #ui .ly-card .ly-foot { margin-top: 14px; font-size: calc(var(--t-body) * .82); opacity: .72; }
@@ -78,7 +79,7 @@ export function uiCss(): string {
 /* NEW BEST stamp: ink on bloom, −8°, pops 2.2 → 1 */
 #ui .ly-stamp { position: absolute; left: 50%; top: -18px; transform: translate(-50%, -100%) rotate(-8deg); }
 #ui .ly-stamp b { display: inline-block; background: ${C.bloom}; color: ${C.ink}; font-size: calc(var(--t-title) * .55); padding: 4px 14px;
-  border: 3px solid ${C.ink}; letter-spacing: .04em; box-shadow: 3px 4px 0 rgba(29,43,58,.38); animation: ly-stamp 220ms ${CSS_EASE.pop} both; }
+  border: 3px solid ${C.ink}; letter-spacing: .04em; white-space: nowrap; box-shadow: 3px 4px 0 rgba(29,43,58,.38); animation: ly-stamp 220ms ${CSS_EASE.pop} both; }
 @keyframes ly-stamp { from { transform: scale(2.2); opacity: 0; } 40% { opacity: 1; } to { transform: scale(1); opacity: 1; } }
 
 /* Pause menu */

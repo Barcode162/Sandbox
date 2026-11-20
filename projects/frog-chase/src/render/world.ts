@@ -101,45 +101,52 @@ export function drawBanks(ctx: CanvasRenderingContext2D, b: Bounds, northY: numb
 
 const CELL = 13;
 
-/** Pebbles, sand ripples and grass tufts on visible sand cells. */
+/**
+ * Pebbles and sand ripples on visible sand cells. Batched: one path per ink (shadow, three pebble tones,
+ * ripple lines), so a wide desktop margin costs five fills, not hundreds.
+ */
 export function drawBankDetail(ctx: CanvasRenderingContext2D, b: Bounds, northY: number, seed: number): void {
   const i0 = Math.floor(b.xL / CELL) - 1, i1 = Math.ceil(b.xR / CELL) + 1;
   const j0 = Math.floor(b.yB / CELL) - 1, j1 = Math.ceil(b.yT / CELL) + 1;
-  for (let j = j0; j <= j1; j++)
-    for (let i = i0; i <= i1; i++) {
-      const cx = (i + rand3(i, j, seed)) * CELL, cy = (j + rand3(j, i, seed + 1)) * CELL;
-      if (!onBank(cx, cy, northY, seed)) continue;
-      // Keep the sand right under the frog clean (start and finish).
-      if (Math.abs(cx - 50) < 9 && (Math.abs(cy) < 6 || Math.abs(cy - northY) < 6)) continue;
-      const r = rand3(i, j, seed + 7);
-      if (r < 0.45) {
+  for (let pass = 0; pass < 5; pass++) {
+    ctx.beginPath();
+    for (let j = j0; j <= j1; j++)
+      for (let i = i0; i <= i1; i++) {
+        const cx = (i + rand3(i, j, seed)) * CELL, cy = (j + rand3(j, i, seed + 1)) * CELL;
+        const r = rand3(i, j, seed + 7);
+        if (pass < 4 ? r >= 0.45 : r < 0.45 || r >= 0.75) continue;
+        if (!onBank(cx, cy, northY, seed)) continue;
+        // Keep the sand right under the frog clean (start and finish).
+        if (Math.abs(cx - 50) < 9 && (Math.abs(cy) < 6 || Math.abs(cy - northY) < 6)) continue;
+        if (pass === 4) {
+          for (let k = 0; k < 3; k++) {
+            const yy = cy + k * 1.6;
+            ctx.moveTo(cx - 3.5, yy);
+            ctx.quadraticCurveTo(cx, yy + 1.1, cx + 3.5, yy);
+          }
+          continue;
+        }
         const n = 1 + Math.floor(rand3(i, j, 3) * 3);
         for (let k = 0; k < n; k++) {
+          if (pass > 0 && k % 3 !== pass - 1) continue;
           const px = cx + (rand3(i, j, 10 + k) - 0.5) * 5, py = cy + (rand3(i, j, 20 + k) - 0.5) * 5;
           const rr = 0.8 + rand3(i, j, 30 + k) * 1.3;
           const rot = rand3(i, j, 40 + k) * Math.PI;
-          ctx.fillStyle = SHADOW;
-          ctx.beginPath();
-          ctx.ellipse(px + 0.3, py - 0.4, rr, rr * 0.7, rot, 0, TAU);
-          ctx.fill();
-          ctx.fillStyle = PEBBLE[k % 3]!;
-          ctx.beginPath();
-          ctx.ellipse(px, py, rr, rr * 0.7, rot, 0, TAU);
-          ctx.fill();
+          const ox = pass === 0 ? 0.3 : 0, oy = pass === 0 ? -0.4 : 0;
+          ctx.moveTo(px + ox + Math.cos(rot) * rr, py + oy + Math.sin(rot) * rr);
+          ctx.ellipse(px + ox, py + oy, rr, rr * 0.7, rot, 0, TAU);
         }
-      } else if (r < 0.75) {
-        ctx.strokeStyle = SAND_LINE;
-        ctx.lineWidth = 0.45;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        for (let k = 0; k < 3; k++) {
-          const yy = cy + k * 1.6;
-          ctx.moveTo(cx - 3.5, yy);
-          ctx.quadraticCurveTo(cx, yy + 1.1, cx + 3.5, yy);
-        }
-        ctx.stroke();
       }
+    if (pass === 4) {
+      ctx.strokeStyle = SAND_LINE;
+      ctx.lineWidth = 0.45;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    } else {
+      ctx.fillStyle = pass === 0 ? SHADOW : PEBBLE[pass - 1]!;
+      ctx.fill();
     }
+  }
 }
 
 /** Reed clump positions along every visible shore edge. */
@@ -186,29 +193,31 @@ export function collectReeds(b: Bounds, northY: number, seed: number, out: ReedC
   return n;
 }
 
-/** Blades fan up-screen; sway ±3° (50% speed under reduced motion via ambientS). */
+/** Blades fan up-screen; sway ±3° (50% speed under reduced motion via ambientS). One path per ink. */
 export function drawReeds(ctx: CanvasRenderingContext2D, clumps: readonly ReedClump[], n: number, ambientS: number, shadowPass: boolean): void {
-  ctx.fillStyle = shadowPass ? SHADOW : PALETTE.reed;
   const ox = shadowPass ? 0.35 * 3 : 0, oy = shadowPass ? -0.45 * 3 : 0;
-  for (let c = 0; c < n; c++) {
-    const k = clumps[c]!;
-    const sway = 3 * DEG * Math.sin((TAU * ambientS) / k.period + k.phase);
-    for (let i = 0; i < k.n; i++) {
-      const u = k.n > 1 ? i / (k.n - 1) - 0.5 : 0;
-      const a = Math.PI / 2 + u * 1.5 + (rand3(k.id, i, 4) - 0.5) * 0.3 + sway * (1 + Math.abs(u));
-      const len = 5 + rand3(k.id, i, 5) * 5.5;
-      const w = 0.55 + rand3(k.id, i, 6) * 0.35;
-      const bx = k.x + u * 2.2 + ox, by = k.y + oy;
-      const tx = bx + Math.cos(a) * len, ty = by + Math.sin(a) * len;
-      const nx = -Math.sin(a) * w, ny = Math.cos(a) * w;
-      if (!shadowPass) ctx.fillStyle = i % 3 === 1 ? REED_DARK : PALETTE.reed;
-      ctx.beginPath();
-      ctx.moveTo(bx + nx, by + ny);
-      ctx.quadraticCurveTo(bx + Math.cos(a) * len * 0.55 + nx * 0.8, by + Math.sin(a) * len * 0.55 + ny * 0.8, tx, ty);
-      ctx.quadraticCurveTo(bx + Math.cos(a) * len * 0.55 - nx * 0.8, by + Math.sin(a) * len * 0.55 - ny * 0.8, bx - nx, by - ny);
-      ctx.closePath();
-      ctx.fill();
+  for (let ink = 0; ink < (shadowPass ? 1 : 2); ink++) {
+    ctx.beginPath();
+    for (let c = 0; c < n; c++) {
+      const k = clumps[c]!;
+      const sway = 3 * DEG * Math.sin((TAU * ambientS) / k.period + k.phase);
+      for (let i = 0; i < k.n; i++) {
+        if (!shadowPass && (i % 3 === 1 ? 1 : 0) !== ink) continue;
+        const u = k.n > 1 ? i / (k.n - 1) - 0.5 : 0;
+        const a = Math.PI / 2 + u * 1.5 + (rand3(k.id, i, 4) - 0.5) * 0.3 + sway * (1 + Math.abs(u));
+        const len = 5 + rand3(k.id, i, 5) * 5.5;
+        const w = 0.55 + rand3(k.id, i, 6) * 0.35;
+        const bx = k.x + u * 2.2 + ox, by = k.y + oy;
+        const ca = Math.cos(a), sa = Math.sin(a);
+        const nx = -sa * w, ny = ca * w;
+        ctx.moveTo(bx + nx, by + ny);
+        ctx.quadraticCurveTo(bx + ca * len * 0.55 + nx * 0.8, by + sa * len * 0.55 + ny * 0.8, bx + ca * len, by + sa * len);
+        ctx.quadraticCurveTo(bx + ca * len * 0.55 - nx * 0.8, by + sa * len * 0.55 - ny * 0.8, bx - nx, by - ny);
+        ctx.closePath();
+      }
     }
+    ctx.fillStyle = shadowPass ? SHADOW : ink ? REED_DARK : PALETTE.reed;
+    ctx.fill();
   }
 }
 

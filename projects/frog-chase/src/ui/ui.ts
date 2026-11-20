@@ -200,7 +200,7 @@ export function createUi(root: HTMLElement, cb: UiCallbacks): Ui {
         lastSim = sim;
         resultSeen = -1;
         clearCard();
-        timerMode = '';
+        timerMode = 'stale'; // force the class sync on the first frame of a run
       }
       if (view.phase === 'wipe' && !wipe.classList.contains('ly-run') && card) runWipe();
 
