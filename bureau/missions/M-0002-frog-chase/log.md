@@ -14,3 +14,4 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-20T22:32:22Z` **ceo** — Phase plan-review → **build**
 - `2026-11-20T22:32:22Z` **ceo** — Convened 3× engineer
 - `2026-11-20T22:32:51Z` **ceo** — Wave 1: WO-002/003/004 convened in parallel on base ea5b9c0.
+- `2026-11-20T22:53:48Z` **ceo** — WO-002 DONE. CEO ruling §4.3: a 1.4 s hop period surviving on constant near-misses is acceptable (max tension, still slower than any good run); keep as tested. Spec numbers (max hop, G5 quota, trick rates) accepted as the generator's adjusted values; noted for retro.
