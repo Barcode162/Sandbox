@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#2F8F9D" />
+    <title>Lilyfield</title>
+    <style>
+      html, body { margin: 0; height: 100%; overflow: hidden; background: #2F8F9D; overscroll-behavior: none; }
+      #stage { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+      #ui { position: fixed; inset: 0; pointer-events: none; }
+    </style>
+  </head>
+  <body>
+    <canvas id="stage" aria-label="Lilyfield: hop across the pond"></canvas>
+    <div id="ui"></div>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>

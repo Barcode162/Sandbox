@@ -9,3 +9,7 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-20T22:16:06Z` **ceo** — Owner judged bake-off: B Lilyfield + trick look-alike pads, 2-3 choices per hop, fast. board/bakeoff-experience.md
 - `2026-11-20T22:22:40Z` **ceo** — Spec done (5998w). CEO decisions: 120 Hz tick; new river each run, seed via ?seed=; test hooks window.__lily + TUNING override allowed; grayscale tell check = automated pixel test if cheap, else polish-critic.
 - `2026-11-20T22:22:40Z` **ceo** — Convened 1× architect
+- `2026-11-20T22:32:20Z` **ceo** — Phase design → **plan-review**
+- `2026-11-20T22:32:22Z` **ceo** — plan gate PASSED (round 1)
+- `2026-11-20T22:32:22Z` **ceo** — Phase plan-review → **build**
+- `2026-11-20T22:32:22Z` **ceo** — Convened 3× engineer
