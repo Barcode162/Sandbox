@@ -13,3 +13,4 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-20T22:32:22Z` **ceo** — plan gate PASSED (round 1)
 - `2026-11-20T22:32:22Z` **ceo** — Phase plan-review → **build**
 - `2026-11-20T22:32:22Z` **ceo** — Convened 3× engineer
+- `2026-11-20T22:32:51Z` **ceo** — Wave 1: WO-002/003/004 convened in parallel on base ea5b9c0.
