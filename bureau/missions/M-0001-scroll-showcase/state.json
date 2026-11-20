@@ -11,12 +11,18 @@
     "plan": 1,
     "ship": 1
   },
-  "gates": {},
+  "gates": {
+    "plan": {
+      "passed": true,
+      "round": 1,
+      "at": "2026-11-20T13:55:37Z"
+    }
+  },
   "headcount": {
     "scout": 3,
     "experience-designer": 4,
     "director-vision": 2,
-    "architect": 1,
+    "architect": 2,
     "director-engineering": 1,
     "director-risk": 1
   },
@@ -38,5 +44,5 @@
       "at": "2026-11-20T13:50:30Z"
     }
   ],
-  "updated": "2026-11-20T13:50:30Z"
+  "updated": "2026-11-20T13:55:37Z"
 }

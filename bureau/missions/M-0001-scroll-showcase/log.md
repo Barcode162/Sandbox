@@ -22,3 +22,5 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-20T13:52:42Z` **director-vision** — plan gate r1: CONDITIONAL (8.4)
 - `2026-11-20T13:55:12Z` **director-engineering** — plan gate r1: CONDITIONAL (8.1)
 - `2026-11-20T13:55:21Z` **director-risk** — plan gate r1: CONDITIONAL (7.6)
+- `2026-11-20T13:55:37Z` **ceo** — plan gate PASSED (round 1)
+- `2026-11-20T13:55:37Z` **ceo** — Convened 1× architect — fold gate-1 board conditions into plan
