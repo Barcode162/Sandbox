@@ -24,3 +24,5 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-20T13:55:21Z` **director-risk** — plan gate r1: CONDITIONAL (7.6)
 - `2026-11-20T13:55:37Z` **ceo** — plan gate PASSED (round 1)
 - `2026-11-20T13:55:37Z` **ceo** — Convened 1× architect — fold gate-1 board conditions into plan
+- `2026-11-20T14:13:12Z` **ceo** — Board conditions V1-4,E1-9,R1-9 folded into plan (29 WOs). Colophon font-credit wording: CEO accepts architect's wording; designer may adjust in WO-027 art review.
+- `2026-11-20T14:13:12Z` **ceo** — Phase plan-review → **build**

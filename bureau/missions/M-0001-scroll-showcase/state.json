@@ -5,7 +5,7 @@
   "tier": 3,
   "domain": "interactive-web",
   "output": "projects/scroll-showcase",
-  "phase": "plan-review",
+  "phase": "build",
   "created": "2026-11-20T12:08:42Z",
   "rounds": {
     "plan": 1,
@@ -42,7 +42,11 @@
     {
       "phase": "plan-review",
       "at": "2026-11-20T13:50:30Z"
+    },
+    {
+      "phase": "build",
+      "at": "2026-11-20T14:13:12Z"
     }
   ],
-  "updated": "2026-11-20T13:55:37Z"
+  "updated": "2026-11-20T14:13:12Z"
 }
