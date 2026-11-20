@@ -5,7 +5,7 @@
   "tier": 2,
   "domain": "game",
   "output": "projects/frog-chase",
-  "phase": "build",
+  "phase": "review",
   "created": "2026-11-20T21:41:47Z",
   "rounds": {
     "plan": 1,
@@ -21,7 +21,9 @@
   "headcount": {
     "experience-designer": 1,
     "architect": 1,
-    "engineer": 3
+    "engineer": 3,
+    "code-reviewer": 1,
+    "polish-critic": 1
   },
   "levers": [
     "bakeoff",
@@ -43,7 +45,11 @@
     {
       "phase": "build",
       "at": "2026-11-20T22:32:22Z"
+    },
+    {
+      "phase": "review",
+      "at": "2026-11-20T23:51:41Z"
     }
   ],
-  "updated": "2026-11-20T22:32:22Z"
+  "updated": "2026-11-20T23:51:41Z"
 }
