@@ -19,3 +19,4 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-20T13:50:30Z` **ceo** — Convened 1× director-vision — gate1
 - `2026-11-20T13:50:30Z` **ceo** — Convened 1× director-engineering — gate1
 - `2026-11-20T13:50:30Z` **ceo** — Convened 1× director-risk — gate1
+- `2026-11-20T13:52:42Z` **director-vision** — plan gate r1: CONDITIONAL (8.4)
