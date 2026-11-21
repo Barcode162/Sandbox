@@ -23,3 +23,8 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-21T01:59:32Z` **ceo** — Owner asked to wrap up for a new chat on another account. WO-002 balance and WO-004 perf fix passes were stopped mid-run. Verify 9/10 (perf FAIL). See HANDOFF.md.
 - `2026-11-21T02:11:51Z` **ceo** — Resumed in new session (CEO). Verify baseline 9/10. Perf: the R18 p95 of 153 ms was mostly a probe artifact (300 frames in one task batch their raster into a few big flushes). Probe now reads back 1 px per frame → honest 16.7 ms. CEO fix (no new convening; same diagnosis would cost a cold-start engineer): blot sprite cache with device-pixel-snapped blits, pre-rendered vignette (edge bands only) and grain (multiply rewritten as an equivalent source-over alpha). R18 p95 6.2 ms ≤ 8. Visual diff vs before: mean |Δ| ≈ 1/255 at 1280 and 1920.
 - `2026-11-21T02:11:51Z` **ceo** — WO-002 closed: balance had landed (win/loss scripts pass, 0 skips); CEO wrote the change table from the data diff and amended experience.md §6/§8/§10 to the shipped values.
+- `2026-11-21T02:12:38Z` **ceo** — Phase build → **review**
+- `2026-11-21T02:12:59Z` **ceo** — Convened 1× code-reviewer — review r1: product diff (sim, render, ui, app)
+- `2026-11-21T02:12:59Z` **ceo** — Convened 1× qa-tester — review r1: flows, controls, viewports, edge cases
+- `2026-11-21T02:12:59Z` **ceo** — Convened 1× polish-critic — review r1: §10 frame tables + §16 polish list
+- `2026-11-21T02:13:37Z` **ceo** — Phase build → review. CEO filed WO-001 report (architect's scaffold). Convened code-reviewer, qa-tester, polish-critic (fresh, for independence) — headcount 10/14. Remaining 4: two ship directors (DE can't be resumed across sessions) + 2 spare for remediation.
