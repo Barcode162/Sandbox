@@ -28,3 +28,8 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-21T02:12:59Z` **ceo** — Convened 1× qa-tester — review r1: flows, controls, viewports, edge cases
 - `2026-11-21T02:12:59Z` **ceo** — Convened 1× polish-critic — review r1: §10 frame tables + §16 polish list
 - `2026-11-21T02:13:37Z` **ceo** — Phase build → review. CEO filed WO-001 report (architect's scaffold). Convened code-reviewer, qa-tester, polish-critic (fresh, for independence) — headcount 10/14. Remaining 4: two ship directors (DE can't be resumed across sessions) + 2 spare for remediation.
+- `2026-11-21T02:19:54Z` **qa-tester** — F-001 [S2] filed: npm run verify is flaky: R18 render p95 8.6-8.7 ms > 8 budget; unit failed once
+- `2026-11-21T02:19:54Z` **qa-tester** — F-002 [S3] filed: README controls omit that restart in pause needs a second R press
+- `2026-11-21T02:19:54Z` **qa-tester** — F-003 [S3] filed: UI text drops to ~8 px at 900x600 (spec: text >= 12 px)
+- `2026-11-21T02:19:54Z` **qa-tester** — F-004 [S3] filed: Settings card: Auto-start row crowds the Back button and enemy legend strip
+- `2026-11-21T02:19:54Z` **qa-tester** — F-005 [S3] filed: Test hook stage() after a manual retry lands on Round 1 instead of target stage
