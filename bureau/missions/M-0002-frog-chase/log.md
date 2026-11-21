@@ -26,3 +26,17 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-21T03:33:39Z` **code-reviewer** — F-004 [S3] filed: Flanked X chip vanishes during squash but a retarget can still land on the armed flank
 - `2026-11-21T03:33:39Z` **code-reviewer** — F-005 [S3] filed: Pause-button e2e silently passes if the button is missing
 - `2026-11-21T03:33:39Z` **code-reviewer** — F-006 [S3] filed: Small per-frame allocations in the frame path
+- `2026-11-21T03:37:26Z` **polish-critic** — F-007 [S1] filed: Title vellum reads as fog and creates ghost pads on the first frame
+- `2026-11-21T03:37:26Z` **polish-critic** — F-008 [S1] filed: Reachable pads are no brighter than the rest; the choice relies on 32 px chips alone
+- `2026-11-21T03:37:26Z` **polish-critic** — F-009 [S2] filed: Dragonflies rest on reachable pads, covering chips and tells
+- `2026-11-21T03:37:26Z` **polish-critic** — F-010 [S2] filed: Landing droplets land on the pad, not the water (polish 10)
+- `2026-11-21T03:37:26Z` **polish-critic** — F-011 [S2] filed: Danger vignette invisible at 375 px until tau ~0.9
+- `2026-11-21T03:37:26Z` **polish-critic** — F-012 [S2] filed: Desktop win frame is mostly empty sand, the card hides the route start, and the veil mutes the warmest frame
+- `2026-11-21T03:37:26Z` **polish-critic** — F-013 [S2] filed: Near-miss frame shows the jaws on the frog, so it reads as a bite
+- `2026-11-21T03:37:26Z` **polish-critic** — F-014 [S2] filed: Soggy's moving tell is too small to read at 375 px
+- `2026-11-21T03:37:26Z` **polish-critic** — F-015 [S3] filed: HUD round buttons have no hover state on desktop
+- `2026-11-21T03:37:26Z` **polish-critic** — F-016 [S3] filed: Curl copy uses two vocabularies
+- `2026-11-21T03:37:26Z` **polish-critic** — F-017 [S3] filed: Timer tab covers the finish log; stale best stays under the frozen timer on win
+- `2026-11-21T03:37:26Z` **polish-critic** — F-018 [S3] filed: Airborne legs read as thin stilts
+- `2026-11-21T03:38:15Z` **ceo** — Phase review → **remediation**
+- `2026-11-21T03:38:33Z` **ceo** — Reviews in: 3 S1, 8 S2, 7 S3. Owning engineers resumed for fix r1 (WO-002: F-001/002/004; WO-003: F-007..018; WO-004: F-003/005/006).

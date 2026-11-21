@@ -5,7 +5,7 @@
   "tier": 2,
   "domain": "game",
   "output": "projects/frog-chase",
-  "phase": "review",
+  "phase": "remediation",
   "created": "2026-11-20T21:41:47Z",
   "rounds": {
     "plan": 1,
@@ -49,7 +49,11 @@
     {
       "phase": "review",
       "at": "2026-11-20T23:51:41Z"
+    },
+    {
+      "phase": "remediation",
+      "at": "2026-11-21T03:38:15Z"
     }
   ],
-  "updated": "2026-11-20T23:51:41Z"
+  "updated": "2026-11-21T03:38:15Z"
 }
