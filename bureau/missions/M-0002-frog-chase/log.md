@@ -20,3 +20,9 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-20T23:51:41Z` **ceo** — Convened 1× code-reviewer
 - `2026-11-20T23:51:41Z` **ceo** — Convened 1× polish-critic
 - `2026-11-21T03:32:46Z` **ceo** — Both reviewers hit the usage limit mid-review (reset 02:20 UTC). Resume, don't re-convene (L-0005).
+- `2026-11-21T03:33:39Z` **code-reviewer** — F-001 [S1] filed: 30 vs 144 Hz determinism checks are blind to frame-rate dependence (and cost 318 s)
+- `2026-11-21T03:33:39Z` **code-reviewer** — F-002 [S2] filed: In-browser sim-step p95 budget check is vacuous (coarse timer reads 0)
+- `2026-11-21T03:33:39Z` **code-reviewer** — F-003 [S2] filed: Tap-on-pad during the 40 ms retarget window retargets the current hop to a different pad
+- `2026-11-21T03:33:39Z` **code-reviewer** — F-004 [S3] filed: Flanked X chip vanishes during squash but a retarget can still land on the armed flank
+- `2026-11-21T03:33:39Z` **code-reviewer** — F-005 [S3] filed: Pause-button e2e silently passes if the button is missing
+- `2026-11-21T03:33:39Z` **code-reviewer** — F-006 [S3] filed: Small per-frame allocations in the frame path
