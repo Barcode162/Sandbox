@@ -5,7 +5,7 @@
   "tier": 2,
   "domain": "game",
   "output": "projects/frog-chase",
-  "phase": "remediation",
+  "phase": "ship-review",
   "created": "2026-11-20T21:41:47Z",
   "rounds": {
     "plan": 1,
@@ -23,7 +23,8 @@
     "architect": 1,
     "engineer": 3,
     "code-reviewer": 1,
-    "polish-critic": 1
+    "polish-critic": 1,
+    "director-vision": 1
   },
   "levers": [
     "bakeoff",
@@ -53,7 +54,11 @@
     {
       "phase": "remediation",
       "at": "2026-11-21T03:38:15Z"
+    },
+    {
+      "phase": "ship-review",
+      "at": "2026-11-21T04:27:14Z"
     }
   ],
-  "updated": "2026-11-21T03:38:15Z"
+  "updated": "2026-11-21T04:27:14Z"
 }
