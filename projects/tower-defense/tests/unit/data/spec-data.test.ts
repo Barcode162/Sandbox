@@ -1,6 +1,7 @@
 // WO-001 data integrity: the frozen data modules agree with the spec's own derived columns.
 import { describe, expect, it } from 'vitest';
 import { BLOTS } from '../../../src/data/blots';
+import { BALANCE } from '../../../src/data/balance';
 import { ECONOMY, roundBonus } from '../../../src/data/economy';
 import { PATH_LENGTH_SPEC } from '../../../src/data/map';
 import { LOSS_SCRIPT, WIN_SCRIPT, WIN_SCRIPT_SPEND } from '../../../src/data/scripts';
@@ -53,9 +54,9 @@ describe('§7 towers', () => {
     expect(tiersValid(3, 2)).toBe(false);
   });
   it('resolution order A1..B3, set then add', () => {
-    expect(resolveStats('tern', [3, 0])).toMatchObject({ pierce: 5, interval: 0.5, spreadDeg: [-10, 0, 10] });
-    expect(resolveStats('tern', [1, 3])).toMatchObject({ attack: 'lance', damage: 6, pierce: 5, range: 230, interval: 1.1, damageType: 'crush' });
-    expect(resolveStats('frog', [1, 3])).toMatchObject({ splashMax: 20, skips: 2, interval: 0.55, splashRadius: 56 });
+    expect(resolveStats('tern', [3, 0])).toMatchObject({ pierce: 5, interval: 0.5 * BALANCE.towerIntervalMul, spreadDeg: [-10, 0, 10] });
+    expect(resolveStats('tern', [1, 3])).toMatchObject({ attack: 'lance', damage: 6, pierce: 5, range: 230, interval: 1.1 * BALANCE.towerIntervalMul, damageType: 'crush' });
+    expect(resolveStats('frog', [1, 3])).toMatchObject({ splashMax: 20, skips: 2, interval: 0.55 * BALANCE.towerIntervalMul, splashRadius: 56 });
     expect(resolveStats('owl', [3, 1])).toMatchObject({ damage: 18, range: 400, auraDetect: true });
     expect(resolveStats('koi', [1, 3])).toMatchObject({ attack: 'jets', slowPct: 0.4, damage: 2 });
   });

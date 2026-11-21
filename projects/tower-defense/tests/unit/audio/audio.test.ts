@@ -221,6 +221,33 @@ describe('pause and music (§10.7, §12, §16.18)', () => {
   });
 });
 
+describe('place / upgrade / sell sound once per action (UI is the single source)', () => {
+  it('the game pattern (sim event forwarded, then ui()) plays each cue exactly once', () => {
+    const { ctx, audio } = rig();
+    const actions: [SimEvent, Parameters<typeof audio.ui>[0], string][] = [
+      [{ type: 'place', towerId: 1, kind: 'tern', x: 340, y: 510, cost: 200 }, 'place', 'place'],
+      [{ type: 'upgrade', towerId: 1, path: 0, tier: 1, cost: 100 }, 'upgrade1', 'upgrade1'],
+      [{ type: 'upgrade', towerId: 1, path: 0, tier: 3, cost: 900 }, 'upgrade3', 'upgrade3'],
+      [{ type: 'sell', towerId: 1, kind: 'tern', x: 340, y: 510, refund: 140 }, 'sell', 'sell'],
+    ];
+    let t = 0;
+    for (const [e, ui, cue] of actions) {
+      t += 1000;
+      audio.update(t);
+      const before = ctx.of(FakeOsc).length;
+      audio.onSimEvent(e);
+      expect(ctx.of(FakeOsc).length, `${e.type} sim event makes no sound`).toBe(before);
+      audio.update(t + 200); // beyond any dedupe window: a second source would show up here
+      audio.ui(ui);
+      expect(audio.debug.cues[cue], cue).toBe(1);
+    }
+    // a second real action of the same kind still sounds
+    audio.update(t + 2000);
+    audio.ui('place');
+    expect(audio.debug.cues.place).toBe(2);
+  });
+});
+
 describe('no AudioContext (headless, autoplay-blocked)', () => {
   it('createAudio in Node is a silent no-op that never throws', () => {
     const a = createAudio();

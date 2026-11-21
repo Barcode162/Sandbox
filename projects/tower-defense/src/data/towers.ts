@@ -2,6 +2,7 @@
 // Resolution rule: start from `base`, apply owned tiers in order A1,A2,A3,B1,B2,B3; `set` overrides, `add` adds.
 import type { TierDef, TierEffect, TowerDef, TowerKind, TowerStats, UpgradePath } from '../contracts/types';
 import { FOOTPRINT } from './map';
+import { BALANCE } from './balance';
 
 const DEFAULT: TowerStats = {
   attack: 'quill', range: 0, interval: 1, damage: 1, pierce: 1, damageType: 'cut', detect: false, multVs: {},
@@ -108,5 +109,6 @@ export function resolveStats(kind: TowerKind, tiers: readonly [number, number]):
       if (e.add) for (const [k, v] of Object.entries(e.add)) (out as unknown as Record<string, number>)[k] += v as number;
     }
   }
+  out.interval *= BALANCE.towerIntervalMul; // balance pass (data/balance.ts); tables above stay as §7 states them
   return out;
 }

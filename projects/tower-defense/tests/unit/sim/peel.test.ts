@@ -6,6 +6,7 @@ import { stateHash } from '../../../src/sim/hash';
 import { overflowOf, acquireProjectile, PROJECTILE_CAPACITY } from '../../../src/sim/pool';
 import { pooledEvents } from '../../../src/sim/events';
 import { BALANCE } from '../../../src/data/balance';
+import { roundBonus } from '../../../src/data/economy';
 
 function setup(kind: BlotKind = 'dot', s = 500, pale = false) {
   const core = createCore({ seed: 1, noWaves: true });
@@ -323,7 +324,7 @@ describe('§8 commands', () => {
 });
 
 describe('§8 rounds', () => {
-  it('R1 spawns 20 Dots 0.8 s apart at s = 0; the clear pays 100 + 10·r; auto-start fires 1.5 s later', () => {
+  it('R1 spawns 20 Dots 0.8 s apart at s = 0; the clear pays roundBonus(1); auto-start fires 1.5 s later', () => {
     const core = createCore({ seed: 1 });
     const { state, sim } = core;
     sim.enqueue({ type: 'autoStart', on: true });
@@ -334,7 +335,7 @@ describe('§8 rounds', () => {
       sim.step();
       for (const e of sim.events) {
         if (e.type === 'spawn' && !clearTick) spawnTicks.push(state.roundTick - 1);
-        if (e.type === 'roundClear') { clearTick = state.tick; expect(e.bonus).toBe(110); }
+        if (e.type === 'roundClear') { clearTick = state.tick; expect(e.bonus).toBe(roundBonus(1)); }
         if (e.type === 'roundStart' && e.round === 2) startTick = state.tick;
       }
       // remove each Dot as soon as it spawns so R1 clears
@@ -342,7 +343,7 @@ describe('§8 rounds', () => {
     }
     expect(spawnTicks).toHaveLength(20);
     expect(spawnTicks[1] - spawnTicks[0]).toBe(48);
-    expect(state.money).toBe(650 + 110);
+    expect(state.money).toBe(650 + roundBonus(1));
     expect(startTick - clearTick).toBe(90);
   });
   it('first-seen fires once per kind, plus once for the first Pale', () => {

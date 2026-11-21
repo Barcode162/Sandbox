@@ -8,7 +8,11 @@ import { placementFail } from './placement';
 import { acquireProjectile } from './pool';
 import { createRng } from './rng';
 
-export const STRESS = { blots: 500, towers: 30, projectiles: 1000, round: 18 } as const;
+/**
+ * Targets the field is topped up to before every step. Pops and expiries inside a step eat into them, so
+ * they sit above the [A3] floor (≥ 500 blots, ≥ 1,000 projectiles measured after the step).
+ */
+export const STRESS = { blots: 520, towers: 30, projectiles: 1100, round: 18 } as const;
 
 /** Blot mix for the storm: mostly Blotch/Splash/Dot, with Wax, Streak and a few Knots (no boss). */
 const MIX: readonly BlotKind[] = ['blotch', 'blotch', 'blotch', 'splash', 'splash', 'splat', 'drop', 'dot', 'dot', 'dot', 'wax', 'wax', 'streak', 'knot'];

@@ -78,8 +78,7 @@ const clamp01 = (t: number): number => (t < 0 ? 0 : t > 1 ? 1 : t);
 interface TowerRec {
   kind: TowerKind;
   tiers: [number, number];
-  prev: [number, number];
-  x: number;
+    x: number;
   y: number;
   angle: number;
   placeAt: number;
@@ -88,13 +87,11 @@ interface TowerRec {
 }
 interface Ring { at: number; x: number; y: number; r: number; kind: 0 | 1 | 2 | 3; dashed: boolean }
 interface Beam { at: number; x1: number; y1: number; x2: number; y2: number; w: number; eclipse: boolean }
-interface Ghost { at: number; kind: TowerKind; tiers: [number, number]; x: number; y: number; angle: number }
 
 /** Ring kinds. */
 const LAND = 0, RIPPLE = 1, CRACK = 2, PULSE = 3;
 const RING_MS = [200, 420, 400, 180] as const;
 const BEAM_MS = 90;
-const SELL_MS = MOTION.foldMs;
 const MORPH_MS = MOTION.foldMs;
 
 function makeRing(): Ring { return { at: -1e9, x: 0, y: 0, r: 0, kind: 0, dashed: false }; }
@@ -112,7 +109,6 @@ export function createTowerLayer(fx: Fx): WorldLayer {
   const rings: Ring[] = Array.from({ length: 128 }, makeRing);
   const beams: Beam[] = Array.from({ length: 64 }, makeBeam);
   let ringNext = 0, beamNext = 0;
-  const ghosts: Ghost[] = [];
   const feel: SpriteFeel = { ...NO_FEEL };
 
   const ring = (x: number, y: number, r: number, kind: Ring['kind'], dashed = false): void => {
@@ -125,7 +121,7 @@ export function createTowerLayer(fx: Fx): WorldLayer {
     for (const t of state.towers) {
       let r = recs.get(t.id);
       if (!r) {
-        r = { kind: t.kind, tiers: [t.tiers[0], t.tiers[1]], prev: [t.tiers[0], t.tiers[1]], x: t.x, y: t.y, angle: t.angle, placeAt: -1e9, upgradeAt: -1e9, fireAt: -1e9 };
+        r = { kind: t.kind, tiers: [t.tiers[0], t.tiers[1]], x: t.x, y: t.y, angle: t.angle, placeAt: -1e9, upgradeAt: -1e9, fireAt: -1e9 };
         recs.set(t.id, r);
       }
       r.tiers[0] = t.tiers[0]; r.tiers[1] = t.tiers[1]; r.angle = t.angle;
@@ -145,8 +141,6 @@ export function createTowerLayer(fx: Fx): WorldLayer {
         case 'upgrade': {
           const r = recs.get(e.towerId);
           if (r) {
-            r.prev[0] = r.tiers[0]; r.prev[1] = r.tiers[1];
-            r.prev[e.path] = e.tier - 1;
             r.upgradeAt = clock;
           }
           sync(state);
@@ -155,8 +149,7 @@ export function createTowerLayer(fx: Fx): WorldLayer {
           break;
         }
         case 'sell': {
-          const r = recs.get(e.towerId);
-          ghosts.push({ at: clock, kind: e.kind, tiers: r ? [r.tiers[0], r.tiers[1]] : [0, 0], x: e.x, y: e.y, angle: r ? r.angle : 0 });
+          // the unfold-and-sink overlay is WO-004's (src/ui/ghost.ts drawSink); here only the flecks
           recs.delete(e.towerId);
           fx.flecks(e.x, e.y, PLACE_FEEL.flecks, P.kraft);
           break;
@@ -194,7 +187,6 @@ export function createTowerLayer(fx: Fx): WorldLayer {
     update(dt, state) {
       clock += dt;
       sync(state);
-      for (let i = ghosts.length - 1; i >= 0; i--) if (clock - ghosts[i].at > SELL_MS) ghosts.splice(i, 1);
       if (recs.size > state.towers.length) {
         for (const id of recs.keys()) if (!findTower(state.towers, id)) recs.delete(id);
       }
@@ -202,7 +194,6 @@ export function createTowerLayer(fx: Fx): WorldLayer {
     reset() {
       clock = 0;
       recs.clear();
-      ghosts.length = 0;
       for (const r of rings) r.at = -1e9;
       for (const b of beams) b.at = -1e9;
     },
@@ -339,22 +330,13 @@ export function createTowerLayer(fx: Fx): WorldLayer {
         if (pu >= 0 && pu < 1) scale = pu < 0.6 ? 0.6 + (1.08 - 0.6) * outCubic(pu / 0.6) : 1.08 - 0.08 * outCubic((pu - 0.6) / 0.4);
         const mu = (clock - r.upgradeAt) / MORPH_MS;
         if (mu >= 0 && mu < 1) {
-          // morph: the old fold scales to 0.8 and fades as the new one backOuts in
-          paintTower(c, t.kind, r.prev, t.x, t.y, { angle: ang, scale: 1 - 0.2 * mu, alpha: 1 - mu, nowMs: ambient, coaster: true }, feel);
+          // morph: the new fold backOuts in. The outgoing fold (scale to 0.8, fade) is WO-004's overlay
+          // (src/ui/ghost.ts drawMorph), so it is drawn exactly once.
           paintTower(c, t.kind, t.tiers, t.x, t.y, { angle: ang, scale: Math.max(0.01, backOut(clamp01(mu))), alpha: clamp01(mu * 1.5), nowMs: ambient, coaster: true }, feel);
           continue;
         }
       }
       paintTower(c, t.kind, t.tiers, t.x, t.y, { angle: ang, scale, alpha: 1, nowMs: ambient, coaster: true }, feel);
-    }
-    // sold: the fold unfolds flat and slides into the ground (220 ms)
-    for (const g of ghosts) {
-      const u = clamp01((clock - g.at) / SELL_MS);
-      c.save();
-      c.translate(g.x, g.y + 6 * u);
-      c.scale(1 + 0.25 * u, 1 - 0.85 * u);
-      paintTower(c, g.kind, g.tiers, 0, 0, { angle: g.angle, scale: 1, alpha: 1 - u, nowMs: 0, coaster: true }, NO_FEEL);
-      c.restore();
     }
   }
 

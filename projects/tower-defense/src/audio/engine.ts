@@ -245,9 +245,7 @@ export function createAudioEngine(opts: AudioEngineOptions): FullAudioEngine {
         case 'pulse': if (gate.pass(`fire${e.towerId}`, nowMs, 30)) limited(fireLimiter, 'koiPulse', 'fire', S.koiPulse); break;
         case 'beam': if (gate.pass(`fire${e.towerId}`, nowMs, 30)) limited(fireLimiter, 'owlGlare', 'fire', S.owlGlare); break;
         case 'land': limited(landLimiter, 'frogLand', 'fire', S.frogLand); break;
-        case 'place': cue('place', 'ui', S.place); break;
-        case 'upgrade': cue(`upgrade${Math.min(3, Math.max(1, e.tier))}`, 'ui', (v, d, t) => S.upgrade(v, d, t, e.tier)); break;
-        case 'sell': cue('sell', 'ui', S.sell); break;
+        // place / upgrade / sell: the UI is the single source (game.ts calls ui() per action), never the sim event.
         case 'leak': cue('leak', 'alert', S.leak, CAPS.leakGapMs); break;
         case 'roundStart':
           cue('roundStart', 'ui', S.roundStart);
