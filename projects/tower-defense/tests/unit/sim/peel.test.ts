@@ -6,6 +6,7 @@ import { stateHash } from '../../../src/sim/hash';
 import { overflowOf, acquireProjectile, PROJECTILE_CAPACITY } from '../../../src/sim/pool';
 import { pooledEvents } from '../../../src/sim/events';
 import { BALANCE } from '../../../src/data/balance';
+import { BOSS_PATH } from '../../../src/data/blots';
 import { roundBonus } from '../../../src/data/economy';
 
 function setup(kind: BlotKind = 'dot', s = 500, pale = false) {
@@ -64,10 +65,13 @@ describe('§6 rule 2: children', () => {
     expect(state.blots.items[idx]).toBe(blot);
     expect(live(state).map((b) => [b.kind, b.s])).toEqual([['splash', 500], ['splash', 494]]);
   });
-  it('Inkmaw children at s, s−6, s−12, s−18; clamped at 0', () => {
-    const k = setup('inkmaw', 10);
+  it('Inkmaw Knots at s, s−24, s−48, s−72 (F-023: four, not one pill); clamped at 0', () => {
+    const k = setup('inkmaw', 500);
     k.ctx.hit(k.blot, BALANCE.inkmawHp, 'glare', 4, k.tower, 0, 1);
-    expect(live(k.state).map((b) => b.s)).toEqual([10, 4, 0, 0]);
+    expect(live(k.state).map((b) => b.s)).toEqual([500, 476, 452, 428]);
+    const c = setup('inkmaw', 30);
+    c.ctx.hit(c.blot, BALANCE.inkmawHp, 'glare', 4, c.tower, 0, 1);
+    expect(live(c.state).map((b) => b.s)).toEqual([30, 6, 0, 0]);
   });
   it('Knot pops into 2 Wax', () => {
     const k = setup('knot', 300);
@@ -154,7 +158,8 @@ describe('§6 rule 5, §10.6 boss', () => {
     expect(state.hitStop).toBe(4);
     const shed = ofType(core.sim.events, 'bossShed') as Extract<SimEvent, { type: 'bossShed' }>[];
     expect(shed.map((e) => e.threshold)).toEqual([0.75]);
-    expect(live(state).filter((b) => b.kind === 'splash').map((b) => b.s)).toEqual([994, 988, 982, 976, 970, 964]);
+    // F-022: shed Splash k lands at s − (R 46 + 14 + 14k), clear behind the boss's disc
+    expect(live(state).filter((b) => b.kind === 'splash').map((b) => b.s)).toEqual([926, 912, 898, 884, 870, 856]);
     ctx.hit(blot, max * 0.25 - 1, 'glare', 3, tower, 0, 1);
     expect(blot.nextShed).toBe(1);
     ctx.hit(blot, 1, 'glare', 4, tower, 0, 1);
@@ -162,6 +167,23 @@ describe('§6 rule 5, §10.6 boss', () => {
     expect(blot.nextShed).toBe(3);
     expect(state.boss!.hp).toBe(max * 0.25);
     expect(live(state).filter((b) => b.kind === 'splash')).toHaveLength(18);
+  });
+  it('F-014: the Inkmaw arrives at t 14 s on the canvas (path s 70, centre x 30), not off-screen at x −40', () => {
+    const core = createCore({ seed: 1, startRound: 20 });
+    core.beginRound();
+    type Arrive = Extract<SimEvent, { type: 'bossArrive' }>;
+    let arrive: Arrive | null = null;
+    for (let i = 0; i < 20 * 60 && !arrive; i++) {
+      core.sim.step();
+      arrive = (core.sim.events.find((e) => e.type === 'bossArrive') as Arrive | undefined) ?? null;
+    }
+    expect(arrive).not.toBeNull();
+    expect(core.state.roundTick).toBe(14 * 60 + 1);
+    const spawn = core.sim.events.find((e) => e.type === 'spawn' && e.blotId === arrive!.blotId) as Extract<SimEvent, { type: 'spawn' }>;
+    expect(spawn.x).toBeCloseTo(30, 6);
+    expect(spawn.x).toBeGreaterThanOrEqual(15); // ≥ 70 % of the r-46 disc is right of x 0
+    const boss = live(core.state).find((b) => b.id === arrive!.blotId)!;
+    expect(boss.s).toBeCloseTo(BOSS_PATH.entryS + 28 / 60, 9); // spawned, then moved its first tick
   });
   it('Inkmaw sheets pay 0; death gives 12 hit-stop ticks, clears the boss view and splits into 4 Knots', () => {
     const { blot, state, tower, ctx, core } = setup('inkmaw');

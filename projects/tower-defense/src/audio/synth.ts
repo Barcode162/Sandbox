@@ -126,9 +126,13 @@ export function sell(v: Voice, d: AudioNode, t: number): void {
   tone(v, d, t + 0.16, NOTE.C4, 0.2, VOICE.sellNotes, { type: 'triangle' });
 }
 
-/** §12 leak: sine 110 Hz 200 ms + a seed rattle of 5 clicks. */
+/**
+ * §12 leak: sine 110 Hz 200 ms + a seed rattle of 5 clicks, over a 1.2 kHz bandpassed rattle body
+ * (F-028) so the alert carries where the ear is sensitive, above any crackle bed at R18.
+ */
 export function leak(v: Voice, d: AudioNode, t: number): void {
   tone(v, d, t, 110, 0.2, VOICE.leak, { attack: 0.004 });
+  noise(v, d, t, 0.16, VOICE.leakBody, { filter: 'bandpass', hz: 1200, q: 1, attack: 0.004 });
   for (let i = 0; i < 5; i++) noise(v, d, t + 0.02 + i * 0.028 + v.rng.range(0, 0.008), 0.008, VOICE.leakRattle, { filter: 'highpass', hz: 2500, q: 0.7, attack: 0.0005 });
 }
 

@@ -1,8 +1,9 @@
 // Blot rendering (§6 shapes, pips, Pale, squash, hit flash) + pop responses (§11). FROZEN signatures.
 // Shape is the colourblind signal: disc · 3–6 lobes · comet · hexagon · scribble · maw (§6, §15).
-import type { BlotKind, DrawPass, Fx, RenderFrame, SimEvent, WorldLayer } from '../contracts/types';
+import type { BlotKind, DrawPass, Fx, RenderFrame, SimEvent, SimState, WorldLayer } from '../contracts/types';
 import { BLOTS, LOBE, PALE } from '../data/blots';
-import { HIT, MOTION, POP } from '../data/feel';
+import { BOSS_FEEL, HIT, MOTION, POP } from '../data/feel';
+import { burst, type FleckStyle } from './fx';
 import { P, SHADOW_OFFSET, type PaletteToken } from '../data/palette';
 import { pointAt, tangentAt, type MutVec } from '../sim/path';
 import { ctxOf, makeCanvas } from '../ui/draw';
@@ -345,6 +346,28 @@ function createSpriteCache() {
 const DRAW_ORDER: readonly BlotKind[] = (Object.keys(BLOTS) as BlotKind[]).sort((a, b) => BLOTS[b].radius - BLOTS[a].radius || a.localeCompare(b));
 const SLOTS = 4096;
 const backOut = (t: number): number => { const c1 = MOTION.backOutS, c3 = c1 + 1; return 1 + c3 * (t - 1) ** 3 + c1 * (t - 1) ** 2; };
+const outCubic = (t: number): number => 1 - (1 - t) ** 3;
+const inOutSine = (t: number): number => 0.5 - 0.5 * Math.cos(Math.PI * t);
+
+/**
+ * F-014: the inkwell occluder (garden.drawOccluders, drawn between the 'blots' and 'towers' passes) covers
+ * x ≲ 80 around y 200. While the boss overlaps it (entry at s 70 … s 175, where its left edge and shadow
+ * clear x 84), the boss is painted in the 'towers' pass instead, so it heaves out over the inkwell's lip
+ * rather than hiding under it. The path is straight there, so the hand-over is invisible.
+ */
+const BOSS_OVER_INKWELL_S = 175;
+
+/** §10.6 arrival heave: scaleY 0.85 → 1.05 (outCubic, first 45 %) → 1 (inOutSine); x keeps the volume. */
+function heaveY(t: number): number {
+  const a = BOSS_FEEL.arrive;
+  if (t >= 1) return 1;
+  if (t < a.peakAt) return a.squash + (a.overshoot - a.squash) * outCubic(t / a.peakAt);
+  return a.overshoot + (1 - a.overshoot) * inOutSine((t - a.peakAt) / (1 - a.peakAt));
+}
+
+const DEATH = BOSS_FEEL.death;
+const DEATH_FLECK: FleckStyle = { speed: DEATH.speed, size: DEATH.size, lifeMs: DEATH.lifeMs, edge: null, shape: 'tri' };
+const DEATH_SCRAP: FleckStyle = { speed: DEATH.scrapSpeed, size: DEATH.scrapSize, lifeMs: DEATH.scrapLifeMs, edge: P.inkSoft, shape: 'scrap' };
 
 /** World layer: draws pass 'blots'; on pop/immune/hit events spawns rings/flecks/sparks through fx. */
 export function createBlotLayer(fx: Fx): WorldLayer {
@@ -355,6 +378,19 @@ export function createBlotLayer(fx: Fx): WorldLayer {
   const recoilX = new Float32Array(SLOTS);
   const recoilY = new Float32Array(SLOTS);
   const flash = new Uint8Array(SLOTS);
+  // visual launches (F-022 shed spray, F-023 death scatter): from a point to the blot's sim slot, real time
+  const launchAt = new Float64Array(SLOTS);
+  const launchMs = new Float32Array(SLOTS);
+  const launchX = new Float32Array(SLOTS);
+  const launchY = new Float32Array(SLOTS);
+  const launchArc = new Float32Array(SLOTS);
+  const launchLift = new Float32Array(SLOTS);
+  /** Boss arrival heave start (real-time clock), keyed by the boss's blot id. */
+  let heaveAt = -1e9;
+  let heaveId = 0;
+  // where the parent of this step's children stood: the live boss (shed) or the popped boss (death)
+  let shedParent = 0, shedTick = -1, shedX = 0, shedY = 0, shedN = 0;
+  let deathParent = 0, deathX = 0, deathY = 0;
   let clock = 0;
   let phaseClock = 0;
   const pt: MutVec = { x: 0, y: 0 };
@@ -364,21 +400,64 @@ export function createBlotLayer(fx: Fx): WorldLayer {
 
   const claim = (id: number): number => {
     const k = id & (SLOTS - 1);
-    if (slotId[k] !== id) { slotId[k] = id; squashAt[k] = -1e9; recoilAt[k] = -1e9; flash[k] = 0; }
+    if (slotId[k] !== id) { slotId[k] = id; squashAt[k] = -1e9; recoilAt[k] = -1e9; flash[k] = 0; launchAt[k] = -1e9; }
     return k;
   };
 
-  function onSimEvent(e: SimEvent): void {
+  function launch(id: number, fromX: number, fromY: number, ms: number, arc: number, lift: number): void {
+    const k = claim(id);
+    launchAt[k] = clock; launchMs[k] = ms; launchX[k] = fromX; launchY[k] = fromY; launchArc[k] = arc; launchLift[k] = lift;
+  }
+
+  /** The boss's position this step, if `id` is the live boss (children spawn before 'bossShed' is emitted). */
+  function bossAt(id: number, state: Readonly<SimState>): boolean {
+    if (!state.boss || state.boss.blotId !== id) return false;
+    if (shedParent === id && shedTick === state.tick) return true;
+    const items = state.blots.items;
+    for (let i = 0; i < state.blots.count; i++) {
+      const b = items[i];
+      if (b.alive && b.id === id) { shedParent = id; shedTick = state.tick; shedX = b.x; shedY = b.y; shedN = 0; return true; }
+    }
+    return false;
+  }
+
+  function onSimEvent(e: SimEvent, state?: Readonly<SimState>): void {
     switch (e.type) {
       case 'spawn':
-        if (e.parentId !== 0) squashAt[claim(e.blotId)] = clock;
+        if (e.parentId === 0) break;
+        squashAt[claim(e.blotId)] = clock;
+        if (e.parentId === deathParent) {
+          // F-023: the Knots scatter from the burst centre out to their slots (s − 24k)
+          launch(e.blotId, deathX, deathY, DEATH.scatterMs, 0, 0);
+        } else if (state && bossAt(e.parentId, state)) {
+          // F-022: each shed Splash sprays from the boss centre to its slot behind it, arcing to alternate sides
+          const sh = BOSS_FEEL.shed;
+          const n = shedN++;
+          const arc = (sh.arcPx[0] + ((sh.arcPx[1] - sh.arcPx[0]) * (n % 6)) / 5) * (n % 2 ? 1 : -1);
+          launch(e.blotId, shedX, shedY, sh.launchMs, arc, sh.liftPx);
+        }
         break;
+      case 'bossArrive': {
+        heaveAt = clock; heaveId = e.blotId;
+        const items = state?.blots.items;
+        if (items && state) for (let i = 0; i < state.blots.count; i++) {
+          const b = items[i];
+          if (b.id !== e.blotId) continue;
+          // the spill it heaves out of: a --knot ring and a splash of its own ink
+          const R = BLOTS.inkmaw.radius;
+          fx.ring(b.x, b.y, R * 0.6, R * 1.5, P.knot, BOSS_FEEL.arrive.ringMs, 0, 3);
+          fx.flecks(b.x, b.y, BOSS_FEEL.arrive.flecks, P.maw, 'tri');
+          break;
+        }
+        break;
+      }
       case 'hit': {
         const k = claim(e.blotId);
         flash[k] = 1; recoilAt[k] = clock; recoilX[k] = e.dirX; recoilY[k] = e.dirY;
         break;
       }
       case 'pop': {
+        if (BLOTS[e.kind].boss) { deathParent = e.blotId; deathX = e.x; deathY = e.y; }
         const d = BLOTS[e.kind];
         const col = color(e.kind);
         fx.ring(e.x, e.y, d.radius, d.radius * POP.ringScale, col, POP.ringMs, 0, POP.ringWidth);
@@ -396,7 +475,10 @@ export function createBlotLayer(fx: Fx): WorldLayer {
       case 'bossDeath': {
         const R = BLOTS.inkmaw.radius;
         for (let i = 0; i < 3; i++) fx.ring(e.x, e.y, R * (0.8 + i * 0.3), R * (1.8 + i * 0.5), i === 1 ? P.ink : P.maw, 420, i * 60, 3);
-        fx.flecks(e.x, e.y, 80, P.maw, 'tri');
+        // F-023: the only big hit — fast, long-lived flecks, half maw and half knot, plus torn paper scraps
+        burst(fx, e.x, e.y, DEATH.flecks / 2, P.maw, DEATH_FLECK);
+        burst(fx, e.x, e.y, DEATH.flecks / 2, P.knot, DEATH_FLECK);
+        burst(fx, e.x, e.y, DEATH.scraps, P.paper, DEATH_SCRAP);
         break;
       }
       default: break;
@@ -404,15 +486,18 @@ export function createBlotLayer(fx: Fx): WorldLayer {
   }
 
   function draw(f: RenderFrame, pass: DrawPass): void {
-    if (pass !== 'blots') return;
+    // 'blots' paints every blot under the inkwell; 'towers' paints only a boss still over it (F-014)
+    const overPass = pass === 'towers';
+    if (pass !== 'blots' && !overPass) return;
     const c = f.ctx;
     const s = f.state;
     const items = s.blots.items;
     const n = s.blots.count;
     const reduce = f.settings.reduceMotion;
     const boss = s.boss;
+    if (overPass && !boss) return;
     paint.cb = f.settings.colourblind;
-    const useSprites = sprites.begin(c);
+    const useSprites = !overPass && sprites.begin(c);
     const outerAlpha = c.globalAlpha;
     // The pass alpha (the title → play fade sets it) scales live paths too: paintShadow/paintBody set
     // globalAlpha absolutely from paint.alpha, so it has to travel in paint (F-011).
@@ -425,10 +510,12 @@ export function createBlotLayer(fx: Fx): WorldLayer {
     for (let layer = 0; layer < 2; layer++) {
       for (let o = 0; o < DRAW_ORDER.length; o++) {
         const kind = DRAW_ORDER[o];
+        if (overPass && !BLOTS[kind].boss) continue;
         for (let i = 0; i < n; i++) {
           const b = items[i];
           if (!b.alive || b.kind !== kind) continue;
           const sv = b.ps + (b.s - b.ps) * f.alpha;
+          if (BLOTS[kind].boss && (sv < BOSS_OVER_INKWELL_S) !== overPass) continue;
           pointAt(sv, pt);
           let x = pt.x, y = pt.y;
           const k = claim(b.id);
@@ -437,13 +524,28 @@ export function createBlotLayer(fx: Fx): WorldLayer {
           if (st >= 0 && st < POP.childSquashMs) scale = POP.childSquashFrom + (1 - POP.childSquashFrom) * backOut(st / POP.childSquashMs);
           const rt = clock - recoilAt[k];
           if (rt >= 0 && rt < HIT.recoilMs) { const m = HIT.recoilPx * (1 - rt / HIT.recoilMs); x += recoilX[k] * m; y += recoilY[k] * m; }
+          // visual launch: from the parent's centre to the sim slot (backOut), arcing off the line and lifting
+          // off its shadow; motion is real time, so it plays through the sim's hit-stop
+          let lift = 0;
+          const lt = clock - launchAt[k];
+          if (lt >= 0 && lt < launchMs[k]) {
+            const t = lt / launchMs[k];
+            const fx0 = launchX[k], fy0 = launchY[k];
+            const dx = x - fx0, dy = y - fy0;
+            const e = reduce ? outCubic(t) : backOut(t);
+            const bump = Math.sin(Math.PI * t);
+            const len = Math.hypot(dx, dy) || 1;
+            x = fx0 + dx * e - (dy / len) * launchArc[k] * bump;
+            y = fy0 + dy * e + (dx / len) * launchArc[k] * bump;
+            lift = launchLift[k] * bump;
+          }
           paint.pale = b.pale; paint.scale = scale; paint.hp = b.hp;
           paint.phase = reduce ? 0 : phaseClock * LOBE.phaseSpeed;
           paint.hpFrac = boss && boss.blotId === b.id ? b.hp / boss.maxHp : 1;
           tangentAt(sv, tg);
           paint.angle = Math.atan2(tg.y, tg.x);
           paint.flash = layer === 1 && flash[k] === 1;
-          if (layer === 1) flash[k] = 0;
+          if (layer === 1) { flash[k] = 0; y -= lift; }
           if (useSprites && SPRITE_KINDS[kind] >= 0) {
             const pale = paint.pale && BLOTS[kind].paleEligible;
             const sp = sprites.get(kind, layer === 0 ? Layer.Shadow : Layer.Body, pale, paint.cb, paint.phase, paint.angle);
@@ -462,6 +564,16 @@ export function createBlotLayer(fx: Fx): WorldLayer {
             }
           }
           if (identity) { c.setTransform(m!); identity = false; }
+          const ht = b.id === heaveId ? (clock - heaveAt) / BOSS_FEEL.arrive.ms : 1;
+          if (ht >= 0 && ht < 1 && !reduce) {
+            // §10.6 arrival heave, anchored at the base so it rises out of the spill
+            const sy = heaveY(ht), sx = 1 + (1 - sy) * 0.6, base = y + BLOTS[kind].radius;
+            c.save();
+            c.translate(x, base); c.scale(sx, sy); c.translate(-x, -base);
+            if (layer === 0) paintShadow(c, kind, x, y, paint); else paintBody(c, kind, x, y, paint);
+            c.restore();
+            continue;
+          }
           if (layer === 0) paintShadow(c, kind, x, y, paint);
           else paintBody(c, kind, x, y, paint);
         }
@@ -474,6 +586,10 @@ export function createBlotLayer(fx: Fx): WorldLayer {
     onSimEvent,
     update(dtRealMs) { clock += dtRealMs; phaseClock += dtRealMs / 1000; },
     draw,
-    reset() { slotId.fill(0); squashAt.fill(-1e9); recoilAt.fill(-1e9); flash.fill(0); clock = 0; phaseClock = 0; },
+    reset() {
+      slotId.fill(0); squashAt.fill(-1e9); recoilAt.fill(-1e9); flash.fill(0); launchAt.fill(-1e9);
+      heaveAt = -1e9; heaveId = 0; shedParent = 0; shedTick = -1; deathParent = 0;
+      clock = 0; phaseClock = 0;
+    },
   };
 }

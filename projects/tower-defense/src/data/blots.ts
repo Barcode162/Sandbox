@@ -37,3 +37,13 @@ export const LOBE = { amplitude: 0.14, phaseSpeed: 1.2, pipR: 1.6, pipRing: 0.45
 export const CHILD_SPACING = 6;
 /** §6 rule 5. */
 export const BOSS_SLOW_CAP = 0.2;
+/**
+ * §10.6 Inkmaw placement on the path (F-014, F-022, F-023).
+ * - entryS: the boss enters at path distance 70 (centre x 30, on the canvas and over the inkwell, which
+ *   the render draws it above until it is clear), so the t 14 s beat shows ≥ 88 % of its disc instead of
+ *   a sliver at x −40.
+ * - Shed Splash k (1..6) lands at s − (R + shedGap + shedStep·k): clear behind the boss, not under it.
+ * - Death Knots sit at s − 24k (§6 rule 2's 6k for every other blot), so the four read as four.
+ * Win script with these values: victory, 49 seeds (tests/unit/sim/scripts.test.ts).
+ */
+export const BOSS_PATH = { entryS: 70, shedGap: 14, shedStep: 14, childSpacing: 24 } as const;

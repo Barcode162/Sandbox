@@ -71,7 +71,7 @@ Brief's theme, refined. Units: logical px (1280×720), **sim seconds at 1×**, s
 
 **Peel rules (sim contract).**
 1. A hit deals `d` (after immunity and multipliers). If `d < hp`, then hp −= d. Otherwise the blot pops: overflow `o = d − hp` is applied to **child 0 only**, recursively (a lance hit of 6 strips a Splat entirely; leftover overflow is lost). Other children spawn at full HP.
-2. Children spawn at the parent's path distance `s`; child k sits at `s − 6k` (clamped ≥ 0), with the same Pale flag and slow state (remaining time) as the parent and `immuneTo = the popping projectile/pulse id`.
+2. Children spawn at the parent's path distance `s`; child k sits at `s − 6k` (clamped ≥ 0; *amended M-0002 r2:* the Inkmaw's 4 Knots sit at `s − 24k` and its sheds land behind it at `s − (R + 14 + 14k)`, so the burst and spray read), with the same Pale flag and slow state (remaining time) as the parent and `immuneTo = the popping projectile/pulse id`.
 3. Immune hit: no damage, spends 1 pierce, "tink" + 3 `--fold-white` sparks.
 4. Lives cost on leak = the blot's remaining RBE (current hp + children's RBE). Inkmaw leak = game over.
 5. Inkmaw is immune to stun and freeze; any slow on it is capped at 20 %.
@@ -233,7 +233,7 @@ Owl auras don't stack: best wins.
 |Moment|What is on screen|Why it is composed|
 |---|---|---|
 |t 12 s|inkwell spill pool darkens to `--knot` and grows to 1.4× over 2 s; banner "Something large is spilling."; music ducks −6 dB; low drone opens|warning before threat|
-|t 14 s|Inkmaw (r 46) heaves out; boss bar folds down (220 ms) "INKMAW 1400"; 2-px rumble shake for 1.2 s; thud every 1.2 s with a 2-px shake|scale says boss|
+|t 14 s|Inkmaw (r 46) heaves out (*amended r2:* it enters at path distance 70, ≥ 70 % of the disc clear of the inkwell); boss bar folds down (220 ms) "INKMAW 1400"; 2-px rumble shake for 1.2 s; thud every 1.2 s with a 2-px shake|scale says boss|
 |75 / 50 / 25 %|hit-stop 4 ticks; shake 6 px 250 ms; 6 Splash spray out behind it; a bar notch tears off and falls (400 ms)|three escalating beats|
 |Below 10 %|bar pulses `--bad`; maw widens 1.2×|anticipation|
 |Death|hit-stop 12 ticks; shake 12 px decaying over 600 ms; 80 flecks + 3 staggered rings (0/60/120 ms); splits into 4 Knots; bar tears in two and drops; banner "The Inkmaw tears!"|the only big hit-stop|

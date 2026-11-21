@@ -24,6 +24,30 @@ export const SHAKE = {
 export const FLOAT_TEXT = { windowMs: 250, size: 14, risePx: 18, lifeMs: 600, fadeMs: 200, bonusFlyMs: 500 } as const;
 export const FIRE_FEEL = { ternRecoilPx: 2, ternRecoilMs: 60, frogSquash: [0.9, 1.1], frogSquashMs: 100, owlFlare: [6, 9], owlFlareMs: 90 } as const;
 export const PLACE_FEEL = { scale: [0.6, 1.08, 1], ms: 220, flecks: 8, upgradeFlecks: 12 } as const;
+/**
+ * F-017: place/sell flecks must read on --paper grass: 4–6 px, a 1-px --ink-soft edge, 360 ms, 90–180 px/s,
+ * leaving from the coaster rim (r 18) so they fly over grass rather than over the tower.
+ */
+export const PLACE_FLECK = { speed: [90, 180], size: [4, 6], lifeMs: 360, fromR: 18 } as const;
+
+/**
+ * §10.6 boss beats, render side.
+ * - arrive (F-014): Inkmaw heaves out of the inkwell mouth, scaleY 0.85 → 1.05 → 1 over 400 ms
+ *   (volume kept on x), with a spill ring and a splash at the mouth.
+ * - shed (F-022): each of the 6 Splash launches from the boss centre to its path slot behind it over
+ *   220 ms (backOut), arcing off the path to alternate sides and lifting 8 px off its shadow.
+ * - death (F-023): the only big hit — flecks at 180–420 px/s for 650 ms, half --maw and half --knot,
+ *   12 --paper scraps, and the 4 Knots scatter from the centre to their slots over 160 ms.
+ */
+export const BOSS_FEEL = {
+  arrive: { ms: 400, squash: 0.85, overshoot: 1.05, peakAt: 0.45, ringMs: 320, flecks: 10 },
+  shed: { launchMs: 220, liftPx: 8, arcPx: [12, 26] },
+  death: {
+    flecks: 80, speed: [180, 420], size: [4, 7], lifeMs: 650,
+    scraps: 12, scrapSize: [7, 9], scrapSpeed: [120, 300], scrapLifeMs: 700,
+    scatterMs: 160,
+  },
+} as const;
 export const SPEEDS = [1, 2] as const;
 /** Real-time cap on sim steps per render frame (spiral-of-death guard; deterministic because the sim is tick-keyed). */
 export const MAX_STEPS_PER_FRAME = 16;

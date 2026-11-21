@@ -48,13 +48,15 @@ export const DUCK: Readonly<Record<Category, { readonly db: Partial<Record<Categ
 
 /**
  * Peak linear gain per cue at its category input (before the sfx bus). §16.19: no pop louder than a
- * leak — `leak` ≥ `pop` is asserted in tests/unit/audio.
+ * leak — `leak` ≥ `pop` is asserted in tests/unit/audio, and so is the perceived (A-weighted) level of a
+ * leak against the loudest crackle bed (F-028): the ear is ~19 dB less sensitive at the leak's 110 Hz
+ * than at the crackle's 2 kHz, so the crackle ceiling is 0.3 and the leak carries a 1.2 kHz rattle body.
  */
 export const VOICE = {
-  pop: 0.2, popTick: 0.05, crackleMax: 0.6, tink: 0.07,
+  pop: 0.2, popTick: 0.05, crackleMax: 0.3, tink: 0.07,
   ternFire: 0.16, jets: 0.12, frogFire: 0.3, frogLand: 0.22, koiNoise: 0.2, koiSine: 0.2 * dbToGain(-12), owl: 0.09,
   place: 0.18, placeThump: 0.32, invalid: 0.1, upgrade: 0.16, sell: 0.18, sellNotes: 0.14,
-  leak: 0.55, leakRattle: 0.16, clack: 0.22, chime: 0.12,
+  leak: 0.55, leakRattle: 0.16, leakBody: 0.25, clack: 0.22, chime: 0.12,
   bossDrone: 0.22, bossDrum: 0.45, bossThud: 0.5, bossSplash: 0.25, bossTear: 0.3, bossBloom: 0.08,
   // §12 hover −30 dB at the output: −24 here plus the −6 dB sfx bus.
   hover: dbToGain(-24), click: 0.12, sting: 0.14,

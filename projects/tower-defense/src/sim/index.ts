@@ -7,7 +7,7 @@ import {
   type Blot, type BlotKind, type Command, type CommandFail, type DamageType, type RoundDef, type Sim,
   type SimEvent, type SimOptions, type Tower, type TowerKind, type UpgradePath,
 } from '../contracts/types';
-import { BLOTS, BOSS_SLOW_CAP, CHILD_SPACING } from '../data/blots';
+import { BLOTS, BOSS_PATH, BOSS_SLOW_CAP, CHILD_SPACING } from '../data/blots';
 import { ECONOMY, roundBonus } from '../data/economy';
 import { HIT_STOP } from '../data/feel';
 import { TOWERS, resolveStats } from '../data/towers';
@@ -172,7 +172,7 @@ export function createCore(opts: CoreOptions): Core {
       const threshold = def.shedAt[b.nextShed++];
       const shed = def.shed;
       if (shed) for (let k = 1; k <= shed.count; k++) {
-        const c = spawnBlot(shed.kind, b.s - CHILD_SPACING * k, false, b.id, sourceId);
+        const c = spawnBlot(shed.kind, b.s - (BOSS_R + BOSS_PATH.shedGap + BOSS_PATH.shedStep * k), false, b.id, sourceId);
         if (c) inheritSlow(c, b);
       }
       emit({ type: 'bossShed', blotId: b.id, threshold, x: b.x, y: b.y });
@@ -185,7 +185,7 @@ export function createCore(opts: CoreOptions): Core {
     c.slow = parent.slow; c.slowTicks = parent.slowTicks;
   }
 
-  /** One layer pops (§6 rules 1–2): the blot becomes child 0 in place, children 1..k go to s − 6k. */
+  /** One layer pops (§6 rules 1–2): the blot becomes child 0 in place, children 1..k go to s − 6k (the boss's Knots: s − 24k). */
   function popLayer(b: Blot, tower: Tower, sourceId: number): void {
     const def = BLOTS[b.kind];
     emit(pool.pop(b.id, b.kind, b.x, b.y, tower.id, b.pale));
@@ -199,6 +199,7 @@ export function createCore(opts: CoreOptions): Core {
     if (specs.length === 0) { b.alive = false; return; }
     const parentId = b.id;
     const s = b.s;
+    const spacing = def.boss ? BOSS_PATH.childSpacing : CHILD_SPACING;
     // child 0: the same object and pool index (no gap frame, §16.4)
     const k0 = specs[0].kind;
     b.id = nextBlotId++; b.kind = k0; b.hp = BLOTS[k0].hp; b.parentId = parentId; b.spawnTick = state.tick;
@@ -210,7 +211,7 @@ export function createCore(opts: CoreOptions): Core {
     for (let g = 0; g < specs.length; g++) {
       for (let i = g === 0 ? 1 : 0; i < specs[g].count; i++) {
         k++;
-        const c = spawnBlot(specs[g].kind, s - CHILD_SPACING * k, b.pale, parentId, sourceId);
+        const c = spawnBlot(specs[g].kind, s - spacing * k, b.pale, parentId, sourceId);
         if (c) inheritSlow(c, b);
       }
     }
@@ -398,7 +399,7 @@ export function createCore(opts: CoreOptions): Core {
       }
       while (groupSpawned[g] < count && rt >= spawnTickOf(grp.delay, grp.spacing, groupSpawned[g])) {
         groupSpawned[g]++;
-        const b = spawnBlot(grp.kind, 0, grp.pale, 0, 0);
+        const b = spawnBlot(grp.kind, boss ? BOSS_PATH.entryS : 0, grp.pale, 0, 0);
         if (b && boss) {
           state.boss = { blotId: b.id, hp: b.hp, maxHp: b.hp, nextShed: 0 };
           emit({ type: 'bossArrive', blotId: b.id, maxHp: b.hp });

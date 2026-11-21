@@ -4,11 +4,13 @@ import { describe, expect, it } from 'vitest';
 import type { BlotKind, SimEvent } from '../../../src/contracts/types';
 import { createAudio, createAudioEngine } from '../../../src/audio';
 import { createCrackleBed, createRateGate, createVoiceLimiter } from '../../../src/audio/limiter';
-import { BUS_DB, VOICE, busGain, crackleGain, dbToGain, settingsToGains } from '../../../src/audio/mix';
+import { BUS_DB, CAPS, DUCK, VOICE, busGain, crackleGain, dbToGain, settingsToGains } from '../../../src/audio/mix';
 import { BAR_S, CROSSFADE_S, MUSIC_MIX, nextBarLine } from '../../../src/audio/music';
 import { createSettingsStore, DEFAULT_SETTINGS } from '../../../src/app/settings';
 import { BLOTS } from '../../../src/data/blots';
 import { FakeAudioContext, FakeBiquad, FakeCompressor, FakeGain, FakeOsc, envOf } from './fake-audio';
+import { loudnessDbA } from './loudness';
+import * as S from '../../../src/audio/synth';
 
 const pop = (kind: BlotKind = 'splat'): SimEvent => ({ type: 'pop', blotId: 1, kind, x: 0, y: 0, towerId: 1, pale: false });
 const leak: SimEvent = { type: 'leak', blotId: 2, kind: 'dot', livesLost: 1 };
@@ -98,6 +100,27 @@ describe('gain staging (§16.19)', () => {
     const popPeak = envOf(ctx.oscAt(880, 0.031, 'triangle')[0]).gain.peak();
     const leakPeak = envOf(ctx.oscAt(110, 0.001, 'sine')[0]).gain.peak();
     expect(leakPeak).toBeGreaterThanOrEqual(popPeak);
+  });
+  it('F-028: the crackle bed is capped at 0.3, below a leak', () => {
+    expect(VOICE.crackleMax).toBeLessThanOrEqual(0.3);
+    expect(crackleGain(1e6)).toBeLessThanOrEqual(0.3);
+  });
+  it('F-028: a leak out-weighs the loudest crackle bed in perceived (A-weighted) level, before any duck', () => {
+    const meter = (play: (v: S.Voice, d: AudioNode) => void): number => {
+      const ctx = new FakeAudioContext();
+      const v = S.makeVoice(ctx.asBase());
+      ctx.nodes.length = 0; // only the cue's own nodes
+      play(v, ctx.createGain() as unknown as AudioNode);
+      return loudnessDbA(ctx);
+    };
+    const leakDb = meter((v, d) => S.leak(v, d, 0));
+    const crackleDb = meter((v, d) => S.crackle(v, d, 0, crackleGain(1e6), CAPS.crackleMs, CAPS.crackleHz));
+    const oldCrackleDb = meter((v, d) => S.crackle(v, d, 0, 0.6, CAPS.crackleMs, CAPS.crackleHz));
+    // the meter tells the two apart the way the ear does: the old 0.6 ceiling out-peaked a leak (the bug)
+    expect(oldCrackleDb).toBeGreaterThan(leakDb);
+    // ≥ 3 dB(A) margin un-ducked; in play the leak's alert duck takes another 8 dB off the pop bus
+    expect(leakDb - crackleDb).toBeGreaterThanOrEqual(3);
+    expect(leakDb - (crackleDb + (DUCK.alert.db.pop ?? 0))).toBeGreaterThanOrEqual(11);
   });
   it('leaks play at most once per 100 ms', () => {
     const { audio } = rig();

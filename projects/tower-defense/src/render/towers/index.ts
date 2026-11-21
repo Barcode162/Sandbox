@@ -1,7 +1,8 @@
 // Tower sprites (4 kinds × 12 valid tier combos), projectiles, beams, pulses, decals, fire feel (WO-003). FROZEN signatures.
 import type { DrawPass, Fx, Projectile, RenderFrame, SimEvent, SimState, Tower, TowerKind, WorldLayer } from '../../contracts/types';
 import { P, PATH_FLECK, FONT_UI } from '../../data/palette';
-import { FIRE_FEEL, MOTION, PLACE_FEEL } from '../../data/feel';
+import { FIRE_FEEL, MOTION, PLACE_FEEL, PLACE_FLECK } from '../../data/feel';
+import { burst, type FleckStyle } from '../fx';
 import { TOWERS, TOWER_ORDER } from '../../data/towers';
 import { mix } from './paint';
 import { NO_FEEL, paintTower, type SpriteFeel } from './sprites';
@@ -97,6 +98,9 @@ const MORPH_MS = MOTION.foldMs;
 function makeRing(): Ring { return { at: -1e9, x: 0, y: 0, r: 0, kind: 0, dashed: false }; }
 function makeBeam(): Beam { return { at: -1e9, x1: 0, y1: 0, x2: 0, y2: 0, w: 2, eclipse: false }; }
 
+/** F-017: place/sell flecks (§10.2 Placed, §10.4 Sell). */
+const PLACE_STYLE: FleckStyle = { speed: PLACE_FLECK.speed, size: PLACE_FLECK.size, lifeMs: PLACE_FLECK.lifeMs, edge: P.inkSoft, shape: 'tri', fromR: PLACE_FLECK.fromR };
+
 function findTower(towers: readonly Tower[], id: number): Tower | null {
   for (const t of towers) if (t.id === id) return t;
   return null;
@@ -135,7 +139,8 @@ export function createTowerLayer(fx: Fx): WorldLayer {
           sync(state);
           const r = recs.get(e.towerId);
           if (r) r.placeAt = clock;
-          fx.flecks(e.x, e.y, PLACE_FEEL.flecks, P.crease);
+          // F-017: kraft-edge flecks with an ink-soft rim, big and quick enough to read on --paper grass
+          burst(fx, e.x, e.y, PLACE_FEEL.flecks, P.kraftEdge, PLACE_STYLE);
           break;
         }
         case 'upgrade': {
@@ -151,7 +156,7 @@ export function createTowerLayer(fx: Fx): WorldLayer {
         case 'sell': {
           // the unfold-and-sink overlay is WO-004's (src/ui/ghost.ts drawSink); here only the flecks
           recs.delete(e.towerId);
-          fx.flecks(e.x, e.y, PLACE_FEEL.flecks, P.kraft);
+          burst(fx, e.x, e.y, PLACE_FEEL.flecks, P.kraft, PLACE_STYLE);
           break;
         }
         case 'fire': {
