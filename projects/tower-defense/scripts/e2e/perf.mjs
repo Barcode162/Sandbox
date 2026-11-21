@@ -56,8 +56,13 @@ try {
       const r = await page.evaluate(() => {
         const h = window.__inkfold;
         const t0 = h.summary().tick;
+        // Each frame ends with a 1-px readback, which forces Chromium to rasterise that frame's queued
+        // draw calls now (a real browser does this at every present). Without it, 300 frames inside one
+        // task pile into a few huge deferred flushes and the p95 measures batching, not a frame.
+        const cx = document.querySelector('canvas').getContext('2d');
+        cx.getImageData(0, 0, 1, 1);
         const times = [];
-        for (let i = 0; i < 300; i++) { const a = performance.now(); h.advance(1000 / 60, 60); times.push(performance.now() - a); }
+        for (let i = 0; i < 300; i++) { const a = performance.now(); h.advance(1000 / 60, 60); cx.getImageData(0, 0, 1, 1); times.push(performance.now() - a); }
         return { times, ticks: h.summary().tick - t0, scene: h.scene() };
       });
       const sorted = [...r.times].sort((a, b) => a - b);

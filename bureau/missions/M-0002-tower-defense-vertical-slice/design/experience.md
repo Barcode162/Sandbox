@@ -58,12 +58,12 @@ Brief's theme, refined. Units: logical px (1280×720), **sim seconds at 1×**, s
 |Dot|smooth disc, 1 pip|9|80|1|—|1|1|R1|
 |Drop|3 lobes, 2 pips|10|104|1|Dot|1|2|R3|
 |Splat|4 lobes, 3 pips|11|128|1|Drop|1|3|R5|
-|Splash|5 lobes, 4 pips|12|176|1|Splat|1|4|R8|
-|Blotch|6 lobes, 5 pips|13|208|1|Splash|1|5|R11|
+|Splash|5 lobes, 4 pips|12|160|1|Splat|1|4|R8|
+|Blotch|6 lobes, 5 pips|13|184|1|Splash|1|5|R11|
 |Streak (fast)|comet: ellipse 1.8:1 along travel + 3 tail strokes|11|272|1|2× Splat|1|7|R9|
 |Wax (armoured)|hexagon + stamped ring, gloss arc; **immune to Cut and Wash**|14|88|1|2× Splash|1|9|R10|
 |Knot (tough)|scribble ball of `--thread` loops; loops = ⌈hp/3⌉|17|72|12|2× Wax|1 per HP (12)|30|R15|
-|Inkmaw (boss)|8-lobe mass, jagged paper-coloured maw, drips|46|32|2400|4× Knot; sheds 6× Splash at 75/50/25 %|0|all (run ends)|R20|
+|Inkmaw (boss)|8-lobe mass, jagged paper-coloured maw, drips|46|28|1400|4× Knot; sheds 6× Splash at 75/50/25 %|0|all (run ends)|R20|
 
 **Pale** (camo) modifies Drop–Blotch and Streak (`p·kind`): fill 40 % alpha, dashed 3/3 outline, 45° hatch at 4 px. Children inherit it. Only **detecting** towers target it, and only their projectiles collide with it. **Area effects** (Koi pulse, Typhoon jets, Frog splash) hit it regardless.
 
@@ -134,36 +134,37 @@ Owl auras don't stack: best wins.
 **Tier notches** on the coaster: A left arc, B right, `--ink`, up to 3.
 
 ## 8 · Economy, waves, difficulty
-**Economy.** Start **650 sheets, 100 seeds**. Pop: 1 sheet per HP removed (Inkmaw's own HP pays 0). End-of-round bonus **100 + 10·r**, paid when the round clears. Sell **70 %** of everything spent on the tower; **100 %** if the tower was placed during the current intermission ("fresh fold"). Shop works mid-round.
+**Economy.** Start **650 sheets, 100 seeds**. Pop: 1 sheet per HP removed (Inkmaw's own HP pays 0). End-of-round bonus **100 + 12·r**, paid when the round clears. Sell **70 %** of everything spent on the tower; **100 %** if the tower was placed during the current intermission ("fresh fold"). Shop works mid-round.
 **Spawning.** Group = (kind, count, spacing s, delay s from round start); spawns at path distance 0. Round ends when all spawned and none alive. Auto-start: next round 1.5 s after the bonus.
 
 |R|Groups (kind×count @spacing +delay)|RBE|Cash at start*|New / what it asks|
 |---|---|---|---|---|
 |1|Dot×20 @0.8 +0|20|650|place one Tern|
-|2|Dot×30 @0.6 +0|30|780|a second tower|
-|3|Dot×20 @0.5 +0 · Drop×10 @0.9 +4|40|930|**Drop**: see the peel|
-|4|Drop×25 @0.6 +0 · Dot×15 @0.4 +6|65|1100|density|
-|5|Drop×30 @0.45 +0 · Splat×6 @1.2 +8|78|1305|**Splat**: stacking layers|
-|6|Splat×16 @0.7 +0 · Drop×24 @0.4 +3|96|1533|first upgrade|
-|7|Splat×20 @0.6 +0 · p·Drop×8 @1.0 +6|76|1789|**Pale**: Koi or Owl|
-|8|Splash×10 @0.9 +0 · Splat×24 @0.4 +4|112|2035|**Splash**: speed|
-|9|Streak×6 @1.5 +0 · Splash×16 @0.6 +5|106|2327|**Streak**: range and pierce|
-|10|Wax×4 @2.0 +0 · Splat×30 @0.3 +2 · Drop×40 @0.2 +8|206|2623|**Wax**: Crush or Glare|
-|11|Blotch×12 @0.8 +0 · p·Splat×12 @0.6 +6|96|3029|**Blotch**; breather|
-|12|Wax×8 @1.2 +0 · Splash×28 @0.35 +3|184|3335|Wax in numbers|
-|13|Streak×14 @0.7 +0 · Blotch×22 @0.45 +4|208|3739|commit to a tier 3|
-|14|p·Splash×20 @0.5 +0 · Wax×10 @1.0 +5 · Dot×60 @0.08 +10|230|4177|mixed answers|
-|15|Knot×2 @3.0 +0 · Blotch×30 @0.3 +3|210|4647|**Knot**: sustained damage|
-|16|p·Blotch×20 @0.4 +0 · Wax×14 @0.7 +4 · Streak×12 @0.5 +10|310|5107|detection coverage|
-|17|Knot×5 @2.0 +0 · Splash×60 @0.15 +2|390|5677|AoE + single-target|
-|18|Blotch×150 @0.07 +0 · Dot×120 @0.05 +2 · Wax×20 @0.5 +4 · p·Streak×12 @0.6 +8|1134|6337|**The Storm** (~300 on screen)|
-|19|Knot×10 @1.2 +0 · p·Blotch×40 @0.2 +3 · Streak×24 @0.3 +8|668|7751|aftershock|
-|20|Blotch×60 @0.15 +0 · Knot×6 @1.5 +6 · **Inkmaw**×1 +14|300 + 180 + boss|8709|**Inkmaw**: boss damage|
+|2|Dot×30 @0.6 +0|30|782|a second tower|
+|3|Dot×20 @0.5 +0 · Drop×10 @0.9 +4|40|936|**Drop**: see the peel|
+|4|Drop×25 @0.6 +0 · Dot×15 @0.4 +6|65|1112|density|
+|5|Drop×30 @0.45 +0 · Splat×6 @1.2 +8|78|1325|**Splat**: stacking layers|
+|6|Splat×16 @0.7 +0 · Drop×24 @0.4 +3|96|1563|first upgrade|
+|7|Splat×20 @0.6 +0 · p·Drop×8 @1.0 +6|76|1831|**Pale**: Koi or Owl|
+|8|Splash×10 @0.9 +0 · Splat×24 @0.4 +4|112|2091|**Splash**: speed|
+|9|Streak×6 @1.5 +0 · Splash×16 @0.6 +5|106|2399|**Streak**: range and pierce|
+|10|Wax×4 @2.0 +0 · Splat×30 @0.3 +2 · Drop×40 @0.2 +8|206|2713|**Wax**: Crush or Glare|
+|11|Blotch×12 @0.8 +0 · p·Splat×12 @0.6 +6|96|3139|**Blotch**; breather|
+|12|Wax×5 @1.6 +0 · Splash×16 @0.45 +3|109|3467|Wax in numbers|
+|13|Streak×14 @0.7 +0 · Blotch×16 @0.6 +4|178|3820|commit to a tier 3|
+|14|p·Splash×6 @1.0 +0 · Wax×5 @1.4 +5 · Dot×60 @0.08 +10|129|4254|mixed answers|
+|15|Knot×2 @3.0 +0 · Blotch×30 @0.3 +3|210|4651|**Knot**: sustained damage|
+|16|p·Blotch×6 @0.8 +0 · Wax×6 @1.0 +4 · Streak×12 @0.5 +10|168|5141|detection coverage|
+|17|Knot×5 @2.0 +0 · Splash×60 @0.15 +2|390|5601|AoE + single-target|
+|18|Blotch×90 @0.08 +0 · Dot×240 @0.03 +2 · Wax×10 @0.8 +4 · p·Streak×12 @0.6 +8|864|6295|**The Storm** (~300 on screen)|
+|19|Knot×10 @1.2 +0 · p·Blotch×40 @0.2 +3 · Streak×24 @0.3 +8|668|7475|aftershock|
+|20|Blotch×60 @0.15 +0 · Knot×6 @1.5 +6 · **Inkmaw**×1 +14|300 + 180 + boss|8471|**Inkmaw**: boss damage|
 \*Cumulative sheets available with zero leaks.
 
-**Curve rationale.** RBE ~doubles every 5 rounds (20→78→210→3,000+); income grows linearly. Each kind breaks a naive build: Pale → Tern-only (R7), Wax → Cut/Wash (R10), Knot → low fire rate (R15), Storm → single target (R18), Inkmaw → AoE-only (R20). R11, R19 are breathers. Inkmaw walks 80 s; Eclipse does 30 DPS to it, so it needs a boss answer plus support.
+**Curve rationale.** RBE ~doubles every 5 rounds (20→78→210→3,000+); income grows linearly. Each kind breaks a naive build: Pale → Tern-only (R7), Wax → Cut/Wash (R10), Knot → low fire rate (R15), Storm → single target (R18), Inkmaw → AoE-only (R20). R11, R19 are breathers. Inkmaw walks ~90 s; Eclipse does ~34 DPS to it, so it needs a boss answer plus support.
 **Reference win script** (positions verified valid): R1 Tern@(340,510), Tern@(560,300) · R2 T1 A1 · R4 Koi@(280,554) · R6 Owl@(860,360) · R8 T1 A2 · R10 Frog@(760,300) · R12 Frog A1 · R13 T2 A1 · R14 T1 A3 · R15 Koi B1, Owl A1 · R16 Frog A2 · R17 Koi B2, Owl A2 · R18 T2 B1 · R19 Frog A3 · R20 Owl A3, Koi A1. Spend 8,340 vs 8,709 available. Target: win with ≥ 40 seeds. **Loss script:** the same two Terns, never upgraded → game over by R12.
 **Tuning knobs, in order:** Inkmaw HP ±400 → R16–19 counts ±20 % → end bonus slope (10·r) ±2. Tower tables last.
+**Amended by the M-0002 balance pass** (old → new and reasons: `reports/WO-002.md § Balance change table`): values above are current; every tower interval is also ×0.87 (`BALANCE.towerIntervalMul`), applied on top of the §7 tables.
 
 ## 9 · HUD layout
 |Element|Rect (x,y,w,h)|Content and behaviour|
@@ -232,7 +233,7 @@ Owl auras don't stack: best wins.
 |Moment|What is on screen|Why it is composed|
 |---|---|---|
 |t 12 s|inkwell spill pool darkens to `--knot` and grows to 1.4× over 2 s; banner "Something large is spilling."; music ducks −6 dB; low drone opens|warning before threat|
-|t 14 s|Inkmaw (r 46) heaves out; boss bar folds down (220 ms) "INKMAW 2400"; 2-px rumble shake for 1.2 s; thud every 1.2 s with a 2-px shake|scale says boss|
+|t 14 s|Inkmaw (r 46) heaves out; boss bar folds down (220 ms) "INKMAW 1400"; 2-px rumble shake for 1.2 s; thud every 1.2 s with a 2-px shake|scale says boss|
 |75 / 50 / 25 %|hit-stop 4 ticks; shake 6 px 250 ms; 6 Splash spray out behind it; a bar notch tears off and falls (400 ms)|three escalating beats|
 |Below 10 %|bar pulses `--bad`; maw widens 1.2×|anticipation|
 |Death|hit-stop 12 ticks; shake 12 px decaying over 600 ms; 80 flecks + 3 staggered rings (0/60/120 ms); splits into 4 Knots; bar tears in two and drops; banner "The Inkmaw tears!"|the only big hit-stop|

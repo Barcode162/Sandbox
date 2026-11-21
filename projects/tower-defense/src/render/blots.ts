@@ -5,6 +5,7 @@ import { BLOTS, LOBE, PALE } from '../data/blots';
 import { HIT, MOTION, POP } from '../data/feel';
 import { P, SHADOW_OFFSET, type PaletteToken } from '../data/palette';
 import { pointAt, tangentAt, type MutVec } from '../sim/path';
+import { ctxOf, makeCanvas } from '../ui/draw';
 
 export interface BlotDrawOpts { pale: boolean; colourblind: boolean; scale?: number; phase?: number; alpha?: number }
 
@@ -257,6 +258,83 @@ export function drawBlotShape(ctx: CanvasRenderingContext2D, kind: BlotKind, x: 
   ctx.restore();
 }
 
+// ───────────────────────────── sprite cache ─────────────────────────────
+// R18–R20 put several hundred blots on screen. Tracing each one's 24-sample quadratic outline, stroke,
+// sheen and pips every frame made the blot pass ~6 ms of CPU raster by itself, so the world layer blits
+// pre-painted sprites instead. A sprite is the same paintShadow/paintBody output, painted once at device
+// resolution and keyed by everything that changes its pixels: kind, layer (shadow/body/flash), Pale,
+// colourblind, and a bucket of the lobe phase (32 per 2π, ≤ 0.3 px of outline drift between buckets)
+// or of the comet's heading (64 per turn). Knots (hp-driven, spinning loops) and the Inkmaw (one boss,
+// maw widens at 10 %) stay live. Without a canvas (Vitest) every blot is drawn live.
+
+const PHASE_BUCKETS = 32;
+const ANGLE_BUCKETS = 64;
+const TAU = Math.PI * 2;
+const SPRITE_KINDS: Readonly<Record<BlotKind, number>> = { dot: 0, drop: 1, splat: 2, splash: 3, blotch: 4, streak: 5, wax: 6, knot: -1, inkmaw: -1 };
+const enum Layer { Shadow = 0, Body = 1, Flash = 2 }
+
+interface Sprite { readonly cv: CanvasImageSource; /** half-extent in logical px */ readonly half: number }
+
+/** Half-extent (logical px) that holds the shape, its stroke, sheen and the comet's tail. */
+const spriteHalf = (kind: BlotKind): number => {
+  const R = BLOTS[kind].radius;
+  return Math.ceil(BLOTS[kind].shape === 'comet' ? R * 2.6 + 3 : R * (1 + LOBE.amplitude) + 3);
+};
+
+function createSpriteCache() {
+  const map = new Map<number, Sprite | null>();
+  let res = 0;
+  let disabled = false;
+  const p: Paint = { pale: false, cb: false, scale: 1, phase: 0, alpha: 1, angle: 0, hp: 1, hpFrac: 1, flash: false };
+
+  function paint(kind: BlotKind, layer: Layer, pale: boolean, cb: boolean, bucket: number): Sprite | null {
+    const half = spriteHalf(kind);
+    const px = Math.ceil(half * 2 * res);
+    const cv = makeCanvas(px, px);
+    const g = cv && ctxOf(cv);
+    if (!cv || !g) { disabled = true; return null; }
+    const shape = BLOTS[kind].shape;
+    p.pale = pale; p.cb = cb; p.hp = BLOTS[kind].hp;
+    p.phase = shape === 'lobed' ? (bucket * TAU) / PHASE_BUCKETS - PHASE_OFFSET[kind] : 0;
+    p.angle = shape === 'comet' ? (bucket * TAU) / ANGLE_BUCKETS : 0;
+    g.setTransform(res, 0, 0, res, px / 2, px / 2);
+    const c = g as unknown as CanvasRenderingContext2D;
+    if (layer === Layer.Shadow) paintShadow(c, kind, -SHADOW_OFFSET.x, -SHADOW_OFFSET.y, p);
+    else if (layer === Layer.Body) paintBody(c, kind, 0, 0, p);
+    else { traceBody(c, kind, 0, 0, BLOTS[kind].radius, p); c.globalAlpha = HIT.flashAlpha; c.fillStyle = P.foldWhite; c.fill(); }
+    return { cv: cv as CanvasImageSource, half: px / 2 / res };
+  }
+
+  return {
+    /** Device px per logical px of `c`; a change (resize, DPR) drops every sprite. False → draw live. */
+    begin(c: CanvasRenderingContext2D): boolean {
+      if (disabled || typeof c.getTransform !== 'function') return false;
+      const m = c.getTransform() as DOMMatrix | undefined;
+      if (!m || !Number.isFinite(m.a) || !Number.isFinite(m.e) || m.b !== 0 || m.c !== 0) return false;
+      const r = Math.round(Math.hypot(m.a, m.b) * 64) / 64;
+      if (!(r > 0)) return false;
+      if (r !== res) { map.clear(); res = r; }
+      return true;
+    },
+    get(kind: BlotKind, layer: Layer, pale: boolean, cb: boolean, phase: number, angle: number): Sprite | null {
+      const ki = SPRITE_KINDS[kind];
+      const shape = BLOTS[kind].shape;
+      let bucket = 0;
+      if (shape === 'lobed') {
+        const t = (((phase + PHASE_OFFSET[kind]) % TAU) + TAU) % TAU;
+        bucket = Math.round((t / TAU) * PHASE_BUCKETS) % PHASE_BUCKETS;
+      } else if (shape === 'comet') {
+        const t = ((angle % TAU) + TAU) % TAU;
+        bucket = Math.round((t / TAU) * ANGLE_BUCKETS) % ANGLE_BUCKETS;
+      }
+      const key = ((((ki * 3 + layer) * 2 + (pale ? 1 : 0)) * 2 + (cb ? 1 : 0)) << 7) | bucket;
+      let sp = map.get(key);
+      if (sp === undefined) { sp = paint(kind, layer, pale, cb, bucket); map.set(key, sp); }
+      return sp;
+    },
+  };
+}
+
 // ───────────────────────────── world layer ─────────────────────────────
 
 /** Kinds by radius, largest first (§10.5 draw order: blots largest R first). */
@@ -278,6 +356,7 @@ export function createBlotLayer(fx: Fx): WorldLayer {
   const pt: MutVec = { x: 0, y: 0 };
   const tg: MutVec = { x: 0, y: 0 };
   const paint: Paint = { pale: false, cb: false, scale: 1, phase: 0, alpha: 1, angle: 0, hp: 1, hpFrac: 1, flash: false };
+  const sprites = createSpriteCache();
 
   const claim = (id: number): number => {
     const k = id & (SLOTS - 1);
@@ -330,6 +409,12 @@ export function createBlotLayer(fx: Fx): WorldLayer {
     const boss = s.boss;
     paint.cb = f.settings.colourblind;
     paint.alpha = 1;
+    const useSprites = sprites.begin(c);
+    const outerAlpha = c.globalAlpha;
+    // Sprites blit in device pixels, snapped to whole pixels: an integer-aligned 1:1 copy is Skia's fast
+    // path, where a sub-pixel blit is filtered and costs several times more. Live paths keep the world matrix.
+    const m = useSprites ? c.getTransform() : null;
+    let identity = false;
     c.save();
     for (let layer = 0; layer < 2; layer++) {
       for (let o = 0; o < DRAW_ORDER.length; o++) {
@@ -351,8 +436,28 @@ export function createBlotLayer(fx: Fx): WorldLayer {
           paint.hpFrac = boss && boss.blotId === b.id ? b.hp / boss.maxHp : 1;
           tangentAt(sv, tg);
           paint.angle = Math.atan2(tg.y, tg.x);
-          if (layer === 0) { paint.flash = false; paintShadow(c, kind, x, y, paint); }
-          else { paint.flash = flash[k] === 1; flash[k] = 0; paintBody(c, kind, x, y, paint); }
+          paint.flash = layer === 1 && flash[k] === 1;
+          if (layer === 1) flash[k] = 0;
+          if (useSprites && SPRITE_KINDS[kind] >= 0) {
+            const pale = paint.pale && BLOTS[kind].paleEligible;
+            const sp = sprites.get(kind, layer === 0 ? Layer.Shadow : Layer.Body, pale, paint.cb, paint.phase, paint.angle);
+            if (sp && m) {
+              if (!identity) { c.setTransform(1, 0, 0, 1, 0, 0); identity = true; }
+              const ox = layer === 0 ? SHADOW_OFFSET.x : 0, oy = layer === 0 ? SHADOW_OFFSET.y : 0;
+              const w = (sp.cv as HTMLCanvasElement).width * scale;
+              const dx = Math.round((x + ox) * m.a + m.e - w / 2), dy = Math.round((y + oy) * m.d + m.f - w / 2);
+              c.globalAlpha = outerAlpha;
+              if (scale === 1) c.drawImage(sp.cv, dx, dy); else c.drawImage(sp.cv, dx, dy, w, w);
+              if (paint.flash) {
+                const fl = sprites.get(kind, Layer.Flash, pale, paint.cb, paint.phase, paint.angle);
+                if (fl) { if (scale === 1) c.drawImage(fl.cv, dx, dy); else c.drawImage(fl.cv, dx, dy, w, w); }
+              }
+              continue;
+            }
+          }
+          if (identity) { c.setTransform(m!); identity = false; }
+          if (layer === 0) paintShadow(c, kind, x, y, paint);
+          else paintBody(c, kind, x, y, paint);
         }
       }
     }
