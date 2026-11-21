@@ -129,7 +129,7 @@ describe('pad tells (§4.2)', () => {
   });
 
   it('polish 4: at least one soggy bubble is visible at every instant', () => {
-    const b0: Bubble = { angle: 0, dist: 0, scale: 0, pop: 0 };
+    const b0: Bubble = { angle: 0, dist: 0, rise: 0, scale: 0, pop: 0 };
     const b1: Bubble = { ...b0 };
     for (let ms = 0; ms < 5000; ms += 1) {
       bubbleAt(pad('soggy'), 0, ms / 1000, b0);

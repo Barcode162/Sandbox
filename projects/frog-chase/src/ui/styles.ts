@@ -8,7 +8,6 @@ import { tornClip } from './format';
 
 export function uiCss(): string {
   const tornTop = tornClip('top', 28, 3, 1);
-  const tornBottom = tornClip('bottom', 34, 5, 2);
   const tabTorn = tornClip('bottom', 10, 3, 3);
   return `
 #ui { font-family: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, sans-serif; font-weight: 800; color: ${C.ink};
@@ -43,18 +42,22 @@ export function uiCss(): string {
 #ui button:focus-visible { outline: 3px solid ${C.ink}; outline-offset: 3px; }
 #ui .ly-round { width: 44px; height: 44px; border-radius: 50%; background: ${C.paper}; display: grid; place-items: center;
   box-shadow: 2px 3px 0 rgba(29,43,58,.38); transition: transform 90ms ${CSS_EASE.ui}, box-shadow 90ms ${CSS_EASE.ui}, opacity 180ms; }
+@media (hover: hover) and (pointer: fine) {
+  #ui .ly-round:hover { transform: translateY(-1px); box-shadow: 3px 4px 0 rgba(29,43,58,.38); }
+  #ui .ly-tabbtn:hover { transform: translateY(-1px); box-shadow: 0 0 0 2px ${C.ink} inset, 4px 4px 0 rgba(29,43,58,.38); }
+}
 #ui .ly-round:active, #ui .ly-round.ly-down { transform: translateY(2px); box-shadow: 1px 1px 0 rgba(29,43,58,.38); }
 #ui .ly-round svg { width: 22px; height: 22px; display: block; }
 
-/* Title: a sheet of vellum over the far pond, the wordmark on it */
-#ui .ly-title { position: absolute; inset: 0 0 auto 0; height: 27%; min-height: 190px; display: flex; flex-direction: column; align-items: center;
+/* Title: the wordmark straight on the pond (§7.1): ink, 3 px paper offset, hard ink shadow; pads are never tinted */
+#ui .ly-title { position: absolute; inset: 0 0 auto 0; display: flex; flex-direction: column; align-items: center;
   transition: opacity 200ms ${CSS_EASE.ui}, transform 200ms ${CSS_EASE.ui}; }
 #ui .ly-title.ly-hide { transform: translateY(-12px); }
-#ui .ly-vellum { position: absolute; top: 0; bottom: 0; left: 50%; width: min(100%, 860px); transform: translateX(-50%); background: rgba(243,235,216,.62); clip-path: ${tornBottom}; }
-#ui .ly-word { position: relative; margin-top: calc(14vh - var(--t-title) * .62); font-size: var(--t-title); line-height: 1.1;
-  transform: rotate(-2deg); text-shadow: 3px 3px 0 ${C.paper}; letter-spacing: .01em; }
-#ui .ly-hint { position: relative; margin-top: 8px; font-size: var(--t-body); }
-#ui .ly-tbest { position: relative; margin-top: 4px; font-size: var(--t-best); opacity: .8; }
+#ui .ly-word { position: relative; margin: calc(14vh - var(--t-title) * .62) 0 0; font-size: var(--t-title); line-height: 1.1;
+  transform: rotate(-2deg); text-shadow: 3px 3px 0 ${C.paper}, 6px 7px 0 rgba(29,43,58,.38); letter-spacing: .01em; }
+#ui .ly-hint, #ui .ly-tbest { position: relative; color: ${C.paper}; text-shadow: 1.5px 2px 0 rgba(29,43,58,.75), 0 0 6px rgba(29,43,58,.35); }
+#ui .ly-hint { margin-top: 10px; font-size: var(--t-body); }
+#ui .ly-tbest { margin-top: 4px; font-size: var(--t-best); }
 
 /* Veil and cards */
 #ui .ly-veil { position: absolute; inset: 0; background: rgba(29,43,58,.30); opacity: 0; transition: opacity 180ms ${CSS_EASE.ui}; }
@@ -64,6 +67,8 @@ export function uiCss(): string {
   transform: translate(-50%, -50%); filter: drop-shadow(6px 6px 0 rgba(29,43,58,.38)); }
 #ui .ly-cardwrap.ly-bottom { top: auto; bottom: calc(7% + env(safe-area-inset-bottom)); transform: translate(-50%, 0); }
 @media (min-width: 700px) { #ui .ly-cardwrap { width: 460px; } }
+/* Wide win: the whole route is on screen, so the card docks on the right bank, clear of the river (F-012). */
+@media (min-width: 1024px) { #ui .ly-cardwrap.ly-bottom { left: calc(50% + 104px); top: 54%; bottom: auto; transform: translate(0, -50%); width: min(460px, calc(50vw - 136px)); } }
 #ui .ly-card { background: ${C.paper}; clip-path: ${tornTop}; padding: 22px 20px 18px; transform: rotate(1.5deg); text-align: center;
   opacity: 0; translate: 0 24px; transition: opacity 180ms ${CSS_EASE.ui}, translate 180ms ${CSS_EASE.ui}; }
 #ui .ly-card.ly-in { opacity: 1; translate: 0 0; }
@@ -86,7 +91,7 @@ export function uiCss(): string {
 #ui .ly-menu { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
 #ui .ly-tabbtn { min-height: 48px; padding: 8px 16px; background: ${C.paper}; border-radius: 4px; font-size: calc(var(--t-body) * .9);
   box-shadow: 0 0 0 2px ${C.ink} inset, 3px 3px 0 rgba(29,43,58,.38); transition: transform 90ms ${CSS_EASE.ui}, box-shadow 90ms ${CSS_EASE.ui}; }
-#ui .ly-tabbtn:active { transform: translateY(2px); box-shadow: 0 0 0 2px ${C.ink} inset, 1px 1px 0 rgba(29,43,58,.38); }
+#ui .ly-tabbtn:active, #ui .ly-tabbtn.ly-down { transform: translateY(2px); box-shadow: 0 0 0 2px ${C.ink} inset, 1px 1px 0 rgba(29,43,58,.38); }
 #ui .ly-tabbtn.ly-primary { background: ${C.ink}; color: ${C.paper}; }
 #ui .ly-legend { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 4px; font-size: calc(var(--t-best) * .95); line-height: 1.2; }
 #ui .ly-legend canvas { margin: 0 auto 4px; }

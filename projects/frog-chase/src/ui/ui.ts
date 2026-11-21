@@ -40,6 +40,9 @@ export function createUi(root: HTMLElement, cb: UiCallbacks): Ui {
     b.dataset.ui = 'interactive';
     for (const t of STOP) b.addEventListener(t, (e) => e.stopPropagation());
     b.addEventListener('click', () => onPress());
+    // Press state that also shows for synthetic and very short presses (F-015).
+    b.addEventListener('pointerdown', () => b.classList.add('ly-down'));
+    for (const t of ['pointerup', 'pointerleave', 'pointercancel', 'blur'] as const) b.addEventListener(t, () => b.classList.remove('ly-down'));
     // Enter/Space activate the focused button; they must not also hop or restart.
     b.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') e.stopPropagation();
@@ -50,7 +53,6 @@ export function createUi(root: HTMLElement, cb: UiCallbacks): Ui {
   // Layers, back to front.
   const veil = el('div', 'ly-veil');
   const title = el('div', 'ly-title');
-  el('div', 'ly-vellum', undefined, title);
   el('h1', 'ly-word', COPY.wordmark, title);
   el('div', 'ly-hint', COPY.titleHint, title);
   const titleBest = el('div', 'ly-tbest', '', title);
@@ -231,7 +233,8 @@ export function createUi(root: HTMLElement, cb: UiCallbacks): Ui {
         timer.classList.toggle('ly-won', mode === 'won');
         timerMode = mode;
       }
-      const bt = view.prevBestMs !== null ? bestLabel(view.prevBestMs) : '';
+      // On a win the card owns the best line; the HUD's would be stale (F-017).
+      const bt = view.prevBestMs !== null && r?.kind !== 'won' ? bestLabel(view.prevBestMs) : '';
       if (bt !== bestText) best.textContent = bestText = bt;
       const pct = Math.round((Math.min(sim.tuning.layers, sim.frog.layer) / sim.tuning.layers) * 1000) / 10;
       if (pct !== reedPct) {
@@ -271,7 +274,8 @@ export function createUi(root: HTMLElement, cb: UiCallbacks): Ui {
       }
       if (legend) legend.paint(tellS);
 
-      const vm = paused ? 'pause' : card ? 'dim' : '';
+      // Fails dim the pond; a win keeps its warmest frame unveiled (F-012).
+      const vm = paused ? 'pause' : card && r?.kind !== 'won' ? 'dim' : '';
       if (vm !== veilMode) {
         veil.classList.toggle('ly-on', vm !== '');
         veil.classList.toggle('ly-pause', vm === 'pause');

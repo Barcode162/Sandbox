@@ -59,7 +59,8 @@ export interface InputOptions {
   releaseFocus?: () => void;
 }
 
-const HOP = (slot: Slot): Intent => ({ type: 'hop', slot });
+const HOPS: Readonly<Record<Slot, Intent>> = { L: { type: 'hop', slot: 'L' }, F: { type: 'hop', slot: 'F' }, R: { type: 'hop', slot: 'R' } };
+const HOP = (slot: Slot): Intent => HOPS[slot];
 
 /** Pure key mapping (§4.5). */
 export function keyToIntent(e: Pick<KeyLike, 'key' | 'code'>): Intent | null {
@@ -192,21 +193,27 @@ export function createInput(target: InputTarget, opts: InputOptions): InputSourc
           memory.delete(i);
           continue;
         }
-        const was = memory.get(i) ?? { dir: null, a: false, start: false };
-        const now: PadMemory = { dir: padDirection(p), a: !!p.buttons[0]?.pressed, start: !!p.buttons[9]?.pressed };
-        if (now.dir && now.dir !== was.dir) {
+        let m = memory.get(i);
+        if (!m) memory.set(i, (m = { dir: null, a: false, start: false }));
+        const dir = padDirection(p);
+        const a = !!p.buttons[0]?.pressed;
+        const start = !!p.buttons[9]?.pressed;
+        if (dir && dir !== m.dir) {
           gesture();
-          opts.onIntent(HOP(now.dir));
+          opts.onIntent(HOP(dir));
         }
-        if (now.a && !was.a) {
+        if (a && !m.a) {
           gesture();
           opts.onIntent(HOP('F'));
         }
-        if (now.start && !was.start) {
+        if (start && !m.start) {
           gesture();
           opts.onIntent({ type: 'pause' });
         }
-        memory.set(i, now);
+        // Mutated in place: one memory record per pad slot, nothing allocated per poll (F-006).
+        m.dir = dir;
+        m.a = a;
+        m.start = start;
       }
     },
     dispose() {

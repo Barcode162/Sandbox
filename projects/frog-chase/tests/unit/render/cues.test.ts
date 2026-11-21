@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { SimEventType } from '../../../src/contracts';
 import { VISUAL_CUES, cueImpulse } from '../../../src/render/cues';
-import { eyeScale, jawRad, vignetteAlpha } from '../../../src/render/danger';
+import { bottomBandAlpha, eyeScale, jawRad, vignetteAlpha } from '../../../src/render/danger';
 import { Particles, PK, Shake } from '../../../src/render/juice';
 import { makeBot } from '../../../src/sim/bots';
 import { createSim, step } from '../../../src/sim/sim';
@@ -47,8 +47,10 @@ describe('danger signals (§4.3, polish 14)', () => {
     expect((jawRad(1) * 180) / Math.PI).toBeCloseTo(28, 6);
   });
 
-  it('vignette peaks at the heartbeat wrap (phase 0) at exactly 0.35τ, and is off on a fresh run (τ 0)', () => {
-    expect(vignetteAlpha(0.5, 0)).toBeCloseTo(0.175, 9);
+  it('vignette peaks at the heartbeat wrap (phase 0) at 0.45τ (floor 0.10 past τ 0.3), off on a fresh run (τ 0)', () => {
+    expect(vignetteAlpha(0.5, 0)).toBeCloseTo(0.225, 9);
+    expect(vignetteAlpha(0.31, 0)).toBeCloseTo(0.1395, 9);
+    expect(vignetteAlpha(0.2, 0)).toBeCloseTo(0.09, 9);
     let best = 0, at = -1;
     for (let i = 0; i < 1000; i++) {
       const a = vignetteAlpha(0.5, i / 1000);
@@ -59,7 +61,10 @@ describe('danger signals (§4.3, polish 14)', () => {
     }
     expect(at).toBe(0);
     expect(vignetteAlpha(0, 0)).toBe(0);
-    expect(vignetteAlpha(0.5, 0.6)).toBeLessThan(0.175 * 0.8);
+    expect(vignetteAlpha(0.5, 0.6)).toBeLessThan(0.225 * 0.8);
+    expect(bottomBandAlpha(0.2, 0)).toBe(0);
+    expect(bottomBandAlpha(0.8, 0)).toBe(1);
+    expect(bottomBandAlpha(0.8, 0.5)).toBeLessThan(0.01);
   });
 });
 

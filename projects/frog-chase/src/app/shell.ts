@@ -17,6 +17,7 @@ import type {
 } from '../contracts';
 import type { GameAudio } from '../audio/audio';
 import { createLoop } from '../loop';
+import { ticks } from '../tuning';
 import { applyResult, loadSave, writeSave } from '../save/save';
 import { makeBot } from '../sim/bots';
 import { hashSeed } from '../sim/rng';
@@ -92,6 +93,8 @@ export function createShell(d: ShellDeps): ShellCore {
   let resumeTo: AppPhase = 'title';
   let cursor = 0;
   let pending: Slot | null = null;
+  /** A tapped pad waiting for its tick. Mapped to a slot only then, against the layer that tick resolves (F-003). */
+  let pendingPad: number | null = null;
   let bot: BotPolicy | null = null;
 
   let manual = false;
@@ -126,6 +129,7 @@ export function createShell(d: ShellDeps): ShellCore {
     sim = api.createSim(seed, tuningPatch);
     cursor = 0;
     pending = null;
+    pendingPad = null;
     prevBestMs = save.bestMs;
     newBest = false;
     firstRun = prevBestMs === null;
@@ -170,6 +174,7 @@ export function createShell(d: ShellDeps): ShellCore {
     if (phase !== 'title' && phase !== 'play' && phase !== 'result') return;
     resumeTo = phase;
     pending = null;
+    pendingPad = null;
     setPhase('paused');
     d.audio.duck(true);
   }
@@ -194,19 +199,38 @@ export function createShell(d: ShellDeps): ShellCore {
     persist();
   }
 
-  /** Pads a tap may mean now: the current choices, or while airborne the layer after the target (a buffered press, §4.4). */
+  /**
+   * The layer a press on the coming tick resolves against (sim §4.4 order: hop when idle, retarget within
+   * the first retargetMs of squash, otherwise buffer for the landing), or null when presses do nothing.
+   */
+  function pressLayer(): number | null {
+    const f = sim.frog;
+    if (sim.result) return null;
+    if (f.phase === 'idle') return sim.choices.length ? sim.river.pads[f.padId]!.layer + 1 : null;
+    if (f.phase !== 'squash' && f.phase !== 'air') return null;
+    const target = sim.river.pads[f.targetId]!.layer;
+    const retarget = f.phase === 'squash' && sim.tick + 1 - f.hopTick <= ticks(sim.tuning.retargetMs);
+    return retarget ? target : target + 1;
+  }
+
+  /**
+   * Pads a tap may mean now. Idle: the current choices. Airborne: both the hop's target layer and the one
+   * after it, so a tap on either is a pad tap (sent to that pad or dropped by slotForTap) and never falls
+   * through to a screen third that could steer the hop elsewhere (F-003).
+   */
   function tapCandidates(): readonly number[] {
     if (sim.choices.length) return sim.choices.map((c) => c.padId);
     const f = sim.frog;
     if (sim.result || (f.phase !== 'squash' && f.phase !== 'air')) return [];
-    const next = sim.river.layers[sim.river.pads[f.targetId]!.layer + 1];
-    return next ? next.map((p) => p.id) : [];
+    const k = sim.river.pads[f.targetId]!.layer;
+    return [...(sim.river.layers[k] ?? []), ...(sim.river.layers[k + 1] ?? [])].map((p) => p.id);
   }
 
-  function slotOf(i: Intent): Slot | null {
-    if (i.type === 'hop') return i.slot;
-    if (i.type === 'hopPad') return api.slotForPad(sim, i.padId) ?? positionalSlot(sim, i.padId);
-    return null;
+  /** Slot that reaches `padId` on the coming tick, or null if no press then can reach it (never a different pad). */
+  function slotForTap(padId: number): Slot | null {
+    const pad = sim.river.pads[padId];
+    if (!pad || pad.layer !== pressLayer()) return null;
+    return api.slotForPad(sim, padId) ?? positionalSlot(sim, padId);
   }
 
   function intent(i: Intent): boolean {
@@ -234,31 +258,41 @@ export function createShell(d: ShellDeps): ShellCore {
       case 'wipe':
       case 'title':
       case 'play': {
-        const slot = slotOf(i);
-        if (slot) pending = slot;
-        return slot !== null;
+        if (i.type === 'hopPad') {
+          pendingPad = i.padId;
+          pending = null;
+          return true;
+        }
+        if (i.type !== 'hop') return false; // confirm does nothing outside a result
+        pending = i.slot;
+        pendingPad = null;
+        return true;
       }
     }
   }
 
-  const view = (alpha: number): ViewState => ({
-    phase,
-    settings,
-    prevBestMs,
-    newBest,
-    firstRun,
-    nowMs: now(),
-    resultAgeMs: resultAt === null ? 0 : now() - resultAt,
-    alpha,
-  });
+  /** One ViewState, refilled each frame (no per-frame allocation, F-006). Consumers read it during the call only. */
+  const viewState: ViewState = { phase, settings, prevBestMs, newBest, firstRun, nowMs: 0, resultAgeMs: 0, alpha: 0 };
+  function view(alpha: number): ViewState {
+    const t = now();
+    viewState.phase = phase;
+    viewState.prevBestMs = prevBestMs;
+    viewState.newBest = newBest;
+    viewState.firstRun = firstRun;
+    viewState.nowMs = t;
+    viewState.resultAgeMs = resultAt === null ? 0 : t - resultAt;
+    viewState.alpha = alpha;
+    return viewState;
+  }
 
   const loop = createLoop({
     tick() {
       const t0 = d.wallNow();
       let press: Slot | null = null;
       if (phase === 'title' || phase === 'play') {
-        press = bot ? bot(sim) : pending;
+        press = bot ? bot(sim) : pendingPad !== null ? slotForTap(pendingPad) : pending;
         pending = null;
+        pendingPad = null;
       }
       api.step(sim, { press });
       if (phase === 'title' && sim.frog.hopTick >= 0) setPhase('play');

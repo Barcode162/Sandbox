@@ -27,11 +27,13 @@ describe('card copy (§7.3–7.5, §9)', () => {
   it('sunk: soggy vs curl titles and callouts', () => {
     const s = cardCopy(res({ kind: 'sunk', cause: 'soggy', culpritId: 4 }), v, 36);
     expect(s.title).toBe('Soggy pad!');
-    expect(s.callouts).toEqual(['no shadow', 'bubbles']);
+    expect(s.callouts).toEqual(['no shadow', 'bubbles', 'no notch']);
     expect(s.hint).toBe('No shadow. Bubbles. Sneaky.');
     const c = cardCopy(res({ kind: 'sunk', cause: 'curl', culpritId: 4 }), v, 36);
     expect(c.title).toBe('Curled pad!');
     expect(c.callouts).toEqual(['curled edge', 'rocks']);
+    // One vocabulary on the curl card (F-016).
+    expect(c.hint).toBe('Curled edge. Rocks. Sneaky.');
   });
 
   it('win: new best shows from → to; a first run says "First time" and never stamps (polish 20)', () => {

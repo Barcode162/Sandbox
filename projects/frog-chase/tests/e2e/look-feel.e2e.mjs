@@ -65,8 +65,11 @@ for (const [vp, viewport, resizeTo] of [
         if (frames++ % 6) continue;
         for (const p of l.pads()) if (p.kind !== 'bank') worst = Math.min(worst, p.x - p.r, innerWidth - (p.x + p.r));
       }
-      return { worst, won: l.sim().result?.kind };
+      const P = __f.P();
+      return { worst, won: l.sim().result?.kind, fly: P.flyOverChoice, onPad: P.dropletsOnPad, drops: P.droplets };
     });
+    check(col.fly === 0, `F-009: no frame with a dragonfly over a reachable pad (${col.fly})`);
+    check(col.drops >= 60 && col.onPad === 0, `polish 10 / F-010: ${col.drops} landing droplets, ${col.onPad} on a pad`);
     check(col.won === 'won' && col.worst >= 0, `pads stay in the column for a whole crossing at ${resizeTo.width} wide (min margin ${col.worst.toFixed(1)} px)`);
 
     // Tap picking returns the nearest centre where 1.4r hit circles overlap.

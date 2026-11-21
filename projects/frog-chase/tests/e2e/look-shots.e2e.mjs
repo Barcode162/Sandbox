@@ -63,14 +63,13 @@ for (const [vp, viewport] of shots) {
       fresh();
       L().frame(1000 / 60, 30);
       const word = document.querySelector('.ly-word').getBoundingClientRect();
-      const vel = document.querySelector('.ly-vellum').getBoundingClientRect();
       const lit = L().pads().filter((p) => p.state === 'reachable');
       const hit = lit.some((p) => p.x + p.r > word.left && p.x - p.r < word.right && p.y + p.r > word.top && p.y - p.r < word.bottom);
-      const veiled = vel.top <= word.top && vel.bottom >= word.bottom;
-      return { phase: L().phase(), ring: P().inviteRing, chips: P().chips, hit, veiled, gator: P().gatorVisible };
+      const sheet = !!document.querySelector('.ly-vellum');
+      return { phase: L().phase(), ring: P().inviteRing, chips: P().chips, hit, sheet, gator: P().gatorVisible };
     });
     check(s1.phase === 'title' && s1.ring && s1.chips === 3, `1 title: invite ring + 3 chips (${JSON.stringify(s1)})`);
-    check(!s1.hit && s1.veiled, '1 title: wordmark clear of lit pads, on the vellum');
+    check(!s1.hit && !s1.sheet, '1 title: wordmark on the pond (no sheet tinting pads), clear of the lit pads');
     check(!s1.gator, '1 title: no gator');
     await shot(page, `look-01-title-${vp}`);
 
@@ -144,9 +143,10 @@ for (const [vp, viewport] of shots) {
       const flashes = P().toothFlashFrames;
       L().setBot('nearMiss');
       const ok = until(() => P().hitStop && P().toothFlashFrames > flashes, 8000, 1000 / 60);
-      return { ok, flashes: P().toothFlashFrames - flashes, stage: P().frogStage, result: !!L().sim().result };
+      return { ok, flashes: P().toothFlashFrames - flashes, gap: +P().clackGap.toFixed(2), stage: P().frogStage, result: !!L().sim().result };
     });
     check(s8.ok && s8.flashes === 1, `8 near-miss: frozen on a 1-frame tooth flash (${JSON.stringify(s8)})`);
+    check(s8.gap >= 0.3 * 26 - 0.25, `8 near-miss: snout tip ${s8.gap} wu behind the frog's shadow (≥ 0.3P = 7.8, F-013)`);
     await shot(page, `look-08-nearmiss-${vp}`);
 
     // 9 · Eaten card + 500 ms: text fits, progress reed visible.

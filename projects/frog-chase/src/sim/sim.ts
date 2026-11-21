@@ -156,12 +156,13 @@ function emit(s: SimState, e: SimEvent): void {
   s.log.push(e);
 }
 
-/** Recompute chips and `reachable` states (only on frog/flank transitions, never per idle tick). */
+/**
+ * Recompute chips and `reachable` states (only on frog/flank transitions, never per idle tick).
+ * `flanked` is gator-owned: it stays on the armed pad through squash and air (a retarget can still pick it,
+ * F-004) and only clearFlank or an eaten-still lunge removes it.
+ */
 function refreshChoices(s: SimState): void {
-  for (const c of s.choices) {
-    const st = s.padStates[c.padId]!.state;
-    if (st === 'reachable' || st === 'flanked') setPad(s, c.padId, 'idle');
-  }
+  for (const c of s.choices) if (s.padStates[c.padId]!.state === 'reachable') setPad(s, c.padId, 'idle');
   if (s.result || s.frog.phase !== 'idle') {
     s.choices = [];
     return;
@@ -303,6 +304,9 @@ function eat(s: SimState): void {
   x.lungeFrom = { x: s.gator.head.x, y: s.gator.head.y };
   setFrog(s, 'eaten');
   setGator(s, 'lunging');
+  const f = s.gator.flank;
+  // Eaten on the flank: the pad keeps `flanked` (it is the culprit). Eaten standing still: the flank lets go.
+  if (f && f.padId !== s.frog.padId && s.padStates[f.padId]!.state === 'flanked') setPad(s, f.padId, 'idle');
   s.gator.flank = null;
 }
 
@@ -391,7 +395,7 @@ function gatorGap(s: SimState): void {
       f.armed = true;
       setGator(s, 'flanking');
       emit(s, { t: 'flankArmed', tick: s.tick, pad: f.padId });
-      if (s.choices.some((c) => c.padId === f.padId)) setPad(s, f.padId, 'flanked');
+      setPad(s, f.padId, 'flanked');
     }
     return;
   }

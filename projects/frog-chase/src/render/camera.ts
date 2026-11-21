@@ -99,17 +99,23 @@ export const sy = (v: View, y: number): number => v.ay - (y - v.camY) * v.k + v.
 export const wx = (v: View, px: number): number => 50 + (px - v.cx - v.shakeX) / v.k;
 export const wy = (v: View, py: number): number => v.camY - (py - v.ay - v.shakeY) / v.k;
 
+/** HUD clearance above the win route (timer tab + best), px. */
+export const WIN_TOP_PX = 112;
 /**
- * Win framing (§7.5 step 4): zoom out to show as much river as fits, never below 0.4× (desktop) or
- * 0.33× (narrow screens), with the north bank near the top.
+ * Win framing (§7.5 step 4). Wide screens (≥ 1024 px) fit the whole route, start to finish, below the HUD
+ * (F-012). Narrower screens zoom to the spec floor (0.4× / 0.33× under 700 px) with the finish 22% down.
+ * `topY` / `bottomY` are the world y extent of the route (finish bank, start bank).
  */
-export function winGoal(w: number, h: number, riverTopY: number, riverHeight: number): { zoom: number; focusY: number } {
+export function winGoal(w: number, h: number, topY: number, bottomY: number): { zoom: number; focusY: number } {
   const s = baseScale(w, h);
+  if (w >= 1024) {
+    const k = (h - WIN_TOP_PX - 24) / (topY - bottomY);
+    const zoom = Math.min(1, k / s);
+    return { zoom, focusY: topY - (h * ANCHOR - WIN_TOP_PX) / (s * zoom) };
+  }
   const floor = w < 700 ? 0.33 : 0.4;
-  const fit = h / (riverHeight * s);
+  const fit = h / ((topY - bottomY) * s);
   const zoom = Math.max(floor, Math.min(1, fit));
-  // riverTopY lands 22% below the top edge (the finish bank and frog clear the HUD); the anchor stays at 64%.
   const visible = h / (s * zoom);
-  const focusY = riverTopY - visible * (ANCHOR - 0.22);
-  return { zoom, focusY };
+  return { zoom, focusY: topY - visible * (ANCHOR - 0.22) };
 }

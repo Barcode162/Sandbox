@@ -188,7 +188,7 @@ export function collectReeds(b: Bounds, northY: number, seed: number, out: ReedC
     const x = i * T + rand3(i, 12, seed) * 7;
     if (Math.abs(x - 50) < 13) continue;
     if (b.yB < 14) push(x, southShore(x, seed) - 2.4, 20000 + i);
-    if (b.yT > northY - 14 && Math.abs(x - 73) > 18) push(x, northShore(x, northY, seed) + 2.4, 30000 + i);
+    if (b.yT > northY - 14 && Math.abs(x - LOG_X) > 18) push(x, northShore(x, northY, seed) + 2.4, 30000 + i);
   }
   return n;
 }
@@ -242,8 +242,10 @@ function flower(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, 
 }
 
 /** The finish bank's hollow log with bloom flowers (§5.4). */
+/** Log centre x (wu): left of the finish, so it never sits under the timer tab or the right-hand buttons (F-017). */
+export const LOG_X = 14;
 export function drawLog(ctx: CanvasRenderingContext2D, northY: number, b: Bounds, ambientS: number): void {
-  const x = 74, y = northY + 8.5;
+  const x = LOG_X, y = northY + 8.5;
   if (y < b.yB - 20 || y > b.yT + 20) return;
   const L = 30, R = 4.6, rot = -0.1;
   ctx.save();
@@ -282,7 +284,7 @@ export function drawLog(ctx: CanvasRenderingContext2D, northY: number, b: Bounds
   flower(ctx, x - 4, y + R * 0.4 + bob, 2.6, PALETTE.bloom, PALETTE.paper, 0.3);
   flower(ctx, x + 6, y - R * 0.2 - bob, 2.1, PALETTE.bloom, PALETTE.paper, 1.1);
   flower(ctx, x + 13, y + R * 0.9, 1.7, PALETTE.bloom, PALETTE.paper, 2.2);
-  flower(ctx, x - 22, y + 3, 1.8, PALETTE.bloom, PALETTE.paper, 0.7);
+  flower(ctx, x - 20, y + 3, 1.8, PALETTE.bloom, PALETTE.paper, 0.7);
 }
 
 /** Generator decor (§4.1 G7): never pad-shaped, never chipped. */

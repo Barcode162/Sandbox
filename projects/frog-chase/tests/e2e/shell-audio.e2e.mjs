@@ -58,11 +58,15 @@ await withPage('every cue path runs in real Web Audio (bots, manual clock)', { v
     l.manualClock(true);
     const types = new Set();
     const results = [];
+    // A 16-layer river with flanks from layer 8 keeps every voiced event type (scripted layers 3/6/10, flank,
+    // near-miss, win) at under half the frames. 50 ms frames (6 ticks each) cut the renders 3x more;
+    // the cues fire from the same events either way.
+    l.setTuning({ layers: 16, flankFromLayer: 8 });
     for (const [bot, opts] of [['runner', {}], ['forward', {}], ['idler', {}], ['nearMiss', {}]]) {
       l.restart(7);
       l.setBot(bot, opts);
-      for (let i = 0; i < 60 * 90 && !l.sim().result; i++) l.frame(1000 / 60);
-      l.frame(1000 / 60, 40); // result card age past the whoosh
+      for (let i = 0; i < 20 * 90 && !l.sim().result; i++) l.frame(50);
+      l.frame(50, 8); // result card age past the whoosh
       for (const e of l.events()) types.add(e.t);
       results.push(`${bot}:${l.sim().result?.cause ?? 'none'}`);
     }

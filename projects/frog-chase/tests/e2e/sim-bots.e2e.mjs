@@ -1,5 +1,6 @@
 // Bots in the browser (SC1): the runner wins, the idler is eaten (still), forward sinks at layer 6 on seed 7.
-// Also samples __lily.timings().lastSimStepMs against the 0.25 ms p95 budget.
+// The sim-step budget (p95 ≤ 0.25 ms, full run ≤ 150 ms) is measured in Node, tests/unit/sim/bots.test.ts
+// 'budget': in headless Chromium a single ~µs step reads 0 on the clamped timer, so a check here cannot fail (F-002).
 import { check, done, VIEWPORTS, withPage } from './harness.mjs';
 
 await withPage('sim bots', { viewport: VIEWPORTS.mobile }, async ({ page }) => {
@@ -10,22 +11,18 @@ await withPage('sim bots', { viewport: VIEWPORTS.mobile }, async ({ page }) => {
         l.manualClock(true);
         l.setBot(bot, opts);
         l.restart(7);
-        const steps = [];
         for (let f = 0; f < 60 * 90 && !l.sim().result; f++) {
           l.frame(1000 / 60);
-          steps.push(l.timings().lastSimStepMs);
         }
         l.setBot(null);
-        steps.sort((a, b) => a - b);
         const s = l.sim();
-        return { result: s.result, phase: l.phase(), p95: steps[Math.floor(steps.length * 0.95)] ?? 0, culpritKind: s.result?.culpritId != null ? s.river.pads[s.result.culpritId].kind : null };
+        return { result: s.result, phase: l.phase(), culpritKind: s.result?.culpritId != null ? s.river.pads[s.result.culpritId].kind : null };
       },
       { bot, opts },
     );
   const win = await play('runner');
   check(win.result?.kind === 'won' && win.result.cause === 'win', `runner wins seed 7 (${win.result?.kind}, ${(win.result?.timeMs / 1000).toFixed(2)} s)`);
   check(win.result.timeMs >= 20000 && win.result.timeMs <= 60000, 'runner crossing takes 20–60 s');
-  check(win.p95 <= 0.25, `sim step p95 ${win.p95.toFixed(3)} ms ≤ 0.25 ms`);
   const eaten = await play('idler');
   check(eaten.result?.kind === 'eaten' && eaten.result.cause === 'still', `idler is eaten, cause still (${eaten.result?.cause}, layer ${eaten.result?.layer})`);
   const sunk = await play('forward');

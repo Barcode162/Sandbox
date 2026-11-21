@@ -168,6 +168,33 @@ describe('flank (§4.3)', () => {
     expect(s.frog.padId).toBe(f.padId);
   });
 
+  it('F-004: the armed pad stays flanked through squash and air, so a retarget onto it keeps its tell', () => {
+    const s = toFlank(7)!;
+    const f = s.gator.flank!;
+    idle(s, 30);
+    const other = s.choices.find((c) => c.padId !== f.padId)!;
+    const flankSlot = s.choices.find((c) => c.padId === f.padId)!.slot;
+    step(s, { press: other.slot });
+    expect(s.frog.phase).toBe('squash');
+    expect(s.choices).toEqual([]);
+    expect(s.padStates[f.padId]!.state).toBe('flanked'); // was reset to idle before the fix
+    step(s, { press: flankSlot }); // retarget within 5 ticks
+    expect(s.frog.targetId).toBe(f.padId);
+    while (s.frog.phase === 'squash' || s.frog.phase === 'air') {
+      expect(s.padStates[f.padId]!.state).toBe('flanked');
+      step(s, { press: null });
+    }
+    expect(s.result).toMatchObject({ kind: 'eaten', cause: 'flank', culpritId: f.padId });
+  });
+
+  it('eaten standing still releases an armed flank pad', () => {
+    const s = toFlank(7)!;
+    const f = s.gator.flank!;
+    run(s, () => null);
+    expect(s.result).toMatchObject({ cause: 'still' });
+    expect(s.padStates[f.padId]!.state).toBe('idle');
+  });
+
   it('a flank clears when the frog lands anywhere else', () => {
     const s = toFlank(7)!;
     const f = s.gator.flank!;

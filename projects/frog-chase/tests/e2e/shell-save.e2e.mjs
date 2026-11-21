@@ -10,8 +10,9 @@ const botWin = (page) =>
     const l = window.__lily;
     l.manualClock(true);
     l.setBot('runner');
-    for (let i = 0; i < 60 * 120 && !l.sim().result; i++) l.frame(1000 / 60);
-    l.frame(1000 / 60);
+    // 100 ms frames (12 ticks each): the full seed-7 crossing with 6x fewer renders; the save only sees the result.
+    for (let i = 0; i < 10 * 120 && !l.sim().result; i++) l.frame(100);
+    l.frame(100);
     return { result: l.sim().result, phase: l.phase() };
   });
 

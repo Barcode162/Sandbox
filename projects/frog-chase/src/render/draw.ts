@@ -5,7 +5,7 @@
  * Shared by the renderer and the UI tell diagram/legend so the card shows the exact pad the player saw.
  */
 import type { Pad, Slot } from '../contracts';
-import { FROG_DARK_SINK, FROG_SINK, GATOR_RISE, PAD_FILL, PAD_LOW_FILL, PAD_UNDER, PAD_VEIN, SHADOW, SINK_RAMP } from './color';
+import { FROG_DARK_SINK, FROG_SINK, GATOR_RISE, LIT_RIM, PAD_FILL, PAD_LOW_FILL, PAD_UNDER, PAD_VEIN, SHADOW, SINK_RAMP } from './color';
 import { rand3 } from './noise';
 import { PALETTE } from './palette';
 import type { Bubble, FrogPose, PadLook } from './pose';
@@ -92,7 +92,8 @@ export function buildPadShapes(pad: Pad): PadShapes {
 }
 
 /**
- * One pad (§4.2, §5.2). `level` indexes the light ramp (0 lit … 4 dim).
+ * One pad (§4.2, §5.2). `level` is the dim step (0 full value … 10 dim); `rim` adds the 2 px paper
+ * rim of a reachable pad (F-008), drawn under the soggy pad's 1 px ink rim so that tell survives.
  * Lily: notch, veins, hard shadow. Soggy: no shadow, no notch, 6% darker, 1 px ink rim. Curl: folded flap
  * with its own shadow; rocks; tilts and flips to its underside.
  */
@@ -112,7 +113,7 @@ export function drawPadShadow(ctx: CanvasRenderingContext2D, pad: Pad, shapes: P
 }
 
 /** Pad surface (draw every pad's shadow first with drawPadShadow, so shadows never fall on neighbours). */
-export function drawPad(ctx: CanvasRenderingContext2D, pad: Pad, shapes: PadShapes, look: PadLook, level: number, px: number): void {
+export function drawPad(ctx: CanvasRenderingContext2D, pad: Pad, shapes: PadShapes, look: PadLook, level: number, px: number, rim = false): void {
   const x = pad.x + look.dx, y = pad.y;
   const R = pad.r * look.scale;
   const ang = pad.rot + look.rock;
@@ -129,6 +130,11 @@ export function drawPad(ctx: CanvasRenderingContext2D, pad: Pad, shapes: PadShap
     ctx.fillStyle = look.under > 0 ? SINK_RAMP[Math.round(look.under * 10)]! : PAD_LOW_FILL[level]!;
     if (look.under > 0.6) ctx.globalAlpha = 1 - (look.under - 0.6) * 1.6;
     ctx.fill(shapes.body);
+    if (rim) {
+      ctx.lineWidth = (2 * px) / R;
+      ctx.strokeStyle = LIT_RIM;
+      ctx.stroke(shapes.body);
+    }
     // The only edge it has: a 1 px ink rim (§4.2).
     ctx.lineWidth = px / R;
     ctx.strokeStyle = 'rgba(29,43,58,0.55)';
@@ -152,6 +158,11 @@ export function drawPad(ctx: CanvasRenderingContext2D, pad: Pad, shapes: PadShap
   }
   ctx.fillStyle = PAD_FILL[level]!;
   ctx.fill(shapes.body);
+  if (rim) {
+    ctx.lineWidth = (2 * px) / R;
+    ctx.strokeStyle = LIT_RIM;
+    ctx.stroke(shapes.body);
+  }
   ctx.restore();
 
   // Veins, 1 px off-register (§5.2 print).
@@ -191,26 +202,27 @@ export function drawPad(ctx: CanvasRenderingContext2D, pad: Pad, shapes: PadShap
   }
 }
 
-/** Soggy bubbles (§4.2): paper discs r 1.2 wu at the rim, with a pop ring as each one breaks. */
+/** Soggy bubbles (§4.2, F-014): paper discs r 1.8 wu with a 1 px ink rim, rising 4 wu off the rim, then a pop ring. */
+export const BUBBLE_R = 1.8;
 export function drawBubble(ctx: CanvasRenderingContext2D, pad: Pad, dx: number, R: number, b: Bubble, px: number): void {
-  const bx = pad.x + dx + Math.cos(b.angle) * b.dist * R;
-  const by = pad.y + Math.sin(b.angle) * b.dist * R;
+  const d = b.dist * R + b.rise;
+  const bx = pad.x + dx + Math.cos(b.angle) * d;
+  const by = pad.y + Math.sin(b.angle) * d;
   if (b.scale > 0) {
-    const r = 1.2 * b.scale;
+    const r = BUBBLE_R * b.scale;
     ctx.fillStyle = PALETTE.paper;
     ctx.beginPath();
     ctx.arc(bx, by, r, 0, TAU);
     ctx.fill();
-    ctx.fillStyle = 'rgba(29,43,58,0.35)';
-    ctx.beginPath();
-    ctx.arc(bx - r * 0.25, by + r * 0.3, r * 0.32, 0, TAU);
-    ctx.fill();
+    ctx.strokeStyle = 'rgba(29,43,58,0.75)';
+    ctx.lineWidth = px;
+    ctx.stroke();
   } else if (b.pop > 0) {
     ctx.strokeStyle = PALETTE.paper;
     ctx.globalAlpha = 1 - b.pop;
     ctx.lineWidth = Math.max(px, 0.35);
     ctx.beginPath();
-    ctx.arc(bx, by, 1.2 + 1.4 * b.pop, 0, TAU);
+    ctx.arc(bx, by, BUBBLE_R + 1.6 * b.pop, 0, TAU);
     ctx.stroke();
     ctx.globalAlpha = 1;
   }
@@ -296,7 +308,8 @@ const FROG_BODY = (() => {
 
 /** Leg polyline points, folded (0) → open V (1). Hip, knee, foot for the +y side (mirrored for −y). */
 const LEG_FOLD = [-2.2, 1.9, -3.6, 3.2, -1.2, 3.7];
-const LEG_OPEN = [-2.6, 1.6, -4.6, 3.3, -6.6, 3.9];
+/** Open V: 0.7× the old reach (F-018), still clearly a kick. */
+const LEG_OPEN = [-2.6, 1.6, -4.0, 2.8, -5.4, 3.2];
 const legPts = new Float32Array(6);
 
 function legPath(ctx: CanvasRenderingContext2D, legs: number, side: 1 | -1): void {
@@ -319,7 +332,7 @@ export function drawFrog(ctx: CanvasRenderingContext2D, p: FrogPose, alpha: numb
   ctx.fillStyle = PALETTE.ink;
   ctx.fill(FROG_BODY!);
   ctx.strokeStyle = PALETTE.ink;
-  ctx.lineWidth = 1.9;
+  ctx.lineWidth = 2.5;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   ctx.beginPath();
@@ -336,25 +349,22 @@ export function drawFrog(ctx: CanvasRenderingContext2D, p: FrogPose, alpha: numb
   const dark = FROG_DARK_SINK[sink]!;
   // Hind legs under the body; webbed feet when open.
   ctx.strokeStyle = dark;
-  ctx.lineWidth = 1.9;
+  ctx.lineWidth = 2.5;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   ctx.beginPath();
   legPath(ctx, p.legs, 1);
   legPath(ctx, p.legs, -1);
   ctx.stroke();
-  if (p.legs > 0.25) {
-    ctx.fillStyle = dark;
-    for (const side of SIDES) {
-      const fx = legPts[4]!, fy = legPts[5]! * side;
-      ctx.beginPath();
-      ctx.moveTo(fx + 0.8, fy);
-      ctx.lineTo(fx - 1.5, fy + 1.5 * side);
-      ctx.lineTo(fx - 1.7, fy - 0.9 * side);
-      ctx.closePath();
-      ctx.fill();
-    }
+  // Webbed feet: a round blob (r 1 wu) at each tip, growing as the legs open (F-018).
+  ctx.fillStyle = dark;
+  ctx.beginPath();
+  for (const side of SIDES) {
+    const fr = 0.75 + 0.25 * p.legs;
+    ctx.moveTo(legPts[4]! + fr, legPts[5]! * side);
+    ctx.arc(legPts[4]!, legPts[5]! * side, fr, 0, TAU);
   }
+  ctx.fill();
   // Front feet.
   ctx.fillStyle = dark;
   ctx.beginPath();

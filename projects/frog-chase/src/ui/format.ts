@@ -40,8 +40,8 @@ export interface CardCopy {
   /** Best-line parts for the crossed-out old best on a new best: [old, new]. */
   bestFromTo: [string, string] | null;
   hint: string | null;
-  /** Tell-diagram callouts (sunk only). */
-  callouts: [string, string] | null;
+  /** Tell-diagram callouts (sunk only): [low edge, top-right, top-left]. */
+  callouts: readonly string[] | null;
   footer: string;
 }
 
@@ -69,8 +69,8 @@ export function cardCopy(r: RunResult, v: Pick<ViewState, 'prevBestMs' | 'newBes
       titleTime: null,
       line: progress,
       bestFromTo: null,
-      hint: curl ? 'Folded edge. Rocking. Sneaky.' : 'No shadow. Bubbles. Sneaky.',
-      callouts: curl ? ['curled edge', 'rocks'] : ['no shadow', 'bubbles'],
+      hint: curl ? 'Curled edge. Rocks. Sneaky.' : 'No shadow. Bubbles. Sneaky.',
+      callouts: curl ? ['curled edge', 'rocks'] : ['no shadow', 'bubbles', 'no notch'],
       footer: COPY.again,
     };
   }

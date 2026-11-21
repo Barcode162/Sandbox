@@ -107,8 +107,9 @@ export const BUBBLE_PERIOD_S = 0.42;
 export interface Bubble {
   /** Angle around the rim, radians (world frame). */
   angle: number;
-  /** Distance from the centre as a fraction of r. */
+  /** Distance from the centre as a fraction of r, plus how far it has risen outward (wu, 0 → 4). */
   dist: number;
+  rise: number;
   /** Disc scale 0..1 (0 = not visible) and pop-ring progress 0..1 (0 = no ring). */
   scale: number;
   pop: number;
@@ -119,7 +120,8 @@ export function bubbleAt(pad: Pad, i: 0 | 1, tellS: number, out: Bubble): Bubble
   const n = Math.floor(cyc);
   const u = cyc - n;
   out.angle = pad.rot + Math.PI + (rand3(pad.id, n, i) - 0.5) * 2.4 + i * 0.9;
-  out.dist = 0.86 + 0.18 * u;
+  out.dist = 0.9;
+  out.rise = 4 * EASE_UI(Math.min(1, u / 0.75));
   if (u < 0.75) {
     out.scale = EASE_UI(Math.min(1, u / 0.3 + 0.12));
     out.pop = 0;

@@ -44,7 +44,7 @@ function memStore(init: Record<string, string> = {}) {
 }
 
 type Circle = { x: number; y: number; r: number };
-function rig(o: { storage?: ReturnType<typeof memStore>; osReduced?: boolean; fixedSeed?: number | null; screen?: (id: number) => Circle | null } = {}) {
+function rig(o: { storage?: ReturnType<typeof memStore>; osReduced?: boolean; fixedSeed?: number | null; screen?: (id: number) => Circle | null; real?: boolean } = {}) {
   const sim = scriptedSim();
   let wall = 1000;
   let lastView: ViewState | null = null;
@@ -66,7 +66,7 @@ function rig(o: { storage?: ReturnType<typeof memStore>; osReduced?: boolean; fi
     fixedSeed: o.fixedSeed === undefined ? 7 : o.fixedSeed,
     sessionSalt: 1234,
     wallNow: () => wall,
-    sim: sim.api,
+    sim: o.real ? undefined : sim.api,
   });
   shell.hook.manualClock(true);
   /** Advance n 60 Hz frames, with wall time moving in step. */
@@ -196,6 +196,20 @@ describe('phases (§7.1, §7.6, §7.7)', () => {
   });
 });
 
+describe('frame path (F-006)', () => {
+  it('hands the renderer one reused ViewState, refreshed every frame', () => {
+    const r = rig();
+    r.frames(17);
+    const v1 = r.view();
+    const t1 = v1.nowMs;
+    r.hook.press('F');
+    r.frames(34);
+    expect(r.view()).toBe(v1);
+    expect(r.view().nowMs).toBeGreaterThan(t1);
+    expect(r.view().phase).toBe('play');
+  });
+});
+
 describe('best time and settings persist (§7.7, polish 20)', () => {
   it('first-ever win is firstRun, not newBest; a faster win is newBest with the old best kept for the card', () => {
     const store = memStore();
@@ -251,5 +265,100 @@ describe('best time and settings persist (§7.7, polish 20)', () => {
     const again = rig({ storage: store, osReduced: false });
     expect(again.hook.settings()).toEqual({ muted: true, reducedMotion: true });
     expect(again.audio.setMuted).toHaveBeenCalledWith(true);
+  });
+});
+
+describe('tap timing against the real sim (F-003: a quick second tap never lands on a third pad)', () => {
+  const TICK = 1000 / 120;
+  /** Every pad drawn at 4 px/wu, so a tap at a pad's centre means exactly that pad. */
+  function realRig() {
+    let sim: SimState;
+    const r = rig({ real: true, screen: (id) => {
+      const p = sim.river.pads[id]!;
+      return { x: p.x * 4, y: 2000 - p.y * 4, r: p.r * 4 };
+    } });
+    sim = r.hook.sim()!;
+    /** A real tap: the pad if pick() claims it, else (like input.ts) the screen third, here F. */
+    const tap = (id: number) => {
+      const p = sim.river.pads[id]!;
+      const hit = r.shell.pick(p.x * 4, 2000 - p.y * 4);
+      r.shell.intent(hit !== null ? { type: 'hopPad', padId: hit } : { type: 'hop', slot: 'F' });
+      return hit;
+    };
+    const pick = (id: number) => {
+      const p = sim.river.pads[id]!;
+      return r.shell.pick(p.x * 4, 2000 - p.y * 4);
+    };
+    const tick = (n = 1) => r.hook.frame(TICK, n);
+    const lands = () => sim.log.filter((e) => e.t === 'land').map((e) => (e as { pad: number }).pad);
+    return { r, sim: () => sim, tap, pick, tick, lands };
+  }
+
+  it('the reviewer case: L pad, then an R pad one layer further within 40 ms, does not retarget the hop', () => {
+    const { sim, tap, tick, lands } = realRig();
+    const [l1, , r1] = sim().river.layers[1]!;
+    const r2 = sim().river.layers[2]!.at(-1)!;
+    tap(l1!.id);
+    tick();
+    expect(sim().frog.targetId).toBe(l1!.id);
+    tap(r2.id); // 1 tick into squash, inside the retarget window
+    tick(40);
+    expect(sim().log.some((e) => e.t === 'retarget')).toBe(false);
+    expect(lands()).toEqual([l1!.id]);
+    expect(lands()).not.toContain(r1!.id);
+  });
+
+  it('a second tap on the other target-layer pad within 40 ms retargets to that pad', () => {
+    const { sim, tap, tick, lands } = realRig();
+    const [l1, , r1] = sim().river.layers[1]!;
+    tap(l1!.id);
+    tick(2);
+    expect(tap(r1!.id)).toBe(r1!.id);
+    tick(40);
+    expect(lands()).toEqual([r1!.id]);
+  });
+
+  it('a tap on a next-layer pad in the buffer window hops there on landing', () => {
+    const { sim, tap, tick, lands } = realRig();
+    const f1 = sim().river.layers[1]![1]!;
+    const l2 = sim().river.layers[2]![0]!;
+    tap(f1.id);
+    tick(25); // ~200 ms into a 258 ms hop: inside the 150 ms buffer
+    tap(l2.id);
+    tick(80);
+    expect(lands()).toEqual([f1.id, l2.id]);
+  });
+
+  it('for every tap moment of the hop and every pad of layers 1–2, the frog only lands where it was sent', () => {
+    const base = realRig();
+    const L1 = base.sim().river.layers[1]!;
+    const L2 = base.sim().river.layers[2]!;
+    let checked = 0;
+    for (const first of L1) {
+      for (let at = 0; at <= 32; at++) {
+        for (const second of [...L1, ...L2]) {
+          const { sim, tap, pick, tick, lands } = realRig();
+          tap(first.id);
+          tick(1 + at);
+          const airborne = sim().frog.phase === 'squash' || sim().frog.phase === 'air';
+          if (pick(second.id) === null) {
+            // Only a grounded frog may hand a tap on these pads to the screen thirds.
+            expect(airborne, `pad ${second.id} at tick +${at} fell through to a third mid-hop`).toBe(false);
+            checked++;
+            continue;
+          }
+          tap(second.id);
+          tick(90);
+          const got = lands();
+          expect(got.length).toBeGreaterThan(0);
+          // Hop 1 lands on the first pad, or on the second when it was a retarget inside layer 1.
+          expect([first.id, second.id]).toContain(got[0]);
+          // Any hop 2 goes to the tapped layer-2 pad and nowhere else.
+          for (const p of got.slice(1)) expect(p).toBe(second.id);
+          checked++;
+        }
+      }
+    }
+    expect(checked).toBe(L1.length * 33 * (L1.length + L2.length));
   });
 });

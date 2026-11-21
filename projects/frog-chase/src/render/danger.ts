@@ -9,8 +9,9 @@ export const jawRad = (tau: number): number => ((28 * Math.PI) / 180) * smooth(r
 
 /**
  * Vignette alpha for threat τ at heartbeat phase `hb` (0..1, from sim `heartbeatPhase`, polish 14).
- * The double thump is lub at the wrap (phase 0, alpha exactly 0.35τ) and dub 120 ms later; between beats
- * it rests at 72%. Everything comes from the current sim, so a fresh run (τ = 0) shows none.
+ * 0.45τ, floored at 0.10 once τ > 0.3 so it reads on a phone (F-011). The double thump is lub at the wrap
+ * (phase 0, full alpha) and dub 120 ms later; between beats it rests at 72%. Everything comes from the
+ * current sim, so a fresh run (τ = 0) shows none.
  */
 export function vignetteAlpha(tau: number, hb: number): number {
   if (tau <= 0) return 0;
@@ -18,5 +19,15 @@ export function vignetteAlpha(tau: number, hb: number): number {
   const gap = (0.12 * bpm) / 60;
   const lub = Math.exp(-hb * 9);
   const dub = hb > gap ? 0.75 * Math.exp(-(hb - gap) * 9) : 0;
-  return 0.35 * tau * (0.72 + 0.28 * Math.max(lub, dub));
+  const peak = Math.max(0.45 * tau, tau > 0.3 ? 0.1 : 0);
+  return peak * (0.72 + 0.28 * Math.max(lub, dub));
+}
+
+/**
+ * The 6 px jaw band on the bottom edge: solid at the lub (one flash per beat, ≤ 2.3 per second at
+ * 140 bpm, inside §10's 3 per second), fading in with τ from 0.3 to 0.7.
+ */
+export function bottomBandAlpha(tau: number, hb: number): number {
+  const k = Math.min(1, Math.max(0, (tau - 0.3) / 0.4));
+  return k * Math.exp(-hb * 12);
 }

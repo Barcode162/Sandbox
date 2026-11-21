@@ -10,8 +10,8 @@ import type { Pad, Renderer, SimEvent, SimState, Slot, Vec2, ViewState } from '.
 import { heartbeatPhase } from '../sim/sim';
 import { createCamera, createView, stepCamera, sx, sy, updateView, winGoal, wx, wy, DANGER_ZOOM } from './camera';
 import { advancePresentation } from './clock';
-import { eyeScale, jawRad, vignetteAlpha } from './danger';
-import { SHADOW, rgba } from './color';
+import { bottomBandAlpha, eyeScale, jawRad, vignetteAlpha } from './danger';
+import { DIM_AHEAD, DIM_BEHIND, SHADOW, rgba } from './color';
 import { VISUAL_CUES, cueImpulse } from './cues';
 import { buildPadShapes, createHeadLook, drawBubble, drawChip, drawFrog, drawGatorBody, drawGatorHead, drawPad, drawPadShadow, drawScutes, type ChipGlyph, type PadShapes } from './draw';
 import { EASE_POP, EASE_UI, clamp01, lerp, remap, smooth } from './ease';
@@ -64,6 +64,13 @@ export interface RenderProbe {
   chips: number;
   pressedChipInverted: boolean;
   cues: Record<string, number>;
+  /** Frames on which a dragonfly came within 2 wu of a reachable pad's rim (F-009: expect 0). */
+  flyOverChoice: number;
+  /** Landing droplets that came down on the pad instead of the water (polish 10, F-010: expect 0). */
+  dropletsOnPad: number;
+  droplets: number;
+  /** Near-miss: gap (wu) from the snout tip to the frog's shadow centre on the flash frame (F-013: ≥ 0.3P). */
+  clackGap: number;
   /** Renderer.pickPad, for tests that cannot synthesise a tap at an exact point. */
   pick: (x: number, y: number) => number | null;
 }
@@ -74,6 +81,9 @@ declare global {
   }
 }
 
+/** Hinge → snout tip of the head, wu (draw.ts SNOUT plus the rounded tip). */
+const SNOUT_TIP = 10.5;
+const lerpAngle = (a: number, b: number, t: number): number => a + Math.atan2(Math.sin(b - a), Math.cos(b - a)) * t;
 const DASH = [3, 3];
 const NO_DASH: number[] = [];
 
@@ -121,10 +131,11 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
   const look = createPadLook();
   const head = createHeadLook();
   const flankHead = createHeadLook();
-  const bub: Bubble = { angle: 0, dist: 0, scale: 0, pop: 0 };
+  const bub: Bubble = { angle: 0, dist: 0, rise: 0, scale: 0, pop: 0 };
   const tmp: Vec2 = { x: 0, y: 0 };
   const tmp2: Vec2 = { x: 0, y: 0 };
   let body = new Float32Array(2 * 12);
+  const choiceIds = [0, 0, 0], choiceR = [0, 0, 0];
 
   // Clocks.
   let rt = 0, jt = 0, at = 0, tt = 0;
@@ -134,6 +145,8 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
   let simRef: SimState | null = null;
   let shapes: (PadShapes | null)[] = [];
   let dipAt = new Float64Array(0);
+  /** Current dim step per pad, eased toward its target over 120 ms (F-008); −1 = not yet seen. */
+  let dimOf = new Float32Array(0);
   let chipBorn = new Float64Array(0);
   let xAt = new Float64Array(0);
   let dX = new Float32Array(0), dY = new Float32Array(0), dR = new Float32Array(0);
@@ -144,7 +157,8 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
   let pressedPad = -1, pressedAt = -1;
   let pressedSlot: Slot = 'F';
   let hookAt = -1, eatAt = -1, winAt = -1, sunkAt = -1, escapeAt = -1;
-  let clackAt = -1, clackX = 0, clackY = 0;
+  let landPad = -1;
+  let clackAt = -1, clackX = 0, clackY = 0, clackHeading = 0;
   let pendingFlashAt = -1;
   let pendingHold = 0;
   let flankPad = -1, flankAt = -1, flankArmedAt = -1, flankClearAt = -1;
@@ -159,6 +173,7 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
     camY: 0, zoom: 1, shake: 0, tau: 0, vignette: 0, eyeScale: 1, jawDeg: 0, toothFlashFrames: 0,
     gatorVisible: false, flankJaws: false, traceProgress: 0, inviteRing: false, chips: 0, pressedChipInverted: false,
     cues: Object.fromEntries(Object.keys(VISUAL_CUES).map((k) => [k, 0])),
+    flyOverChoice: 0, dropletsOnPad: 0, droplets: 0, clackGap: -1,
     pick: (x, y) => renderer.pickPad(x, y),
   };
   canvas.__lilyRender = probe;
@@ -168,6 +183,7 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
     const n = sim.river.pads.length;
     shapes = new Array(n).fill(null);
     dipAt = new Float64Array(n).fill(-1e9);
+    dimOf = new Float32Array(n).fill(-1);
     chipBorn = new Float64Array(n).fill(-1);
     xAt = new Float64Array(n).fill(-1);
     dX = new Float32Array(n);
@@ -210,11 +226,30 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
       for (let id = 0; id < dStamp.length; id++) {
         if (dStamp[id] !== drawFrame) continue;
         const p = sim.river.pads[id]!;
-        if (p.kind !== 'lily' || sim.padStates[id]!.state !== 'idle' || id === sim.frog.padId) continue;
+        if (p.kind !== 'lily' || sim.padStates[id]!.state !== 'idle' || id === sim.frog.padId || id === sim.frog.targetId) continue;
         n++;
         if (rand3(salt, id) * n < 1) pick = id;
       }
       return pick;
+    },
+    restOk(id: number): boolean {
+      const sim = simRef!;
+      return sim.river.pads[id]!.kind === 'lily' && sim.padStates[id]!.state === 'idle' && id !== sim.frog.padId && id !== sim.frog.targetId;
+    },
+    clear(p: Vec2): Vec2 {
+      const sim = simRef!;
+      for (let i = 0; i < sim.choices.length; i++) {
+        const pad = sim.river.pads[sim.choices[i]!.padId]!;
+        if (pad.kind === 'bank') continue;
+        const cx = pad.x + padSwayX(pad, at), cy = pad.y;
+        const dx = p.x - cx, dy = p.y - cy;
+        const d = Math.hypot(dx, dy), min = pad.r + 6;
+        if (d >= min) continue;
+        const ux = d > 1e-6 ? dx / d : 0, uy = d > 1e-6 ? dy / d : 1;
+        p.x = cx + ux * min;
+        p.y = cy + uy * min;
+      }
+      return p;
     },
     blocked(x: number, y: number): boolean {
       const sim = simRef!;
@@ -272,6 +307,7 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
         break;
       case 'land': {
         dipAt[e.pad] = jt;
+        landPad = sim.river.pads[e.pad]!.kind === 'bank' ? -1 : e.pad;
         const p = pads[e.pad]!;
         padPos(e.pad, tmp);
         if (p.kind === 'bank') {
@@ -279,12 +315,11 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
         } else {
           ripples.spawn(tmp.x, tmp.y, p.r, p.r * 1.8, 0.5, 0.5);
           ripples.spawn(tmp.x, tmp.y, p.r, p.r * 1.8, 0.5, 0.5, 0.09);
-          // 6 droplets thrown from under the frog to beyond the rim: they land on water (polish 10).
+          // 6 droplets thrown from the rim (1.0–1.1r) to open water (1.25–1.6r): never on the leaf (polish 10, F-010).
           for (let i = 0; i < 6; i++) {
-            const a = sim.frog.slot === 'L' ? 0.3 : 0;
-            const ang = a + (i / 6) * TAU + (rand3(e.tick, i, 1) - 0.5) * 0.7;
-            const from = p.r * 0.35;
-            const to = p.r * (1.3 + 0.35 * rand3(e.tick, i, 2));
+            const ang = (i / 6) * TAU + (rand3(e.tick, i, 1) - 0.5) * 0.7;
+            const from = p.r * (1.0 + 0.1 * rand3(e.tick, i, 4));
+            const to = p.r * (1.25 + 0.35 * rand3(e.tick, i, 2));
             const lifeS = 0.22;
             const sp = (to - from) / lifeS;
             const peak = 2.2 + 1.4 * rand3(e.tick, i, 3);
@@ -344,12 +379,14 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
       case 'nearMiss': {
         clackAt = jt;
         pendingFlashAt = jt + 45;
+        // The snout TIP snaps shut 0.3P behind the frog's shadow centre along the hop axis (§6, F-013):
+        // the head's hinge goes a further snout length back, pointing along the hop.
         poseNow(sim);
-        gatorHeadPos(sim, simAlpha, tmp);
-        const dx = pose.x - tmp.x, dy = pose.y - tmp.y;
-        const d = Math.hypot(dx, dy) || 1;
-        clackX = pose.x - (dx / d) * 0.3 * sim.tuning.pitch;
-        clackY = pose.y - (dy / d) * 0.3 * sim.tuning.pitch;
+        const shx = pose.x + 0.35 * pose.shadowH, shy = pose.y - 0.45 * pose.shadowH;
+        clackHeading = pose.facing;
+        const back = 0.3 * sim.tuning.pitch + SNOUT_TIP;
+        clackX = shx - Math.cos(clackHeading) * back;
+        clackY = shy - Math.sin(clackHeading) * back;
         break;
       }
       case 'eaten':
@@ -375,11 +412,11 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
         poseNow(sim);
         for (let i = 0; i < 24; i++) {
           const a = (i / 24) * TAU + rand3(e.tick, i, 8) * 0.25;
-          const lifeS = 0.4 + 0.5 * rand3(e.tick, i, 9);
+          const lifeS = 0.9;
           const sp = 16 + 18 * rand3(e.tick, i, 10);
           const peak = 3 + 4 * rand3(e.tick, i, 11);
           const g = (8 * peak) / (lifeS * lifeS) * 0.6;
-          const k = particles.spawn(PK.Petal, pose.x, pose.y, Math.cos(a) * sp, Math.sin(a) * sp, 0.5, Math.sqrt(2 * g * peak), g, lifeS, 1.4 + rand3(e.tick, i, 12) * 0.8);
+          const k = particles.spawn(PK.Petal, pose.x, pose.y, Math.cos(a) * sp, Math.sin(a) * sp, 0.5, Math.sqrt(2 * g * peak), g, lifeS, 2.5 + rand3(e.tick, i, 12) * 0.8);
           particles.spin[k] = (rand3(e.tick, i, 13) - 0.5) * 12;
           particles.rot[k] = a;
         }
@@ -550,7 +587,7 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
       let focusY = pose.y, zoom = tau > 0.7 && !reduced ? DANGER_ZOOM : 1, cut = false;
       if (eatAt >= 0) focusY = eatY;
       if (winAt >= 0 && jt - winAt > 150) {
-        const goal = winGoal(w, h, northY + 14, northY + 14);
+        const goal = winGoal(w, h, northY + 14, -6);
         focusY = goal.focusY;
         zoom = goal.zoom;
         cut = reduced;
@@ -702,9 +739,13 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
               drawPadShadow(ctx, p, shapeOf(p), look);
               continue;
             }
-            const lit = isChoice(p.id) || rt_.state === 'reachable';
-            const level = lit ? 0 : p.id === sim.frog.padId ? 1 : k > frogLayer + 1 ? (k > frogLayer + 2 ? 2 : 1) : 3;
-            drawPad(ctx, p, shapeOf(p), look, level, px);
+            const lit = isChoice(p.id) || rt_.state === 'reachable' || rt_.state === 'flanked';
+            const target = lit || p.id === sim.frog.padId || p.id === sim.frog.targetId ? 0 : k > frogLayer ? DIM_AHEAD : DIM_BEHIND;
+            const was = dimOf[p.id]!;
+            const step = (dt / 120) * DIM_AHEAD;
+            const d = was < 0 || dStamp[p.id] !== drawFrame - 1 ? target : was < target ? Math.min(target, was + step) : Math.max(target, was - step);
+            dimOf[p.id] = d;
+            drawPad(ctx, p, shapeOf(p), look, Math.round(d), px, lit && d < 1);
             if (p.kind === 'soggy' && look.sink < 1) {
               const R = p.r * look.scale;
               bubbleAt(p, 0, tt, bub);
@@ -738,6 +779,11 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
       head.x = hx;
       head.y = hy + headDy;
       head.heading = g.heading;
+      if (clackAt >= 0 && jt - clackAt < 260) {
+        const e = jt - clackAt;
+        const inn = e < 45 ? EASE_UI(e / 45) : 1 - EASE_UI(clamp01((e - 110) / 150));
+        head.heading = lerpAngle(g.heading, clackHeading, inn);
+      }
       if (eatAt >= 0) head.heading = Math.atan2(eatY - tmp.y, eatX - tmp.x) || g.heading;
       head.jaw = jaw;
       head.eyeScale = eyeScale(tau);
@@ -753,6 +799,7 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
         head.flash = true;
         pendingFlashAt = -1;
         probe.toothFlashFrames++;
+        probe.clackGap = Math.hypot(hx + Math.cos(head.heading) * SNOUT_TIP - (pose.x + 0.35 * pose.shadowH), hy + Math.sin(head.heading) * SNOUT_TIP - (pose.y - 0.45 * pose.shadowH));
         const imp = cueImpulse('nearMiss', reduced);
         pendingHold = Math.max(pendingHold, imp.hitStopMs);
         shake.kick(imp.shakePx, imp.shakeMs);
@@ -859,13 +906,22 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
       }
 
       // ── Particles.
-      particles.step(dts, (x, y, size) => ripples.spawn(x, y, size * 0.6, size * 2.6, 0.32, 0.45));
+      particles.step(dts, (x, y, size) => {
+        ripples.spawn(x, y, size * 0.6, size * 2.6, 0.32, 0.45);
+        if (landPad >= 0) {
+          const lp = sim.river.pads[landPad]!;
+          probe.droplets++;
+          if (Math.hypot(x - lp.x, y - lp.y) < lp.r * 1.08) probe.dropletsOnPad++;
+        }
+      });
       for (let i = 0; i < particles.cap; i++) {
         if (particles.life[i]! <= 0) continue;
         const kind = particles.kind[i]!;
         const u = particles.age[i]! / particles.life[i]!;
         const x = particles.x[i]!, y = particles.y[i]!, z = particles.z[i]!, s = particles.size[i]!;
         if (kind === PK.Petal) {
+          // Petals live above the zoom: constant screen size while the camera pulls out (F-012).
+          const s = particles.size[i]! / camera.zoom.x;
           ctx.globalAlpha = 1 - smooth(remap(u, 0.7, 1));
           ctx.fillStyle = SHADOW;
           ctx.beginPath();
@@ -882,7 +938,8 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
           ctx.arc(x, y, s * (0.6 + 0.6 * u), 0, TAU);
           ctx.fill();
         } else {
-          ctx.globalAlpha = 1;
+          // Droplets fade over their last 60 ms (they meet the water, F-010).
+          ctx.globalAlpha = kind === PK.Droplet ? 1 - clamp01((particles.age[i]! - (particles.life[i]! - 0.06)) / 0.06) : 1;
           if (z > 0.1) {
             ctx.fillStyle = SHADOW;
             ctx.beginPath();
@@ -952,6 +1009,14 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
       drawReeds(ctx, reeds, nr, at, true);
       drawReeds(ctx, reeds, nr, at, false);
       life.drawAir(ctx);
+      let nc = 0;
+      for (let i = 0; i < sim.choices.length && i < 3; i++) {
+        const cp = sim.river.pads[sim.choices[i]!.padId]!;
+        if (cp.kind === 'bank') continue;
+        choiceIds[nc] = cp.id;
+        choiceR[nc++] = cp.r;
+      }
+      if (nc && life.minChoiceGap(lifeWorld, choiceIds, choiceR, nc) < 2) probe.flyOverChoice++;
 
       // ── Print grain and the danger vignette (screen space).
       setScreen();
@@ -972,6 +1037,13 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
         ctx.fillRect(-1, -cy / ey, 2, h / ey);
         ctx.globalAlpha = 1;
         setScreen();
+        const band = bottomBandAlpha(tau, heartbeatPhase(sim)) * (winAt >= 0 ? 0 : 1);
+        if (band > 0.01) {
+          ctx.globalAlpha = band;
+          ctx.fillStyle = PALETTE.jaw;
+          ctx.fillRect(0, h - 6, w, 6);
+          ctx.globalAlpha = 1;
+        }
       }
 
       // Win stamp shake (the stamp itself is DOM, §7.5 step 5).
@@ -1025,10 +1097,10 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
 
   /** Unit-circle gradient, drawn stretched to an ellipse that reaches the bottom and side edges (§4.3, 0.35τ). */
   function makeVignette(): CanvasGradient {
-    const g = ctx!.createRadialGradient(0, 0, 0.5, 0, 0, 1);
+    const g = ctx!.createRadialGradient(0, 0, 0.3, 0, 0, 1);
     g.addColorStop(0, rgba(PALETTE.jaw, 0));
-    g.addColorStop(0.55, rgba(PALETTE.jaw, 0.55));
-    g.addColorStop(0.78, rgba(PALETTE.jaw, 1));
+    g.addColorStop(0.5, rgba(PALETTE.jaw, 0.5));
+    g.addColorStop(0.8, rgba(PALETTE.jaw, 1));
     return g;
   }
 

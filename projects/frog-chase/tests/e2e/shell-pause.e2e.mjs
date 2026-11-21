@@ -43,14 +43,23 @@ await withPage('pause triggers (desktop)', { viewport: VIEWPORTS.desktop }, asyn
   await page.evaluate(() => window.dispatchEvent(new Event('blur')));
   check((await phase(page)) === 'paused', 'window blur pauses');
   await page.keyboard.press('Escape');
-  const btn = page.locator('#ui button[aria-label*="ause" i], #ui [data-test="pause"]').first();
-  if (await btn.count()) {
-    await btn.click();
-    check((await phase(page)) === 'paused', 'the pause button pauses');
-    await page.keyboard.press('Escape');
-    await page.keyboard.press('ArrowUp'); // focus was on the button: the key must hop, not re-click it
-    check((await phase(page)) === 'play', 'after clicking the button, ↑ hops instead of re-pressing it');
-  } else console.log('  note pause button not in the DOM yet (WO-003); covered by the UiCallbacks unit test');
+  const btn = page.locator('#ui [data-test="pause"]');
+  check((await btn.count()) === 1, `pause button present (#ui [data-test="pause"], found ${await btn.count()})`);
+  await btn.click({ timeout: 2000 });
+  check((await phase(page)) === 'paused', 'the pause button pauses');
+  await frozen(page, 'button');
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => window.__lily.sim().frog.phase === 'idle', null, { polling: 'raf', timeout: 2000 });
+  const hops = await page.evaluate(() => window.__lily.events().filter((e) => e.t === 'hop').length);
+  await page.keyboard.press('ArrowUp'); // focus was on the button: the key must hop, not re-click it
+  const hopped = await page
+    .waitForFunction((n) => {
+      const c = window.__lily.events().filter((e) => e.t === 'hop').length;
+      return c > n && c;
+    }, hops, { polling: 'raf', timeout: 1000 })
+    .then((h) => h.jsonValue())
+    .catch(() => hops);
+  check(hopped === hops + 1 && (await phase(page)) === 'play', `after clicking the button, ↑ hops instead of re-pressing it (${hopped - hops} hop)`);
 });
 
 await withPage('reduced motion follows the OS (mobile)', { viewport: VIEWPORTS.mobile, reducedMotion: 'reduce' }, async ({ page }) => {

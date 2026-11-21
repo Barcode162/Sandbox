@@ -17,7 +17,7 @@ interface Slot {
 }
 
 const look: PadLook = createPadLook();
-const bub: Bubble = { angle: 0, dist: 0, scale: 0, pop: 0 };
+const bub: Bubble = { angle: 0, dist: 0, rise: 0, scale: 0, pop: 0 };
 
 /** A pad moved to the origin (diagrams draw in their own frame). */
 function atOrigin(p: Pad): Slot {
@@ -57,7 +57,7 @@ function paintPad(ctx: CanvasRenderingContext2D, s: Slot, cx: number, cy: number
   ctx.save();
   ctx.setTransform(dpr * k, 0, 0, -dpr * k, dpr * cx, dpr * cy);
   drawPadShadow(ctx, p, s.shapes, look);
-  drawPad(ctx, p, s.shapes, look, 1, 1 / k);
+  drawPad(ctx, p, s.shapes, look, 0, 1 / k);
   if (p.kind === 'soggy') {
     for (const i of [0, 1] as const) {
       bubbleAt(p, i, tellS, bub);
@@ -86,9 +86,9 @@ export class TellDiagram {
   readonly canvas: HTMLCanvasElement;
   private culprit: Slot;
   private honest: Slot;
-  private callouts: [string, string];
+  private callouts: readonly string[];
 
-  constructor(culprit: Pad, honest: Pad | null, callouts: [string, string]) {
+  constructor(culprit: Pad, honest: Pad | null, callouts: readonly string[]) {
     this.canvas = document.createElement('canvas');
     this.canvas.setAttribute('role', 'img');
     this.canvas.setAttribute('aria-label', `Tell diagram: ${callouts.join(' and ')}`);
@@ -122,7 +122,7 @@ export class TellDiagram {
     ctx.fillText('honest', hx, cy + R + 14 > cssH - 8 ? cssH - 8 : cy + R + 14);
     ctx.strokeStyle = PALETTE.paper;
     ctx.lineWidth = 2;
-    const [a, b] = this.callouts;
+    const a = this.callouts[0] ?? '', b = this.callouts[1] ?? '', c = this.callouts[2];
     const p = this.culprit.pad;
     const lx = cssW - 6;
     ctx.textAlign = 'right';
@@ -156,6 +156,14 @@ export class TellDiagram {
         ctx.fill();
       }
       arrow(ctx, lx - ctx.measureText(b).width * 0.5, 22, cx + R * 0.5, cy - r2 + 2);
+    }
+    if (c) {
+      // "no notch": top-left, pointing at the culprit's unbroken rim, beside the honest pad's notch (F-014).
+      ctx.textAlign = 'left';
+      const x0 = cssW * 0.4;
+      ctx.fillText(c, x0, 12);
+      const ra = Math.PI * 0.72;
+      arrow(ctx, x0 + ctx.measureText(c).width * 0.5, 22, cx + Math.cos(ra) * R * 1.02, cy - Math.sin(ra) * R * 1.02);
     }
   }
 }

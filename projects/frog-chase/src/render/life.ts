@@ -21,6 +21,10 @@ export interface LifeWorld {
   pickRestPad(salt: number): number;
   /** True if a world point is on a pad or on sand (striders and sparkles stay on open water). */
   blocked(x: number, y: number): boolean;
+  /** Still a fair place to rest: an idle, non-reachable lily (F-009). */
+  restOk(id: number): boolean;
+  /** Push a point to ≥ r + 6 wu from every reachable pad (flight never hides a chip or a tell, F-009). */
+  clear(p: Vec2): Vec2;
 }
 
 interface Fly {
@@ -79,6 +83,19 @@ export class Life {
     for (let i = 0; i < 3; i++) this.striders.push({ x: 0, y: 0, x0: 0, y0: 0, x1: 0, y1: 0, jumpAt: 0.4 * i, js: -1, heading: 0, n: 0 });
     for (let i = 0; i < 4; i++) this.petals.push({ x: 0, y: 0, rot: 0, spin: 0, size: 1.2 });
     for (let i = 0; i < 5; i++) this.sparks.push({ x: 0, y: 0, start: -1, n: 0 });
+  }
+
+  /** Smallest gap (wu) between a flying or resting dragonfly and a reachable pad's rim, or Infinity. */
+  minChoiceGap(w: LifeWorld, ids: readonly number[], radii: readonly number[], n: number): number {
+    let best = Infinity;
+    for (let i = 0; i < this.flies.length; i++) {
+      const f = this.flies[i]!;
+      for (let k = 0; k < n; k++) {
+        w.padPos(ids[k]!, tmp);
+        best = Math.min(best, Math.hypot(f.x - tmp.x, f.y - tmp.y) - radii[k]!);
+      }
+    }
+    return best;
   }
 
   reset(seed: number): void {
@@ -141,6 +158,12 @@ export class Life {
             f.until = t + 1.1;
           } else f.until = t + 2;
         }
+      } else if (!w.restOk(f.pad)) {
+        // The pad just became a choice (or flanked): take off at once.
+        f.mode = 0;
+        f.until = t + 3 + rand3(this.seed, i + 5, f.n) * 2;
+        tx = f.x;
+        ty = f.y + 6;
       } else {
         w.padPos(f.pad, tmp);
         tx = tmp.x + (i ? -3 : 3);
@@ -152,6 +175,13 @@ export class Life {
           f.mode = 0;
           f.until = t + 4 + rand3(this.seed, i + 9, f.n) * 3;
         }
+      }
+      if (f.mode !== 2) {
+        tmp.x = tx;
+        tmp.y = ty;
+        w.clear(tmp);
+        tx = tmp.x;
+        ty = tmp.y;
       }
       if (f.mode === 2) {
         f.x = tx;
@@ -165,6 +195,13 @@ export class Life {
         f.vy += ay * dt;
         f.x += f.vx * dt;
         f.y += f.vy * dt;
+        if (f.mode === 0) {
+          tmp.x = f.x;
+          tmp.y = f.y;
+          w.clear(tmp);
+          f.x = tmp.x;
+          f.y = tmp.y;
+        }
         if (f.vx * f.vx + f.vy * f.vy > 4) f.heading = Math.atan2(f.vy, f.vx);
       }
     }

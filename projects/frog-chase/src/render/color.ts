@@ -30,15 +30,30 @@ export function ramp(a: string, b: string, n: number): string[] {
 }
 
 /**
- * Pad fills by "light level": index 0 = lit (reachable: brightest objects on screen, §5.2),
- * 1 = normal, 2..4 = dimmer (behind the frog / far ahead). Dimming leans toward deep water, not black.
+ * Pad fills by dim step 0..10 (F-008, §5.2 "reachable pads are the brightest objects"). Step 0 is full
+ * value (reachable, occupied). Step d/10 lowers value by 28% and saturation by 30% at full dim: step 7
+ * (pads ahead) is ≈80% value, 20% less saturated; step 10 is behind the frog. Hue is untouched.
  */
-const LEVELS = [-0.08, 0, 0.12, 0.22, 0.32];
-const lift = (hex: string) => LEVELS.map((l) => (l < 0 ? mix(hex, PALETTE.paper, -l) : mix(hex, PALETTE.waterDeep, l)));
-export const PAD_FILL = lift(PALETTE.pad);
-export const PAD_LOW_FILL = lift(PALETTE.padLow);
-export const PAD_VEIN = lift(PALETTE.padVein);
-export const PAD_UNDER = lift(PALETTE.padUnder);
+export const DIM_STEPS = 10;
+function dimmed(hex: string, d: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  const c = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  const l = 0.2126 * c[0]! + 0.7152 * c[1]! + 0.0722 * c[2]!;
+  const v = 1 - 0.28 * d, s = 0.3 * d;
+  const out = c.map((x) => Math.round(Math.max(0, Math.min(255, (x + (l - x) * s) * v))).toString(16).padStart(2, '0'));
+  return `#${out.join('')}`;
+}
+const dimRamp = (hex: string) => Array.from({ length: DIM_STEPS + 1 }, (_, i) => dimmed(hex, i / DIM_STEPS));
+export const PAD_FILL = dimRamp(PALETTE.pad);
+export const PAD_LOW_FILL = dimRamp(PALETTE.padLow);
+export const PAD_VEIN = dimRamp(PALETTE.padVein);
+export const PAD_UNDER = dimRamp(PALETTE.padUnder);
+/** Dim targets: pads ahead of the next layer, and pads behind the frog. */
+export const DIM_AHEAD = 7;
+export const DIM_BEHIND = 10;
+/** Reachable pads: a 2 px paper rim at 40% (F-008). */
+export const LIT_RIM = 'rgba(243,235,216,0.4)';
+
 /** Sink ramp (soggy going under): pad-low → water-deep, 10 steps. */
 export const SINK_RAMP = ramp(PALETTE.padLow, PALETTE.waterDeep, 10);
 export const FROG_SINK = ramp(PALETTE.frog, PALETTE.waterDeep, 10);

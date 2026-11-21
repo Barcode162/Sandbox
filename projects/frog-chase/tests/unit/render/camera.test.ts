@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ANCHOR, baseScale, createCamera, createView, springStep, stepCamera, sx, sy, updateView, winGoal, wx, wy } from '../../../src/render/camera';
+import { ANCHOR, baseScale, createCamera, createView, springStep, stepCamera, sx, sy, updateView, WIN_TOP_PX, winGoal, wx, wy } from '../../../src/render/camera';
 
 describe('camera (§4.6)', () => {
   it('scale is min(vw/100, vh/150): 3.75 px/wu at 375×812, 6 at 1440×900', () => {
@@ -46,11 +46,16 @@ describe('camera (§4.6)', () => {
     expect(wy(v, sy(v, 412))).toBeCloseTo(412, 9);
   });
 
-  it('win framing zooms to 0.4× (desktop) / 0.33× (narrow) unless the river fits', () => {
-    const N = 37 * 26 + 14;
-    expect(winGoal(1440, 900, N, N).zoom).toBe(0.4);
-    expect(winGoal(375, 812, N, N).zoom).toBe(0.33);
-    // A tall screen fits the whole river above the floor.
-    expect(winGoal(1440, 9000, N, N).zoom).toBeCloseTo(9000 / (N * 14.4), 9);
+  it('win framing: wide screens fit the whole route below the HUD (F-012); narrower ones use the 0.4× / 0.33× floor', () => {
+    const top = 37 * 26 + 14, bottom = -6;
+    const g = winGoal(1440, 900, top, bottom);
+    const cam = createCamera();
+    stepCamera(cam, { focusY: g.focusY, zoom: g.zoom, cut: true }, 0);
+    const v = createView();
+    updateView(v, 1440, 900, cam, 0, 0);
+    expect(sy(v, top)).toBeCloseTo(WIN_TOP_PX, 6);
+    expect(sy(v, bottom)).toBeCloseTo(900 - 24, 6);
+    expect(winGoal(800, 900, top, bottom).zoom).toBe(0.4);
+    expect(winGoal(375, 812, top, bottom).zoom).toBe(0.33);
   });
 });

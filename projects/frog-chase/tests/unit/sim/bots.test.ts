@@ -1,9 +1,9 @@
 // Bots (SC1, §13), determinism at 30 vs 144 Hz (§4.7), heartbeat (polish 14), sim budget.
 import { describe, expect, it } from 'vitest';
-import type { BotName, BotOptions } from '../../../src/contracts';
+import type { SimState, Slot } from '../../../src/contracts';
 import { createLoop } from '../../../src/loop';
-import { makeBot } from '../../../src/sim/bots';
-import { createSim, heartbeatPhase, isHooked, step } from '../../../src/sim/sim';
+import { makeBot, safeSlot } from '../../../src/sim/bots';
+import { choicesFrom, createSim, heartbeatPhase, isHooked, step } from '../../../src/sim/sim';
 import { DT } from '../../../src/tuning';
 import { events, run } from './helpers';
 
@@ -59,24 +59,56 @@ describe('bots', () => {
   });
 });
 
-/** Run a bot through createLoop at a display rate; returns the log. */
-function atHz(seed: number, hz: number, name: BotName, opts?: BotOptions): string {
-  const s = createSim(seed);
-  const bot = makeBot(name, opts);
-  const loop = createLoop({ tick: () => step(s, { press: bot(s) }), render: () => {} });
-  for (let f = 0; f < hz * 120 && !s.result; f++) loop.advance(1000 / hz);
-  return JSON.stringify([s.log, s.result]);
+/**
+ * A human-shaped input stream through the same path as the shell: a press decided at WALL time lands in
+ * `pending`, and the next tick consumes it. Presses fall on a 166.67 ms grid (5 frames at 30 Hz, 24 at
+ * 144 Hz, 20 ticks), so a correct loop gives identical logs at both rates and a frame-rate-dependent loop
+ * does not (F-001). The press is chosen from the state at that wall moment: a safe chip when grounded,
+ * a safe pad of the layer after the target while airborne (buffered or dropped by the sim).
+ */
+function gridPress(s: SimState): Slot | null {
+  if (s.result) return null;
+  if (s.frog.phase === 'idle') return safeSlot(s);
+  const from = s.river.pads[s.frog.targetId]!;
+  const c = choicesFrom(s.river, from).find((c) => s.river.pads[c.padId]!.kind !== 'soggy' && s.river.pads[c.padId]!.kind !== 'curl');
+  return c ? c.slot : null;
 }
 
-describe('determinism (§4.7)', () => {
-  it('same seed + bot at 30 vs 144 Hz frames give an identical log, over 200 seeds', () => {
-    const bots: [BotName, BotOptions?][] = [['runner'], ['runner', { delayMs: 900 }], ['nearMiss'], ['idleAtTau'], ['forward']];
+/** Runs one seed at a display rate; returns the log, the result and wall ms at the result frame. */
+function atHz(seed: number, hz: number): { log: string; tick: number; wallMs: number } {
+  const s = createSim(seed);
+  let pending: Slot | null = null;
+  const loop = createLoop({ tick: () => {
+    const press = pending;
+    pending = null;
+    step(s, { press });
+  }, render: () => {} });
+  const dt = 1000 / hz;
+  const perGrid = hz === 30 ? 5 : 24;
+  let f = 0;
+  for (; f < hz * 120 && !s.result; f++) {
+    if (f % perGrid === 0) pending = gridPress(s) ?? pending;
+    loop.advance(dt);
+  }
+  return { log: JSON.stringify([s.log, s.result]), tick: s.result?.tick ?? -1, wallMs: f * dt };
+}
+
+describe('determinism (§4.7, F-001)', () => {
+  it('presses on a wall-time grid give identical logs at 30 and 144 Hz, and sim time = wall time, over 200 seeds', () => {
+    const kinds = new Set<string>();
     for (let seed = 0; seed < 200; seed++) {
-      const [name, opts] = bots[seed % bots.length]!;
-      const a = atHz(seed, 30, name, opts), b = atHz(seed, 144, name, opts);
-      expect(a.length).toBeGreaterThan(100);
-      if (a !== b) expect({ seed, name, a }).toEqual({ seed, name, a: b });
+      const a = atHz(seed, 30), b = atHz(seed, 144);
+      expect(a.tick).toBeGreaterThan(0);
+      if (a.log !== b.log) expect({ seed, a: a.log }).toEqual({ seed, a: b.log });
+      // The result tick's sim time is reached within one frame of the wall time that produced it.
+      for (const [r, dt] of [[a, 1000 / 30], [b, 1000 / 144]] as const) {
+        const simMs = (r.tick * 1000) / 120;
+        expect(r.wallMs - simMs).toBeGreaterThanOrEqual(-1e-6);
+        expect(r.wallMs - simMs).toBeLessThan(dt + 1e-6);
+      }
+      kinds.add(JSON.parse(a.log)[1].cause);
     }
+    expect(kinds.has('win')).toBe(true);
   });
 });
 
