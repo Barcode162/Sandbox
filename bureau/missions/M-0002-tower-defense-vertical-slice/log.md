@@ -33,3 +33,10 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-21T02:19:54Z` **qa-tester** — F-003 [S3] filed: UI text drops to ~8 px at 900x600 (spec: text >= 12 px)
 - `2026-11-21T02:19:54Z` **qa-tester** — F-004 [S3] filed: Settings card: Auto-start row crowds the Back button and enemy legend strip
 - `2026-11-21T02:19:54Z` **qa-tester** — F-005 [S3] filed: Test hook stage() after a manual retry lands on Round 1 instead of target stage
+- `2026-11-21T02:22:29Z` **code-reviewer** — F-006 [S1] filed: R18 render perf gate fails 3 of 4 runs (p95 7.3-9.2 ms vs 8 ms budget); verify is red, the 6.2 ms claim does not reproduce
+- `2026-11-21T02:22:29Z` **code-reviewer** — F-007 [S2] filed: Hit-stop freeze shimmers: blots/projectiles keep ps != s, so render interpolation slides them during the frozen ticks
+- `2026-11-21T02:22:29Z` **code-reviewer** — F-008 [S2] filed: Holding Backspace sells the selected tower: key-repeat passes the two-press confirm
+- `2026-11-21T02:22:29Z` **code-reviewer** — F-009 [S2] filed: Vignette and grain overlays allocate 2 extra full-backing-store canvases (about 63 MB at 3840x2160) and rebuild them on every resize
+- `2026-11-21T02:22:29Z` **code-reviewer** — F-010 [S3] filed: Blot sprite cache duplicates Shadow/Flash sprites per colourblind (and Flash per Pale) flag; Sprite.half is dead
+- `2026-11-21T02:22:29Z` **code-reviewer** — F-011 [S3] filed: Live blot path ignores the pass globalAlpha while sprites honour it
+- `2026-11-21T02:22:29Z` **code-reviewer** — F-012 [S3] filed: e2e staging runs with the rAF loop live: perf and screenshots stage before freezing the clock
