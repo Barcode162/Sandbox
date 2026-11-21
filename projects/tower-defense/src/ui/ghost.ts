@@ -2,11 +2,12 @@
 // star, the selected tower's range ring (bloom) with Owl aura ring, the next-tier hover preview, and the
 // buy morph / sell sink overlays.
 import type { PlaceFail, Settings, Tower, TowerKind } from '../contracts/types';
-import { P } from '../data/palette';
+import { P, SHADOW_OFFSET } from '../data/palette';
 import { FOOTPRINT } from '../data/map';
 import { MOTION } from '../data/feel';
 import { resolveStats, TOWERS } from '../data/towers';
-import { drawTowerSprite } from '../render/towers';
+import { coasterRadius, drawTowerSprite } from '../render/towers';
+import { mix } from '../render/towers/paint';
 import { clamp01, type Ctx, glyphCross, inQuad, outCubic, starPath } from './draw';
 import { pulse } from './garden';
 
@@ -47,16 +48,21 @@ export function drawGhost(c: Ctx, v: GhostView): void {
   c.restore();
 }
 
-/** §10.2 paper star: r 14, --glow stroke, pulsing 1↔1.12 over 1.2 s; brighter while hovered. */
+/**
+ * §10.2 paper star: r 14, --glow stroke, pulsing 1↔1.12 over 1.2 s. Drawn under the ghost; while the ghost
+ * hovers it (F-018) the star tucks to 0.6× at 50 % beneath the tower and brightens as a 2-px --glow ring
+ * r 22 around the footprint, so the Tern you are about to place still reads.
+ */
 export function drawStar(c: Ctx, x: number, y: number, nowMs: number, bright: boolean, reduceMotion: boolean): void {
-  const s = reduceMotion ? 1.06 : 1 + 0.12 * pulse(nowMs, 1200);
+  const s = (reduceMotion ? 1.06 : 1 + 0.12 * pulse(nowMs, 1200)) * (bright ? 0.6 : 1);
   c.save();
   c.translate(x, y);
-  c.scale(s, s);
   if (bright) {
-    c.fillStyle = 'rgba(255,214,107,.35)';
-    c.beginPath(); c.arc(0, 0, 24, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = P.glow; c.lineWidth = 2;
+    c.beginPath(); c.arc(0, 0, 22 * (reduceMotion ? 1 : 1 + 0.05 * pulse(nowMs, 1200)), 0, Math.PI * 2); c.stroke();
+    c.globalAlpha = 0.5;
   }
+  c.scale(s, s);
   c.fillStyle = P.shadow;
   starPath(c, 3, 4, 14); c.fill();
   c.fillStyle = bright ? P.foldWhite : 'rgba(251,247,238,.85)';
@@ -93,10 +99,41 @@ export function drawUpgradePreview(c: Ctx, t: Readonly<Tower>, tiers: readonly [
   c.restore();
 }
 
-export interface Morph { towerId: number; kind: TowerKind; from: [number, number]; x: number; y: number; angle: number; born: number }
+export interface Morph { towerId: number; kind: TowerKind; from: [number, number]; to: [number, number]; x: number; y: number; angle: number; born: number }
 export interface Sink { kind: TowerKind; tiers: [number, number]; x: number; y: number; angle: number; born: number }
 
-/** Buy: the old sprite shrinks to 0.8 and fades over 220 ms above the new one. */
+/**
+ * Buy, under the towers pass (F-019): the coaster is the base, not part of the morph, so it stays at full
+ * alpha and scale 1 (new tier notches) while the world layer backOuts the new fold in on top of it.
+ * Mirrors the §7 coaster (render/towers/sprites.ts drawCoaster: disc r fr+4, crease ring, A/B notches).
+ */
+export function drawMorphBase(c: Ctx, m: Morph, nowMs: number): void {
+  if (nowMs - m.born >= MOTION.foldMs) return;
+  const R = coasterRadius(m.kind);
+  c.save();
+  c.translate(m.x, m.y);
+  c.fillStyle = P.shadow;
+  c.beginPath(); c.arc(SHADOW_OFFSET.x, SHADOW_OFFSET.y, R, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.arc(0, 0, R, 0, Math.PI * 2);
+  c.fillStyle = P.paperDeep; c.fill();
+  c.lineWidth = 1; c.strokeStyle = P.kraftEdge; c.stroke();
+  c.beginPath(); c.arc(0, 0, R - 3.5, 0, Math.PI * 2);
+  c.strokeStyle = mix(P.paperDeep, P.foldWhite, 0.45); c.lineWidth = 0.8; c.stroke();
+  c.lineCap = 'butt';
+  for (let side = 0; side < 2; side++) {
+    const owned = m.to[side];
+    for (let k = 0; k < 3; k++) {
+      const a = side === 0 ? Math.PI + (k - 1) * 0.52 : -(k - 1) * 0.52;
+      c.beginPath(); c.arc(0, 0, R - 2, a - 0.21, a + 0.21);
+      c.strokeStyle = k < owned ? P.ink : mix(P.paperDeep, P.ink, 0.25);
+      c.lineWidth = k < owned ? 4 : 1;
+      c.stroke();
+    }
+  }
+  c.restore();
+}
+
+/** Buy: the old paper figure (no coaster) shrinks to 0.8 and fades over 220 ms above the new one. */
 export function drawMorph(c: Ctx, m: Morph, nowMs: number): boolean {
   const t = (nowMs - m.born) / MOTION.foldMs;
   if (t >= 1) return false;

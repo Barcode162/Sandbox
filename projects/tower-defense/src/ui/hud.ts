@@ -9,7 +9,7 @@ import { BLOTS } from '../data/blots';
 import { DECOR } from '../data/map';
 import { ECONOMY } from '../data/economy';
 import { FIRST_SEEN_LINES } from '../data/waves';
-import { backOut, clamp01, type Ctx, digitsWidth, displayFont, drawDigits, fmt, inQuad, outCubic, plate, renderRng, roundRectPath, tornRectPath, uiFont } from './draw';
+import { backOut, clamp01, type Ctx, displayFont, drawDigits, fmt, inQuad, outCubic, plate, renderRng, roundRectPath, tornRectPath, uiFont } from './draw';
 import type { GardenDynamic } from './garden';
 
 /** First-encounter lines for kinds the data does not voice (§14: once per kind, warm and bookish). */
@@ -36,8 +36,15 @@ export interface HudView {
   hoverPause: boolean;
 }
 
-export const SHEETS_ANCHOR = { x: HUD.sheets.x + HUD.sheets.w - 20, y: HUD.sheets.y + HUD.sheets.h + 16 };
-const SEEDS_ANCHOR = { x: HUD.seeds.x + HUD.seeds.w - 20, y: HUD.seeds.y + HUD.seeds.h + 16 };
+/**
+ * F-020: pill chips are born 6 px below the pill's bottom edge (anchor = text baseline), centred on the
+ * digits, and rise the full 18 px into the pill as they fade: income visibly flows into the counter.
+ */
+export const SHEETS_ANCHOR = { x: HUD.sheets.x + 74, y: HUD.sheets.y + HUD.sheets.h + 6 + FLOAT_TEXT.size };
+const SEEDS_ANCHOR = { x: HUD.seeds.x + 64, y: HUD.seeds.y + HUD.seeds.h + 6 + FLOAT_TEXT.size };
+/** F-021: the death tear falls clear before "The Inkmaw tears!" folds in; banners sit below a live bar. */
+export const BOSS_TEAR_MS = 450;
+const BANNER_BELOW_BAR_Y = 132;
 
 export interface Hud {
   onSimEvent(e: SimEvent, s: Readonly<SimState>, nowMs: number): void;
@@ -69,6 +76,9 @@ export function createHud(): Hud {
   let cur: { text: string; born: number } | null = null;
   let hint: { text: string; born: number } | null = null;
   let shownMoney: number = ECONOMY.startMoney;
+  let tickTarget: number = ECONOMY.startMoney;
+  let tickRate = 30;
+  let deathBannerAt = -1e9;
   let popAcc = 0;
   let popWindowStart = -1;
   let leakAcc = 0;
@@ -102,6 +112,14 @@ export function createHud(): Hud {
   function addShake(a: number, tau: number, now: number): void {
     if (shakes.length > 12) shakes.shift();
     shakes.push({ a, tau, born: now });
+  }
+
+  /** Banner baseline: §9 y 96, eased down to y 132 while the boss bar is up (it folds in/tears away). */
+  function bannerY(now: number): number {
+    if (bossShownAt < 0 || bossMax <= 0) return BANNER.y;
+    const shown = outCubic((now - bossShownAt) / MOTION.foldMs);
+    const gone = deathAt > 0 ? outCubic((now - deathAt) / BOSS_TEAR_MS) : 0;
+    return BANNER.y + (BANNER_BELOW_BAR_Y - BANNER.y) * shown * (1 - gone);
   }
 
   const hud: Hud = {
@@ -159,7 +177,7 @@ export function createHud(): Hud {
           deathAt = now;
           nextThud = 1e18;
           addShake(SHAKE.bossDeath.a, SHAKE.bossDeath.tau * 2.4, now);
-          banner('The Inkmaw tears!', now);
+          deathBannerAt = now + BOSS_TEAR_MS;
           break;
         case 'pop':
           if (e.kind === 'wax') addShake(SHAKE.waxCrack.a, SHAKE.waxCrack.tau, now);
@@ -189,11 +207,14 @@ export function createHud(): Hud {
       const arrived = flights.filter((f) => now - f.born >= FLOAT_TEXT.bonusFlyMs);
       if (arrived.length) flights = flights.filter((f) => now - f.born < FLOAT_TEXT.bonusFlyMs);
       shakes = shakes.filter((k) => now - k.born < k.tau * 6);
+      if (deathBannerAt > 0 && now >= deathBannerAt) { deathBannerAt = -1e9; banner('The Inkmaw tears!', now); }
       if (cur && now - cur.born >= BANNER.ms) cur = queue.length ? { text: queue.shift()!, born: now } : null;
-      // sheets tick toward target at max(30, Δ·8)/s; in-flight bonus is excluded until it lands
+      // sheets tick linearly toward the target at max(30, Δ·8)/s, Δ taken when the target moves (F-027:
+      // ≤ 125 ms for any change, no ease-out tail); in-flight bonus is excluded until it lands
       const target = s.money - inFlight();
+      if (target !== tickTarget) { tickTarget = target; tickRate = Math.max(30, Math.abs(target - shownMoney) * 8); }
       const d = target - shownMoney;
-      const step = Math.max(30, Math.abs(d) * 8) * (dt / 1000);
+      const step = tickRate * (dt / 1000);
       shownMoney = Math.abs(d) <= step ? target : shownMoney + Math.sign(d) * step;
       // boss thud every 1.2 s while it lives
       if (s.boss && now >= nextThud) { addShake(SHAKE.bossRumble.a, 120, now); nextThud = now + 1200; }
@@ -226,7 +247,7 @@ export function createHud(): Hud {
     },
     reset(s) {
       floats = []; flights = []; shakes = []; queue = []; cur = null; hint = null;
-      shownMoney = s.money; popAcc = 0; popWindowStart = -1; leakAcc = 0;
+      shownMoney = s.money; tickTarget = s.money; tickRate = 30; deathBannerAt = -1e9; popAcc = 0; popWindowStart = -1; leakAcc = 0;
       seedsFlashAt = -1e9; rumbleUntil = -1e9; nextThud = 1e18; poolPulseAt = -1e9; warnAt = -1e9; arriveAt = -1e9;
       bossShownAt = -1e9; torn = []; deathAt = -1e9; bossMax = 0;
       garden.poolScale = 1; garden.poolDark = 0; garden.jarFill = s.lives / ECONOMY.startLives; garden.jarFlash = 0;
@@ -275,7 +296,7 @@ export function createHud(): Hud {
       if (bossShownAt < 0 || bossMax <= 0) return;
       const r = HUD.bossBar;
       const dying = deathAt > 0;
-      const td = dying ? (now - deathAt) / 700 : 0;
+      const td = dying ? (now - deathAt) / BOSS_TEAR_MS : 0;
       if (td >= 1) return;
       const fold = backOut(clamp01((now - bossShownAt) / MOTION.foldMs));
       const hp = v.state.boss ? v.state.boss.hp : dying ? 0 : lastBossHp;
@@ -285,7 +306,7 @@ export function createHud(): Hud {
       c.font = uiFont(16);
       c.fillStyle = P.ink;
       c.textAlign = 'center';
-      c.globalAlpha = 1 - td;
+      c.globalAlpha = (1 - td) * clamp01((now - bossShownAt) / MOTION.foldMs);
       c.fillText(`${bossName} ${fmt(Math.ceil(hp))}`, r.x + r.w / 2, r.y - 4);
       c.globalAlpha = 1;
       c.textAlign = 'left';
@@ -357,7 +378,7 @@ export function createHud(): Hud {
       c.font = displayFont(BANNER.size);
       const w = Math.min(980, c.measureText(text).width + 48);
       const h = 44;
-      const y = BANNER.y + v.offsetY + (v.settings.reduceMotion ? 0 : (1 - outCubic(tin)) * -8 + inQuad(tout) * -6);
+      const y = bannerY(now) + v.offsetY + (v.settings.reduceMotion ? 0 : (1 - outCubic(tin)) * -8 + inQuad(tout) * -6);
       c.globalAlpha = a;
       plate(c, { x: 540 - w / 2, y: y - h / 2, w, h }, 6, P.ink, { stroke: null });
       c.fillStyle = P.foldWhite;
@@ -379,7 +400,7 @@ export function createHud(): Hud {
       }
       for (const fl of flights) {
         const t = outCubic((now - fl.born) / FLOAT_TEXT.bonusFlyMs);
-        const x = fl.x0 + (SHEETS_ANCHOR.x - 30 - fl.x0) * t;
+        const x = fl.x0 + (SHEETS_ANCHOR.x - fl.x0) * t;
         const y = fl.y0 + 34 + (HUD.sheets.y + 26 - fl.y0 - 34) * t;
         c.globalAlpha = 1;
         c.font = uiFont(16, 700);
@@ -391,13 +412,13 @@ export function createHud(): Hud {
   return hud;
 }
 
+/** Floating chip (§11): bare digits with a 1-px --fold-white halo so they read on any ground (F-020). */
 function floatText(c: Ctx, text: string, x: number, y: number, color: string, size: number): void {
-  const w = digitsWidth(text, size);
-  c.fillStyle = 'rgba(251,247,238,.85)';
-  roundRectPath(c, x - w / 2 - 4, y - size + 1, w + 8, size + 4, 4);
-  c.fill();
+  c.strokeStyle = P.foldWhite;
+  c.lineWidth = 2;
+  c.lineJoin = 'round';
   c.fillStyle = color;
-  drawDigits(c, text, x, y, size, 'center');
+  drawDigits(c, text, x, y, size, 'center', true);
 }
 
 function pill(c: Ctx, r: Rect, flash: number): void {

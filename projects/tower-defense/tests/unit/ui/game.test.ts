@@ -123,7 +123,8 @@ describe('game shell', () => {
     const { canvas, game, frames } = setup({ recordTo: cmds });
     frames(900);
     expect(game.scene()).toBe('title');
-    pointer(canvas, 'pointerdown', TITLE.play.x + 20, TITLE.play.y + 20); // click 1
+    pointer(canvas, 'pointerdown', TITLE.play.x + 20, TITLE.play.y + 20); // click 1 (acts on release, §11)
+    pointer(canvas, 'pointerup', TITLE.play.x + 20, TITLE.play.y + 20);
     expect(game.scene()).toBe('play');
     frames(450);
     expect(game.debug.hint).toBe('Pick a defender — click the Tern or press 1.');

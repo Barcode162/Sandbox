@@ -2,11 +2,15 @@
 // colourblind preview, §10.9 game-over flood + card, §10.10 victory cranes + card.
 import type { BlotKind, Rect, Settings } from '../contracts/types';
 import { CARDS, TITLE } from '../data/layout';
-import { P } from '../data/palette';
+import { P, SHADOW_OFFSET } from '../data/palette';
 import { MOTION } from '../data/feel';
 import { DECOR, FIELD, LOGICAL_H, LOGICAL_W } from '../data/map';
 import { drawBlotShape } from '../render/blots';
-import { backOut, badge, clamp01, type Ctx, displayFont, fmt, inQuad, inRect, outCubic, plate, renderRng, roundRectPath, tornCard, uiFont } from './draw';
+import { backOut, badge, badgeWidth, clamp01, type Ctx, displayFont, fmt, inQuad, inRect, outCubic, plate, plateShift, renderRng, roundRectPath, tornCard, uiFont } from './draw';
+
+/** A held button (§11 press, F-026): which one and its press depth 0..1. */
+export interface Press { id: string; k: number }
+const depth = (p: Press | null | undefined, id: string): number => (p && p.id === id ? p.k : 0);
 
 // ───────────────────────────── title ─────────────────────────────
 export type TitleHit = 'play' | 'settings';
@@ -22,6 +26,7 @@ export interface TitleView {
   /** 0..1 progress of the Play transition (0 = not started). */
   leave: number;
   hover: TitleHit | null;
+  press: Press | null;
   settings: Readonly<Settings>;
 }
 
@@ -70,20 +75,25 @@ export function drawTitle(c: Ctx, v: TitleView): void {
   c.globalAlpha = ba;
   const pr = TITLE.play;
   const hp = v.hover === 'play';
-  plate(c, pr, 8, P.ink, { lift: hp ? 1 : 0, stroke: null });
+  const kp = depth(v.press, 'play');
+  const op = plateShift(hp, kp);
+  plate(c, pr, 8, P.ink, { lift: hp ? 1 : 0, press: kp, stroke: null });
   c.fillStyle = P.foldWhite;
   c.font = uiFont(20);
   c.textAlign = 'center';
-  c.fillText('Play', pr.x + pr.w / 2, pr.y + 35 - (hp ? 1 : 0));
+  c.fillText('Play', pr.x + pr.w / 2 + op.x, pr.y + 35 + op.y);
   const sr = TITLE.settings;
   const hs = v.hover === 'settings';
-  plate(c, sr, 8, hs ? P.foldWhite : 'rgba(243,234,215,.9)', { lift: hs ? 1 : 0, stroke: P.ink });
+  const ks = depth(v.press, 'settings');
+  const os = plateShift(hs, ks);
+  plate(c, sr, 8, hs ? P.foldWhite : 'rgba(243,234,215,.9)', { lift: hs ? 1 : 0, press: ks, stroke: P.ink });
   c.fillStyle = P.ink;
   c.font = uiFont(16);
-  c.fillText('Settings', sr.x + sr.w / 2, sr.y + 28 - (hs ? 1 : 0));
+  c.fillText('Settings', sr.x + sr.w / 2 + os.x, sr.y + 28 + os.y);
   c.textAlign = 'left';
-  badge(c, pr.x + pr.w - 58, pr.y - 10, 'Enter', ba);
-  badge(c, sr.x + sr.w - 22, sr.y - 10, 'S', ba);
+  // badges sit inside the plates' right ends (F-016), riding the press/lift with the label
+  badge(c, pr.x + pr.w - 8 - badgeWidth('Enter') + op.x, pr.y + (pr.h - 20) / 2 + op.y, 'Enter', ba, 'rgba(251,247,238,.6)');
+  badge(c, sr.x + sr.w - 8 - 20 + os.x, sr.y + (sr.h - 20) / 2 + os.y, 'S', ba);
   c.globalAlpha = ba;
   c.font = uiFont(12);
   c.fillStyle = P.inkSoft;
@@ -119,7 +129,7 @@ function foldIn(c: Ctx, r: Rect, t: number, s: Readonly<Settings>): boolean {
   return true;
 }
 
-export interface PauseView { t: number; hover: PauseHit | null; restartArmed: boolean; settings: Readonly<Settings> }
+export interface PauseView { t: number; hover: PauseHit | null; press: Press | null; restartArmed: boolean; settings: Readonly<Settings> }
 export function drawPause(c: Ctx, v: PauseView): void {
   const r = CARDS.pause;
   c.save();
@@ -135,13 +145,18 @@ export function drawPause(c: Ctx, v: PauseView): void {
   PAUSE_ITEMS.forEach((id, i) => {
     const b = pauseButton(i);
     const h = v.hover === id;
+    const k = depth(v.press, id);
+    const o = plateShift(h, k);
     const primary = id === 'resume';
-    plate(c, b, 8, primary ? P.ink : h ? P.foldWhite : P.paper, { lift: h ? 1 : 0, stroke: primary ? null : P.ink });
+    plate(c, b, 8, primary ? P.ink : h ? P.foldWhite : P.paper, { lift: h ? 1 : 0, press: k, stroke: primary ? null : P.ink });
     c.font = uiFont(16);
     c.fillStyle = primary ? P.foldWhite : id === 'restart' && v.restartArmed ? P.bad : P.ink;
     c.textAlign = 'center';
-    c.fillText(labels[id][0], b.x + b.w / 2, b.y + 28 - (h ? 1 : 0));
-    if (labels[id][1]) { c.textAlign = 'left'; badge(c, b.x + b.w - 30 - (labels[id][1].length > 1 ? 14 : 0), b.y + 12 - (h ? 1 : 0), labels[id][1]); }
+    c.fillText(labels[id][0], b.x + b.w / 2 + o.x, b.y + 28 + o.y);
+    if (labels[id][1]) {
+      c.textAlign = 'left';
+      badge(c, b.x + b.w - 10 - badgeWidth(labels[id][1]) + o.x, b.y + 12 + o.y, labels[id][1], 1, primary ? 'rgba(251,247,238,.6)' : undefined);
+    }
   });
   c.textAlign = 'left';
   c.restore();
@@ -159,7 +174,9 @@ const ROWS: readonly { key: SettingKey; label: string; slider: boolean }[] = [
 ];
 const rowY = (i: number): number => CARDS.settingsRowY + i * CARDS.settingsPitch;
 const [CX0, CX1] = CARDS.settingsControlX;
-export const SETTINGS_BACK: Rect = { x: CARDS.settingsLabelX, y: 532, w: 120, h: 32 };
+/** F-004: Back and the preview strip share a footer band below a crease, 24 px above the card's bottom edge. */
+export const SETTINGS_BACK: Rect = { x: CARDS.settingsLabelX, y: CARDS.settings.y + CARDS.settings.h - 24 - 32, w: 120, h: 32 };
+const SETTINGS_RULE_Y = SETTINGS_BACK.y - 16;
 
 export type SettingsHit = { k: 'slider'; key: SettingKey; value: number } | { k: 'toggle'; key: SettingKey } | { k: 'back' };
 export function settingsHit(x: number, y: number): SettingsHit | null {
@@ -183,7 +200,7 @@ const PREVIEW: readonly { kind: BlotKind; pale: boolean }[] = [
   { kind: 'blotch', pale: false }, { kind: 'wax', pale: false }, { kind: 'splat', pale: true },
 ];
 
-export interface SettingsView { t: number; s: Readonly<Settings>; hover: SettingsHit | null; nowMs: number }
+export interface SettingsView { t: number; s: Readonly<Settings>; hover: SettingsHit | null; press: number; nowMs: number }
 export function drawSettings(c: Ctx, v: SettingsView): void {
   const r = CARDS.settings;
   c.save();
@@ -225,17 +242,21 @@ export function drawSettings(c: Ctx, v: SettingsView): void {
       c.fillText(on ? 'On' : 'Off', CX0 + 54, y + 5);
     }
   });
+  // footer crease
+  c.strokeStyle = P.crease; c.lineWidth = 1;
+  c.beginPath(); c.moveTo(CARDS.settingsLabelX, SETTINGS_RULE_Y + 0.5); c.lineTo(r.x + r.w - 32, SETTINGS_RULE_Y + 0.5); c.stroke();
   const b = SETTINGS_BACK;
   const hb = v.hover?.k === 'back';
-  plate(c, b, 8, P.ink, { lift: hb ? 1 : 0, stroke: null });
+  const ob = plateShift(hb, v.press);
+  plate(c, b, 8, P.ink, { lift: hb ? 1 : 0, press: v.press, stroke: null });
   c.font = uiFont(16);
   c.fillStyle = P.foldWhite;
   c.textAlign = 'center';
-  c.fillText('Back', b.x + b.w / 2 - 8, b.y + 22 - (hb ? 1 : 0));
+  c.fillText('Back', b.x + b.w / 2 - 14 + ob.x, b.y + 22 + ob.y);
   c.textAlign = 'left';
-  badge(c, b.x + b.w - 34, b.y + 6 - (hb ? 1 : 0), 'Esc');
+  badge(c, b.x + b.w - 8 - badgeWidth('Esc') + ob.x, b.y + 6 + ob.y, 'Esc', 1, 'rgba(251,247,238,.6)');
   // live colourblind preview strip: 5 chain blots + Wax + Pale Splat (§10.8)
-  const px0 = 572, py = 548;
+  const px0 = 572, py = b.y + b.h / 2;
   PREVIEW.forEach((p, i) => drawBlotShape(c, p.kind, px0 + i * 44, py, { pale: p.pale, colourblind: v.s.colourblind, scale: 1, phase: v.nowMs / 1000, alpha: 1 }));
   c.restore();
 }
@@ -274,7 +295,7 @@ export function drawFlood(c: Ctx, k: number, nowMs: number): void {
   c.restore();
 }
 
-export interface EndView { t: number; hover: EndHit | null; settings: Readonly<Settings>; line1: string; line2?: string }
+export interface EndView { t: number; hover: EndHit | null; press: Press | null; settings: Readonly<Settings>; line1: string; line2?: string }
 
 function endCard(c: Ctx, card: Rect, v: EndView, title: string, ink: boolean, retry: string): void {
   c.save();
@@ -292,16 +313,19 @@ function endCard(c: Ctx, card: Rect, v: EndView, title: string, ink: boolean, re
   if (v.line2) c.fillText(v.line2, card.x + card.w / 2, card.y + 158);
   const [a, b] = endButtons(card);
   const ha = v.hover === 'retry', hb = v.hover === 'title';
-  plate(c, a, 8, P.ok, { lift: ha ? 1 : 0, stroke: null });
+  const ka = depth(v.press, 'retry'), kb = depth(v.press, 'title');
+  const oa = plateShift(ha, ka), ob = plateShift(hb, kb);
+  const ex = a.x + a.w - 10 - badgeWidth('Enter');
+  plate(c, a, 8, P.ok, { lift: ha ? 1 : 0, press: ka, stroke: null });
   c.font = uiFont(18);
   c.fillStyle = P.foldWhite;
-  c.fillText(retry, a.x + a.w / 2 - 10, a.y + 30 - (ha ? 1 : 0));
-  plate(c, b, 8, ink ? (hb ? '#2E2B3A' : P.ink) : hb ? P.foldWhite : P.paper, { lift: hb ? 1 : 0, stroke: ink ? 'rgba(251,247,238,.6)' : P.ink });
+  c.fillText(retry, (a.x + ex) / 2 + oa.x, a.y + 30 + oa.y);
+  plate(c, b, 8, ink ? (hb ? '#2E2B3A' : P.ink) : hb ? P.foldWhite : P.paper, { lift: hb ? 1 : 0, press: kb, stroke: ink ? 'rgba(251,247,238,.6)' : P.ink });
   c.fillStyle = fg;
   c.font = uiFont(16);
-  c.fillText('Title', b.x + b.w / 2, b.y + 29 - (hb ? 1 : 0));
+  c.fillText('Title', b.x + b.w / 2 + ob.x, b.y + 29 + ob.y);
   c.textAlign = 'left';
-  badge(c, a.x + a.w - 58, a.y + 14 - (ha ? 1 : 0), 'Enter');
+  badge(c, ex + oa.x, a.y + 14 + oa.y, 'Enter');
   c.restore();
 }
 
@@ -338,28 +362,46 @@ export function drawCranes(c: Ctx, cranes: readonly Crane[], t: number, reduceMo
   }
 }
 
+/**
+ * One paper crane. F-029: --fold-white on paper vanished, so every crane now has the screen-space (+3,+4)
+ * hard shadow (body, wing, neck and tail) and a 1-px --crease edge (constant on screen at any size).
+ */
 function drawCrane(c: Ctx, x: number, y: number, s: number, dir: number, flap: number, alpha: number): void {
+  const facing = Math.cos(dir) >= 0 ? 1 : -1;
+  const wh = 16 * flap;
+  const body = (): void => {
+    c.beginPath();
+    c.moveTo(-14, 2); c.lineTo(0, -3); c.lineTo(16, 1); c.lineTo(0, 5); c.closePath();
+  };
+  const wing = (): void => {
+    c.beginPath(); c.moveTo(-4, -1); c.lineTo(6, -1); c.lineTo(-2, -1 - wh); c.closePath();
+  };
+  const neck = (): void => {
+    c.beginPath(); c.moveTo(14, 1); c.lineTo(20, -8); c.lineTo(23, -7); c.moveTo(-12, 2); c.lineTo(-19, -6);
+  };
   c.save();
   c.globalAlpha = alpha;
-  c.translate(x, y);
-  c.scale(s, s);
-  const body = (ox: number, oy: number): void => {
-    c.beginPath();
-    c.moveTo(-14 + ox, 2 + oy); c.lineTo(0 + ox, -3 + oy); c.lineTo(16 + ox, 1 + oy); c.lineTo(0 + ox, 5 + oy); c.closePath();
-  };
-  const facing = Math.cos(dir) >= 0 ? 1 : -1;
-  c.scale(facing, 1);
-  c.fillStyle = P.shadow; body(3, 4); c.fill();
-  c.fillStyle = P.foldWhite; body(0, 0); c.fill();
-  c.strokeStyle = P.crease; c.lineWidth = 0.8; c.stroke();
-  // neck and tail
-  c.strokeStyle = P.foldWhite; c.lineWidth = 2;
-  c.beginPath(); c.moveTo(14, 1); c.lineTo(20, -8); c.lineTo(23, -7); c.moveTo(-12, 2); c.lineTo(-19, -6); c.stroke();
-  // wings (flap scales their height)
-  const wh = 16 * flap;
-  c.fillStyle = '#EFE6D3';
-  c.beginPath(); c.moveTo(-4, -1); c.lineTo(6, -1); c.lineTo(-2, -1 - wh); c.closePath(); c.fill();
-  c.strokeStyle = P.crease; c.lineWidth = 0.8; c.stroke();
+  c.lineJoin = 'round'; c.lineCap = 'round';
+  for (const pass of [0, 1]) {
+    c.save();
+    c.translate(x + (pass ? 0 : SHADOW_OFFSET.x), y + (pass ? 0 : SHADOW_OFFSET.y));
+    c.scale(s * facing, s);
+    const edge = 1 / s;
+    if (!pass) {
+      c.fillStyle = P.shadow; c.strokeStyle = P.shadow;
+      body(); c.fill(); wing(); c.fill();
+      c.lineWidth = 2; neck(); c.stroke();
+    } else {
+      // neck and tail: a crease line under a fold-white stroke reads as an edged paper strip
+      c.strokeStyle = P.crease; c.lineWidth = 2 + 2 * edge; neck(); c.stroke();
+      c.strokeStyle = P.foldWhite; c.lineWidth = 2; neck(); c.stroke();
+      c.fillStyle = P.foldWhite; body(); c.fill();
+      c.strokeStyle = P.crease; c.lineWidth = edge; c.stroke();
+      c.fillStyle = '#EFE6D3'; wing(); c.fill();
+      c.stroke();
+    }
+    c.restore();
+  }
   c.restore();
 }
 

@@ -45,13 +45,17 @@ export function digitsWidth(text: string, size: number): number {
   return w;
 }
 
-/** Draw text with every glyph centred in a fixed cell, so counters never jitter. Returns the width. */
-export function drawDigits(c: Ctx, text: string, x: number, y: number, size: number, align: 'left' | 'right' | 'center' = 'left'): number {
+/**
+ * Draw text with every glyph centred in a fixed cell, so counters never jitter. Returns the width.
+ * `halo` strokes each glyph first with the current strokeStyle/lineWidth (floating chips, F-020).
+ */
+export function drawDigits(c: Ctx, text: string, x: number, y: number, size: number, align: 'left' | 'right' | 'center' = 'left', halo = false): number {
   const w = digitsWidth(text, size);
   let cx = align === 'left' ? x : align === 'right' ? x - w : x - w / 2;
   c.textAlign = 'center';
   for (const ch of text) {
     const adv = (ch === ',' || ch === '.' ? 0.32 : DIGIT_ADVANCE_EM) * size;
+    if (halo) c.strokeText(ch, cx + adv / 2, y);
     c.fillText(ch, cx + adv / 2, y);
     cx += adv;
   }
@@ -84,15 +88,20 @@ export function roundRectPath(c: Ctx, x: number, y: number, w: number, h: number
   c.closePath();
 }
 
-/** A paper plate: hard shadow duplicate (+3,+4, no blur), fill, optional 1-px crease outline (§4 Light). */
-export function plate(c: Ctx, r: Rect, radius: number, fill: string, opts: { shadow?: boolean; stroke?: string | null; lift?: number } = {}): void {
-  const lift = opts.lift ?? 0;
+/**
+ * A paper plate: hard shadow duplicate (+3,+4, no blur), fill, optional 1-px crease outline (§4 Light).
+ * `lift` raises the plate off its shadow (hover); `press` (0..1) pushes it down onto it: the plate moves
+ * (+1,+1) while the shadow stays, so the visible offset shrinks to (+2,+3) (§11 press 1 px).
+ */
+export function plate(c: Ctx, r: Rect, radius: number, fill: string, opts: { shadow?: boolean; stroke?: string | null; lift?: number; press?: number } = {}): void {
+  const press = opts.press ?? 0;
+  const lift = press > 0 ? -press : opts.lift ?? 0;
   if (opts.shadow !== false) {
     c.fillStyle = P.shadow;
     roundRectPath(c, r.x + SHADOW_OFFSET.x, r.y + SHADOW_OFFSET.y, r.w, r.h, radius);
     c.fill();
   }
-  roundRectPath(c, r.x, r.y - lift, r.w, r.h, radius);
+  roundRectPath(c, r.x + press, r.y - lift, r.w, r.h, radius);
   c.fillStyle = fill;
   c.fill();
   const stroke = opts.stroke === undefined ? P.crease : opts.stroke;
@@ -133,13 +142,17 @@ export function tornCard(c: Ctx, r: Rect, seed: number, fill: string = P.paper):
   c.stroke();
 }
 
-/** 20×20 hotkey badge (§13): ink square with the key in fold-white. */
-export function badge(c: Ctx, x: number, y: number, key: string, alpha = 1): void {
-  const w = key.length > 1 ? 12 + key.length * 7 : 20;
+/** Width of a hotkey badge for `key` (20 for one character). */
+export const badgeWidth = (key: string): number => (key.length > 1 ? 12 + key.length * 7 : 20);
+
+/** 20×20 hotkey badge (§13): ink square with the key in fold-white; `ring` outlines it on dark plates. */
+export function badge(c: Ctx, x: number, y: number, key: string, alpha = 1, ring?: string): void {
+  const w = badgeWidth(key);
   c.globalAlpha *= alpha;
   roundRectPath(c, x, y, w, 20, 4);
   c.fillStyle = P.ink;
   c.fill();
+  if (ring) { c.strokeStyle = ring; c.lineWidth = 1; c.stroke(); }
   c.fillStyle = P.foldWhite;
   c.font = uiFont(12);
   c.textAlign = 'center';
@@ -148,6 +161,11 @@ export function badge(c: Ctx, x: number, y: number, key: string, alpha = 1): voi
   c.textAlign = 'left';
   c.textBaseline = 'alphabetic';
   c.globalAlpha /= alpha;
+}
+
+/** Label offset for a button plate in the same state as `plate(…, { lift, press })`. */
+export function plateShift(hover: boolean, press: number): { x: number; y: number } {
+  return press > 0 ? { x: press, y: press } : { x: 0, y: hover ? -1 : 0 };
 }
 
 export function inRect(r: Rect, x: number, y: number): boolean {

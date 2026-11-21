@@ -1,7 +1,7 @@
 // window.__inkfold test hook (contract: InkfoldTestHook in contracts/types.ts). Installed when the URL has ?test=1.
 // WO-004: stage() composes every §18 capture (plus the board-condition sheets), playScript runs the real
 // app loop under the manual clock, restart() is timed, perfProbe times WO-002's stress sim.
-import type { InkfoldTestHook, RunSummary, SimEvent, SimState, StageId, TowerKind, UpgradePath } from '../contracts/types';
+import type { InkfoldTestHook, RunSummary, Sim, SimEvent, SimState, StageId, TowerKind, UpgradePath } from '../contracts/types';
 import type { Game } from './game';
 import { DEFAULT_SETTINGS } from './settings';
 import { createScriptDriver, summarize, type ScriptDriver } from '../sim/bot';
@@ -14,11 +14,18 @@ const FRAME_60 = 1000 / 60;
 /** 30 minutes of sim at 1× is far beyond a full 20-round run; a hard stop so no stage can hang. */
 const MAX_RUN_STEPS = 60 * 60 * 30;
 
-interface Beats { warning?: number; arrive?: number; shed50?: number; death?: number }
+export interface Beats { warning?: number; arrive?: number; shed50?: number; death?: number }
+
+/**
+ * §18.6 "the 50 % shed": the first moment the boss has torn its 50 % notch (or the run ended without one).
+ * F-024: it must not hold in the R19→R20 intermission, which `phase !== 'round'` alone did.
+ */
+export const shed50Reached = (s: Readonly<SimState>, b: Readonly<Beats>): boolean =>
+  b.shed50 !== undefined || s.phase === 'victory' || s.phase === 'defeat';
 
 export function installTestHook(game: Game, errors: string[], setManual: () => void): InkfoldTestHook {
   const d = game.debug;
-  let run: { name: 'win' | 'loss'; driver: ScriptDriver; beats: Beats; lastKey: string | null } | null = null;
+  let run: { name: 'win' | 'loss'; driver: ScriptDriver; beats: Beats; lastKey: string | null; sim: Sim } | null = null;
 
   const advance = (ms: number, hz = 60, draw = true): void => {
     const dt = 1000 / hz;
@@ -29,7 +36,9 @@ export function installTestHook(game: Game, errors: string[], setManual: () => v
     d.newRun({ seed: SCRIPT_SEED }, true);
     const driver = createScriptDriver(SCRIPTS[name], maxRound ? { maxRound } : {});
     const beats: Beats = {};
-    game.setBeforeStep((s) => driver.beforeStep(s));
+    const sim = game.sim;
+    // F-005: drive only the run this script started; a retry/restart swaps the sim underneath
+    game.setBeforeStep((s) => { if (s === sim) driver.beforeStep(s); });
     d.watch((e: SimEvent) => {
       const tick = game.sim.state.tick;
       if (e.type === 'bossWarning') beats.warning = tick;
@@ -37,7 +46,7 @@ export function installTestHook(game: Game, errors: string[], setManual: () => v
       else if (e.type === 'bossShed' && Math.abs(e.threshold - 0.5) < 1e-6) beats.shed50 = tick;
       else if (e.type === 'bossDeath') beats.death = tick;
     });
-    run = { name, driver, beats, lastKey: null };
+    run = { name, driver, beats, lastKey: null, sim };
     return run;
   }
 
@@ -52,9 +61,10 @@ export function installTestHook(game: Game, errors: string[], setManual: () => v
    * Reuses the live run when it is the same script and the target is still ahead (or is this exact key).
    */
   function ensure(name: 'win' | 'loss', key: string, reached: (s: Readonly<SimState>, b: Beats) => boolean): NonNullable<typeof run> {
-    let r = run;
-    if (!r || r.name !== name || (reached(game.sim.state, r.beats) && r.lastKey !== key)) r = startScript(name);
-    else if (r.lastKey === key) return r;
+    // F-005: a run whose sim was replaced (Enter on an end card, Quit to title) is stale, never reused
+    const live = run && run.name === name && run.sim === game.sim ? run : null;
+    if (live && live.lastKey === key) return live;
+    const r = live && !reached(game.sim.state, live.beats) && game.scene() === 'play' ? live : startScript(name);
     let steps = 0;
     while (!reached(game.sim.state, r.beats) && !r.driver.done(game.sim) && steps++ < MAX_RUN_STEPS && game.scene() === 'play') d.frame(FRAME_60, false);
     r.lastKey = key;
@@ -144,7 +154,7 @@ export function installTestHook(game: Game, errors: string[], setManual: () => v
         break;
       }
       case 'r20-shed50': {
-        ensure('win', id, (s, b) => b.shed50 !== undefined || (s.phase !== 'round' && s.round >= 20));
+        ensure('win', id, shed50Reached);
         advance(130);
         break;
       }
@@ -157,7 +167,7 @@ export function installTestHook(game: Game, errors: string[], setManual: () => v
         ensure('win', id, inRound(1, 3)); advance(100); d.key('Escape'); advance(300); break;
       case 'settings-cb':
         ensure('win', id, inRound(1, 3)); advance(100); d.key('Escape'); advance(100);
-        d.pointerDown(640, 280 + 2 * 56 + 22); d.settings.set({ colourblind: true }); advance(300); break;
+        d.pointerDown(640, 280 + 2 * 56 + 22); d.pointerUp(640, 280 + 2 * 56 + 22); d.settings.set({ colourblind: true }); advance(300); break;
       case 'gameover':
         ensure('loss', id, (s) => s.phase === 'defeat'); advance(1700); break;
       case 'victory':

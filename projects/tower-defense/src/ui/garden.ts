@@ -358,11 +358,13 @@ export function createGarden(): Garden {
       const span = FIELD.w + 40;
       const x = ((p.x + t * DECOR.petals.speed) % span) - 20;
       const y = HUD_TOP + 10 + (((p.y - HUD_TOP + t * DECOR.petals.speed * 0.45) % (LOGICAL_H - HUD_TOP - 10)) + (LOGICAL_H - HUD_TOP - 10)) % (LOGICAL_H - HUD_TOP - 10);
+      const rot = p.rot + (reduceMotion ? 0 : Math.sin(t + p.phase) * 0.8);
       c.save();
       c.translate(x, y);
-      c.rotate(p.rot + (reduceMotion ? 0 : Math.sin(t + p.phase) * 0.8));
+      // F-030: the hard shadow sits at the screen-space (+3,+4) like every other shadow (§4 Light, §16.15)
       c.fillStyle = P.shadow;
-      c.beginPath(); c.ellipse(2, 3, 4, 2.2, 0, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.ellipse(SHADOW_OFFSET.x, SHADOW_OFFSET.y, 4, 2.2, rot, 0, Math.PI * 2); c.fill();
+      c.rotate(rot);
       c.fillStyle = PETAL;
       c.beginPath(); c.ellipse(0, 0, 4, 2.2, 0, 0, Math.PI * 2); c.fill();
       c.strokeStyle = PETAL_DEEP; c.lineWidth = 0.8;

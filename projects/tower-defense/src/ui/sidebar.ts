@@ -10,7 +10,7 @@ import { drawTowerSprite } from '../render/towers';
 import { sellValue } from '../sim/economy';
 import { tierStatus, type TierView } from '../sim/towers';
 import type { GoView } from '../app/input';
-import { backOut, badge, clamp01, createBlitCache, type Ctx, displayFont, drawDigits, fmt, glyphArrow, glyphCheck, glyphCross, glyphLock, glyphPlay, inRect, outCubic, plate, roundRectPath, tornRectPath, typeIcon, uiFont, wrapText } from './draw';
+import { backOut, badge, badgeWidth, clamp01, createBlitCache, type Ctx, displayFont, drawDigits, fmt, glyphArrow, glyphCheck, glyphCross, glyphLock, glyphPlay, inRect, outCubic, plate, roundRectPath, tornRectPath, typeIcon, uiFont, wrapText } from './draw';
 import { pulse } from './garden';
 
 export type SideHit =
@@ -242,14 +242,16 @@ function drawFoldCard(c: Ctx, v: SidebarView, tower: Readonly<Tower>): void {
   if (def.hasTargeting) {
     const ht = v.hover?.k === 'target';
     plate(c, tr, 8, ht ? P.foldWhite : P.paper);
+    // F-016: the T badge sits inside the plate's right end (4-px inset); ▶ moves in beside it
+    const bx = tr.x + tr.w - BADGE_INSET - 20;
     glyphArrow(c, tr.x + 14, tr.y + tr.h / 2, 10, -1, v.hover?.k === 'target' && v.hover.dir === -1 ? P.ink : P.inkSoft);
-    glyphArrow(c, tr.x + tr.w - 14, tr.y + tr.h / 2, 10, 1, v.hover?.k === 'target' && v.hover.dir === 1 ? P.ink : P.inkSoft);
+    glyphArrow(c, bx - 12, tr.y + tr.h / 2, 10, 1, v.hover?.k === 'target' && v.hover.dir === 1 ? P.ink : P.inkSoft);
     c.font = uiFont(14);
     c.fillStyle = P.ink;
     c.textAlign = 'center';
-    c.fillText(cap(tower.target), tr.x + tr.w / 2, tr.y + 21);
+    c.fillText(cap(tower.target), (tr.x + 24 + bx - 22) / 2, tr.y + 21);
     c.textAlign = 'left';
-    badge(c, tr.x + tr.w - 14, tr.y - 10, 'T');
+    badge(c, bx, tr.y + (tr.h - 20) / 2, 'T');
   } else {
     c.font = uiFont(12);
     c.fillStyle = P.inkSoft;
@@ -274,12 +276,14 @@ function drawFoldCard(c: Ctx, v: SidebarView, tower: Readonly<Tower>): void {
   const hs = v.hover?.k === 'sell';
   const value = sellValue(v.state, tower);
   plate(c, sr, 8, v.sellArmed ? P.foldWhite : hs ? P.foldWhite : P.paper, { lift: hs ? 1 : 0, stroke: v.sellArmed ? P.bad : P.crease });
+  const dy = hs ? 1 : 0;
+  const delX = sr.x + sr.w - BADGE_INSET - badgeWidth('Del');
   c.font = uiFont(14);
   c.fillStyle = v.sellArmed ? P.bad : P.ink;
   c.textAlign = 'center';
-  c.fillText(v.sellArmed ? `Press again · ${fmt(value)}` : `${tower.fresh ? 'Refund' : 'Sell'} · ${fmt(value)}`, sr.x + sr.w / 2, sr.y + 21 - (hs ? 1 : 0));
+  c.fillText(v.sellArmed ? `Press again · ${fmt(value)}` : `${tower.fresh ? 'Refund' : 'Sell'} · ${fmt(value)}`, (sr.x + delX) / 2, sr.y + 21 - dy, delX - sr.x - 12);
   c.textAlign = 'left';
-  badge(c, sr.x + sr.w - 22, sr.y - 10, 'Del');
+  badge(c, delX, sr.y + (sr.h - 20) / 2 - dy, 'Del');
   // tally
   c.font = uiFont(12);
   c.fillStyle = P.inkSoft;
@@ -318,28 +322,37 @@ function drawTierBox(c: Ctx, v: SidebarView, tower: Readonly<Tower>, path: Upgra
   if (next && !short) { c.strokeStyle = P.glow; c.lineWidth = 2; roundRectPath(c, r.x + 1, r.y + 1 - lift, r.w - 2, r.h - 2, 6); c.stroke(); }
   const fg = owned ? P.foldWhite : view.status === 'sealed' || view.status === 'locked' ? P.inkSoft : P.ink;
   const y0 = r.y - lift;
+  const sealed = view.status === 'sealed';
+  // F-015: one top-right glyph slot (✓ owned · hotkey badge next · lock sealed); the first name line keeps
+  // clear of it, cost and effect lines flow below the name, and an effect that will not fit ends in "…"
+  const glyph = owned || next || sealed;
   // path colour tab (A gold, B water-deep)
   c.fillStyle = PATH_FLECK[path];
   c.fillRect(r.x + 8, y0 + 6, 16, 3);
+  if (sealed) c.globalAlpha = 0.35;
   c.font = uiFont(12);
   c.fillStyle = fg;
-  wrapText(c, def.name, r.w - 14).slice(0, 2).forEach((l, i) => c.fillText(l, r.x + 8, y0 + 24 + i * 14));
+  const names = wrapLines(c, def.name, [glyph ? r.w - 8 - TIER_GUTTER : r.w - 14, r.w - 14], 2);
+  names.forEach((l, i) => c.fillText(l, r.x + 8, y0 + 24 + i * 14));
+  const costY = y0 + 24 + 14 * (names.length - 1) + (names.length > 1 ? 20 : 24);
   c.font = uiFont(16);
   c.fillStyle = short ? P.bad : fg;
-  drawDigits(c, fmt(def.cost), r.x + 8, y0 + 64, 16);
+  drawDigits(c, fmt(def.cost), r.x + 8, costY, 16);
   c.font = uiFont(12, 400);
   c.fillStyle = owned ? 'rgba(251,247,238,.85)' : P.inkSoft;
-  const eff = wrapText(c, def.effectLine, r.w - 14).slice(0, short ? 1 : 2);
-  eff.forEach((l, i) => c.fillText(l, r.x + 8, y0 + 82 + i * 14));
-  if (short) { c.font = uiFont(12); c.fillStyle = P.bad; c.fillText(`need ${fmt(view.shortBy)} more`, r.x + 8, y0 + 100, r.w - 12); }
-  if (owned) glyphCheck(c, r.x + r.w - 16, y0 + r.h - 16, 12, P.glow);
+  const effY = costY + (names.length > 1 ? 16 : 18);
+  const lastY = y0 + (short ? 88 : 102);
+  const room = Math.max(1, Math.floor((lastY - effY) / 14) + 1);
+  wrapLines(c, def.effectLine, [r.w - 14], room).forEach((l, i) => c.fillText(l, r.x + 8, effY + i * 14));
+  if (short) { c.font = uiFont(12); c.fillStyle = P.bad; c.fillText(`need ${fmt(view.shortBy)} more`, r.x + 8, y0 + 102, r.w - 12); }
+  if (owned) glyphCheck(c, r.x + r.w - 14, y0 + 13, 12, P.glow);
   c.restore();
-  if (view.status === 'sealed') {
-    // stamp thunks in (90 ms) when the rule first applies
+  if (sealed) {
+    // stamp thunks in (90 ms) when the rule first applies; drawn over the dimmed (35 %) box text
     const k = v.settings.reduceMotion ? 1 : clamp01(age / MOTION.microMs);
     const s = 1.35 - 0.35 * k;
     c.save();
-    c.translate(r.x + r.w / 2, r.y + r.h / 2);
+    c.translate(r.x + r.w / 2, r.y + r.h / 2 + 6);
     c.rotate(-0.42);
     c.scale(s, s);
     c.globalAlpha = 0.4 * (0.5 + 0.5 * k);
@@ -350,9 +363,33 @@ function drawTierBox(c: Ctx, v: SidebarView, tower: Readonly<Tower>, path: Upgra
     c.textAlign = 'center';
     c.fillText('SEALED', 0, 5);
     c.restore();
-    glyphLock(c, r.x + r.w - 14, r.y + 16, P.bad);
+    glyphLock(c, r.x + r.w - 14, r.y + 17, P.bad);
   }
-  if (next) badge(c, r.x + r.w - 14, r.y - 8 - lift, path === 0 ? 'Z' : 'X', short ? 0.6 : 1);
+  if (next) badge(c, r.x + r.w - BADGE_INSET - 20, y0 + BADGE_INSET, path === 0 ? 'Z' : 'X', short ? 0.6 : 1);
+}
+
+/** Greedy wrap with a width per line (the last width repeats); the last allowed line ends in "…" if cut. */
+function wrapLines(c: Ctx, text: string, widths: readonly number[], max: number): string[] {
+  const words = text.split(' ');
+  const out: string[] = [];
+  let line = '';
+  const wOf = (i: number): number => widths[Math.min(i, widths.length - 1)];
+  for (let k = 0; k < words.length; k++) {
+    const t = line ? `${line} ${words[k]}` : words[k];
+    if (line && c.measureText(t).width > wOf(out.length)) {
+      if (out.length === max - 1) { out.push(ellipsize(c, `${line} ${words.slice(k).join(' ')}`, wOf(out.length))); return out; }
+      out.push(line); line = words[k];
+    } else line = t;
+  }
+  if (line) out.push(out.length < max ? line : ellipsize(c, line, wOf(max - 1)));
+  return out.slice(0, max);
+}
+
+function ellipsize(c: Ctx, text: string, w: number): string {
+  if (c.measureText(text).width <= w) return text;
+  let t = text;
+  while (t.length > 1 && c.measureText(`${t.trimEnd()}…`).width > w) t = t.slice(0, -1);
+  return `${t.trimEnd()}…`;
 }
 
 function drawAutoStart(c: Ctx, v: SidebarView): void {
@@ -388,17 +425,26 @@ function drawGo(c: Ctx, v: SidebarView): void {
     roundRectPath(c, r.x - 3, r.y - 3 - (hov ? 1 : 0), r.w + 6, r.h + 6, 10); c.stroke();
     c.globalAlpha = g.dim ? 0.45 : 1;
   }
+  // F-016: the Space badge lives inside the plate (bottom-right, 8-px inset) and the label centres in the
+  // room left of it, so neither ever overlaps the other or the canvas edge
+  const lift = hov ? 1 : 0;
+  const bw = badgeWidth('Space');
+  const bx = r.x + r.w - 8 - bw;
   c.font = uiFont(20);
   const tw = c.measureText(g.text).width;
   const iconW = g.icon === 'fast' ? 26 : 14;
-  const x0 = r.x + r.w / 2 - (iconW + 10 + tw) / 2;
-  const cy = r.y + r.h / 2 - (hov ? 1 : 0);
+  const x0 = (r.x + bx) / 2 - (iconW + 10 + tw) / 2;
+  const cy = r.y + r.h / 2 - lift;
   glyphPlay(c, x0, cy, 16, P.foldWhite);
   if (g.icon === 'fast') glyphPlay(c, x0 + 12, cy, 16, P.foldWhite);
   c.fillStyle = P.foldWhite;
   c.fillText(g.text, x0 + iconW + 10, cy + 7);
+  badge(c, bx, r.y + r.h - 8 - 20 - lift, 'Space', 1, 'rgba(251,247,238,.6)');
   c.restore();
-  badge(c, r.x + r.w - 56, r.y + r.h - 26, 'Space', g.dim ? 0.45 : 1);
 }
 
 const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
+/** Badges sit inside their plate, 4 px from the corner (F-016). */
+const BADGE_INSET = 4;
+/** Right gutter kept by a tier box's first name line for its top-right glyph (F-015). */
+const TIER_GUTTER = 26;

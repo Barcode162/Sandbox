@@ -9,6 +9,7 @@ import { LOGICAL_H, LOGICAL_W, FIELD, ATTRACT, BEST_SPOTS, FOOTPRINT } from '../
 import { HUD } from '../data/layout';
 import { TOWERS } from '../data/towers';
 import { STORM_FROM_ROUND } from '../data/waves';
+import { ECONOMY } from '../data/economy';
 import { createSim } from '../sim';
 import { canPlace } from '../sim/placement';
 import { tierStatus } from '../sim/towers';
@@ -23,7 +24,7 @@ import { clamp01, type Ctx, inRect, outCubic } from '../ui/draw';
 import { createGarden, type GardenDynamic } from '../ui/garden';
 import { createHud } from '../ui/hud';
 import { drawSidebar, sameHit, sidebarHit, type SideHit, towerTitle } from '../ui/sidebar';
-import { drawGhost, drawMorph, drawSelection, drawSink, drawStar, drawUpgradePreview, type Morph, type Sink } from '../ui/ghost';
+import { drawGhost, drawMorph, drawMorphBase, drawSelection, drawSink, drawStar, drawUpgradePreview, type Morph, type Sink } from '../ui/ghost';
 import {
   bestDefenderLine, drawCranes, drawDim, drawFlood, drawGameOverCard, drawPause, drawSettings, drawTitle, drawVictoryCard,
   endHit, makeCranes, pauseHit, settingsHit, sliderValue, titleHit, type Crane, type EndHit, type PauseHit, type SettingKey,
@@ -58,7 +59,8 @@ export interface GameDebug {
   render(): void;
   pointerMove(x: number, y: number): void;
   pointerDown(x: number, y: number, button?: number): void;
-  pointerUp(): void;
+  /** Release; without coordinates it releases at the last pointer position. */
+  pointerUp(x?: number, y?: number): void;
   key(key: string): void;
   setSheet(id: Sheet | null): void;
   /** Observe every sim event of the play run (stages wait on boss beats). */
@@ -66,6 +68,10 @@ export interface GameDebug {
   readonly selection: Selection;
   readonly go: GoView;
   readonly hint: string | null;
+  /** The card/title button held down (acts on release inside it, §11), or null. */
+  readonly pressed: string | null;
+  /** ms since the current scene began. */
+  readonly sceneMs: number;
 }
 
 export type Selection = { mode: 'none' } | { mode: 'placing'; kind: TowerKind } | { mode: 'selected'; towerId: number };
@@ -146,6 +152,8 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
   let hoverSettings: SettingsHit | null = null;
   let hoverEnd: EndHit | null = null;
   let dragKey: SettingKey | null = null;
+  /** §11 press: card and title buttons depress on down and act on release inside the same button (F-026). */
+  let pressed: { id: string; scene: SceneId; at: number } | null = null;
   let lastFail: PlaceFail | null = null;
   let nudgeAt = -1e9;
   let sellArmedAt = -1e9;
@@ -186,7 +194,7 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
     attract.enqueue({ type: 'startRound' });
     attractLoop.reset();
     // pre-warm so the title opens on a live garden (§10.1 t 800 ms: blots already crossing the top path)
-    for (let i = 0; i < 420; i++) { attract.step(); feed(attractLayers, attract, false); updateLayers(attractLayers, STEP_MS, attract); }
+    for (let i = 0; i < ATTRACT.prewarmSteps; i++) { attract.step(); feed(attractLayers, attract, false); updateLayers(attractLayers, STEP_MS, attract); }
   }
 
   function feed(L: Layers, s: Sim, main: boolean): void {
@@ -244,6 +252,9 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
     resetRunState();
     makeAttract();
     setScene('title');
+    // F-024: a re-entry while already on the title (stage 'title-0') must restart the title clock too,
+    // or the map fade and letter folds start mid-way
+    sceneAt = now;
     playAt = -1e9; drainAt = -1e9;
     audio.setPaused(false);
   }
@@ -252,14 +263,25 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
     if (s === scene) return;
     scene = s;
     sceneAt = now;
-    hoverTitle = null; hoverPause = null; hoverSettings = null; hoverEnd = null; dragKey = null;
+    hoverTitle = null; hoverPause = null; hoverSettings = null; hoverEnd = null; dragKey = null; pressed = null;
     audio.setPaused(s === 'paused' || (s === 'settings' && settingsReturn === 'paused'));
   }
 
   // ───────── sim events → UI ─────────
+  /**
+   * §10.10 "Last blot torn: 1 s of quiet; ambient only" (F-029): the final round's clear banner, chime and
+   * bonus flight are skipped (the bonus lands in the pill quietly) and the victory sting waits for the
+   * cranes (musicFor holds 'silent' for the first second).
+   */
+  function quietOnVictory(e: SimEvent): boolean {
+    if (sim.state.phase !== 'victory') return false;
+    return (e.type === 'roundClear' && e.round >= ECONOMY.rounds) || (e.type === 'money' && e.reason === 'bonus') || e.type === 'victory';
+  }
+
   function onPlayEvent(e: SimEvent): void {
-    if (!headless) audio.onSimEvent(e);
-    hud.onSimEvent(e, sim.state, now);
+    const quiet = quietOnVictory(e);
+    if (!headless && !quiet) audio.onSimEvent(e);
+    if (!quiet || e.type === 'victory') hud.onSimEvent(e, sim.state, now);
     watcher?.(e);
     switch (e.type) {
       case 'place':
@@ -272,7 +294,7 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
         boxChange.set(`${e.towerId}:${e.path}:${e.tier}`, now);
         if (e.tier >= 2) for (const tier of [2, 3]) boxChange.set(`${e.towerId}:${1 - e.path}:${tier}`, now);
         if (prev && t) {
-          morphs.push({ towerId: t.id, kind: t.kind, from: [prev.tiers[0], prev.tiers[1]], x: t.x, y: t.y, angle: t.angle, born: now });
+          morphs.push({ towerId: t.id, kind: t.kind, from: [prev.tiers[0], prev.tiers[1]], to: [t.tiers[0], t.tiers[1]], x: t.x, y: t.y, angle: t.angle, born: now });
           portraitMorph = { towerId: t.id, from: [prev.tiers[0], prev.tiers[1]], born: now };
         }
         if (!headless) audio.ui(e.tier >= 3 ? 'upgrade3' : e.tier === 2 ? 'upgrade2' : 'upgrade1');
@@ -463,40 +485,57 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
     pointerMove(x, y);
     if (button === 2) { if (sel.mode === 'placing') setSelection({ mode: 'none' }); return; }
     if (button !== 0) return;
+    if (scene === 'play') { playClick(x, y); return; }
+    if (scene === 'settings') {
+      const h = settingsHit(x, y);
+      if (h?.k === 'toggle') toggleSetting(h.key);
+      else if (h?.k === 'slider') { dragKey = h.key; setSlider(h.key, h.value); }
+    }
+    const b = buttonAt(x, y);
+    if (b) pressed = { id: b, scene, at: now };
+  }
+
+  /** The card/title button under (x, y) in the current scene (§11 press targets). */
+  function buttonAt(x: number, y: number): string | null {
     switch (scene) {
-      case 'title': {
-        const h = titleHit(x, y);
-        if (h === 'play') exec({ type: 'play' });
-        else if (h === 'settings') exec({ type: 'openSettings' });
-        return;
-      }
-      case 'play': return playClick(x, y);
-      case 'paused': {
-        const h = pauseHit(x, y);
-        if (h === 'resume') { audio.ui('click'); setScene('play'); }
-        else if (h === 'restart') exec({ type: 'restart' });
-        else if (h === 'settings') { audio.ui('click'); openSettings(); }
-        else if (h === 'quit') { audio.ui('click'); toTitle(); }
-        return;
-      }
-      case 'settings': {
-        const h = settingsHit(x, y);
-        if (!h) return;
-        if (h.k === 'back') exec({ type: 'back' });
-        else if (h.k === 'toggle') toggleSetting(h.key);
-        else { dragKey = h.key; setSlider(h.key, h.value); }
-        return;
-      }
+      case 'title': return titleHit(x, y);
+      case 'paused': return pauseHit(x, y);
+      case 'settings': return settingsHit(x, y)?.k === 'back' ? 'back' : null;
       case 'gameover':
-      case 'victory': {
-        if (!endCardVisible()) return;
-        const h = endHit(x, y, scene === 'victory');
-        if (h === 'retry') exec({ type: 'retry' });
-        else if (h === 'title') { audio.ui('click'); toTitle(); }
+      case 'victory': return endCardVisible() ? endHit(x, y, scene === 'victory') : null;
+      default: return null;
+    }
+  }
+
+  function pointerUp(x: number, y: number): void {
+    dragKey = null;
+    const p = pressed;
+    pressed = null;
+    if (!p || p.scene !== scene || buttonAt(x, y) !== p.id) return;
+    switch (scene) {
+      case 'title': exec({ type: p.id === 'play' ? 'play' : 'openSettings' }); return;
+      case 'paused':
+        if (p.id === 'resume') { audio.ui('click'); setScene('play'); }
+        else if (p.id === 'restart') exec({ type: 'restart' });
+        else if (p.id === 'settings') { audio.ui('click'); openSettings(); }
+        else { audio.ui('click'); toTitle(); }
         return;
-      }
+      case 'settings': exec({ type: 'back' }); return;
+      case 'gameover':
+      case 'victory':
+        if (p.id === 'retry') exec({ type: 'retry' });
+        else { audio.ui('click'); toTitle(); }
+        return;
       default: return;
     }
+  }
+
+  /** Press depth 0..1 of `id` (90 ms outCubic, §11), 0 when it is not the held button. */
+  function pressOf(id: string): number {
+    return pressed && pressed.id === id && pressed.scene === scene ? outCubic((now - pressed.at) / MOTION_PRESS) : 0;
+  }
+  function pressView(): { id: string; k: number } | null {
+    return pressed && pressed.scene === scene ? { id: pressed.id, k: pressOf(pressed.id) } : null;
   }
 
   function playClick(x: number, y: number): void {
@@ -547,8 +586,8 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
   };
   canvas.addEventListener('pointermove', (e) => { const p = toLogical(e); pointerMove(p.x, p.y); });
   canvas.addEventListener('pointerdown', (e) => { const p = toLogical(e); pointerDown(p.x, p.y, (e as PointerEvent).button ?? 0); (e as Event).preventDefault?.(); });
-  canvas.addEventListener('pointerup', () => { dragKey = null; });
-  canvas.addEventListener('pointerleave', () => { pointer.inside = false; hoverSide = null; dragKey = null; });
+  canvas.addEventListener('pointerup', (e) => { const p = toLogical(e); pointerUp(p.x, p.y); });
+  canvas.addEventListener('pointerleave', () => { pointer.inside = false; hoverSide = null; dragKey = null; pressed = null; });
   canvas.addEventListener('contextmenu', (e) => e.preventDefault?.());
   win?.addEventListener('keydown', (e) => {
     const ke = e as KeyboardEvent;
@@ -558,7 +597,8 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
     if (ke.repeat) return;
     key(ke.key);
   });
-  win?.addEventListener('pointerup', () => { dragKey = null; });
+  // a release outside the canvas cancels a held button (the canvas listener has already run for inside ones)
+  win?.addEventListener('pointerup', () => { dragKey = null; pressed = null; });
   const autoPause = (): void => { if (!scripted && scene === 'play') pause(); };
   win?.addEventListener('blur', autoPause);
   doc?.addEventListener('visibilitychange', () => { if (doc.hidden) autoPause(); });
@@ -578,7 +618,7 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
     switch (scene) {
       case 'title': return 'title';
       case 'gameover': return 'gameover';
-      case 'victory': return 'victory';
+      case 'victory': return now - victoryAt < VICTORY_QUIET_MS ? 'silent' : 'victory';
       case 'settings': if (settingsReturn === 'title') return 'title'; break;
       default: break;
     }
@@ -611,7 +651,8 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
     if (worldRuns) updateLayers(layers, dt, sim);
     hud.update(dt, now, sim.state);
     const h = hintText();
-    if (h !== lastHint) { hud.setHint(h, now); lastHint = h; }
+    // F-025: the first hint folds in once the title has slid away (trans ≥ 0.8), never under "Inkfold"
+    if (h !== lastHint) { hud.setHint(h, Math.max(now, playAt + 0.8 * MOTION_SCENE)); lastHint = h; }
     if (sel.mode === 'selected' && !selectedTower()) setSelection({ mode: 'none' });
     if (!headless) {
       const m = musicFor();
@@ -655,8 +696,8 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
         passes(attractLayers, attract, ['towers', ...PASSES_HIGH], mapA, attractLoop.alpha);
       }
       garden.drawVignette(c);
-      drawTitle(c, { t: scene === 'title' ? t : 1e6, leave: 0, hover: scene === 'title' ? hoverTitle : null, settings: s });
-      if (scene === 'settings') { drawDim(c, 1); c.fillStyle = 'rgba(28,26,36,.45)'; c.fillRect(FIELD.w, 0, LOGICAL_W - FIELD.w, LOGICAL_H); drawSettings(c, { t: now - sceneAt, s, hover: hoverSettings, nowMs: now }); }
+      drawTitle(c, { t: scene === 'title' ? t : 1e6, leave: 0, hover: scene === 'title' ? hoverTitle : null, press: scene === 'title' ? pressView() : null, settings: s });
+      if (scene === 'settings') { drawDim(c, 1); c.fillStyle = 'rgba(28,26,36,.45)'; c.fillRect(FIELD.w, 0, LOGICAL_W - FIELD.w, LOGICAL_H); drawSettings(c, { t: now - sceneAt, s, hover: hoverSettings, press: pressOf('back'), nowMs: now }); }
       garden.drawGrain(c);
       return;
     }
@@ -675,6 +716,7 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
     if (selT && scene === 'play') drawSelection(c, selT, selectedAt, now, s);
     passes(layers, sim, PASSES_LOW, 1, loop.alpha);
     garden.drawOccluders(c, 1);
+    for (const m of morphs) drawMorphBase(c, m, now);
     passes(layers, sim, ['towers'], 1, loop.alpha);
     morphs = morphs.filter((m) => drawMorph(c, m, now));
     sinks = sinks.filter((k) => drawSink(c, k, now));
@@ -696,18 +738,21 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
         drawUpgradePreview(c, selT, tiers, now);
       }
     }
+    // F-018: the star sits under the ghost, so the tower you are about to place always reads
+    if (st.towers.length === 0 && !firstPlaced && roundsStarted === 0 && (scene === 'play' || scene === 'paused')) {
+      const star = BEST_SPOTS.star;
+      drawStar(c, star.x, star.y, now, placing !== null && pointer.inside && Math.hypot(pointer.x - star.x, pointer.y - star.y) < 24, s.reduceMotion);
+    }
     if (placing && pointer.inside && pointer.x < FIELD.w) {
       const fail = canPlace(st, placing, pointer.x, pointer.y, TOWERS[placing].cost);
       if (fail && !lastFail) nudgeAt = now;
       lastFail = fail;
       drawGhost(c, { kind: placing, x: pointer.x, y: pointer.y, fail, nudgeAt, nowMs: now });
     }
-    if (st.towers.length === 0 && !firstPlaced && roundsStarted === 0 && (scene === 'play' || scene === 'paused')) {
-      const star = BEST_SPOTS.star;
-      drawStar(c, star.x, star.y, now, placing !== null && Math.hypot(pointer.x - star.x, pointer.y - star.y) < 24, s.reduceMotion);
-    }
     c.restore();
     garden.drawVignette(c);
+    // F-025: the leaving title wash slides away under the incoming HUD and sidebar, never over them
+    if (inTrans) drawTitle(c, { t: 1e6, leave: trans, hover: null, press: null, settings: s });
     const hv = { state: st, settings: s, nowMs: now, offsetY: inTrans ? -(1 - outCubic(trans)) * 80 : 0, hoverPause: hoverPauseBtn && scene === 'play' };
     hud.draw(c, hv);
     hud.drawFloats(c, hv);
@@ -721,31 +766,36 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
       morph: pm ? { from: pm.from, born: pm.born } : null, boxChange, offsetX: inTrans ? (1 - outCubic(trans)) * 220 : 0,
       sellArmed: now - sellArmedAt < 1000,
     });
-    if (inTrans) drawTitle(c, { t: 1e6, leave: trans, hover: null, settings: s });
     // drain after "Try again" (300 ms)
     const dr = (now - drainAt) / 300;
     if (dr >= 0 && dr < 1) drawFlood(c, 1 - outCubic(dr), now);
     switch (scene) {
       case 'paused':
         drawDim(c, clamp01((now - sceneAt) / MOTION_UI));
-        drawPause(c, { t: now - sceneAt, hover: hoverPause, restartArmed: now - restartArmedAt < 2000, settings: s });
+        drawPause(c, { t: now - sceneAt, hover: hoverPause, press: pressView(), restartArmed: now - restartArmedAt < 2000, settings: s });
         break;
       case 'settings':
         drawDim(c, 1);
-        drawSettings(c, { t: now - sceneAt, s, hover: hoverSettings, nowMs: now });
+        drawSettings(c, { t: now - sceneAt, s, hover: hoverSettings, press: pressOf('back'), nowMs: now });
         break;
       case 'gameover': {
         const t = now - defeatAt;
         drawFlood(c, (t / 1200) ** 2 > 1 ? 1 : (t / 1200) ** 2, now);
-        drawGameOverCard(c, { t: t - 1200, hover: hoverEnd, settings: s, line1: `Round ${st.round} · ${fmt0(st.stats.pops)} blots torn` });
+        // F-030: the best-defender line (as on Victory) fills the card's stat block
+        const best = bestTower();
+        drawGameOverCard(c, {
+          t: t - 1200, hover: hoverEnd, press: pressView(), settings: s,
+          line1: `Round ${st.round} · ${fmt0(st.stats.pops)} blots torn`,
+          line2: best ? bestDefenderLine(towerTitle(best.kind, best.tiers), best.pops) : undefined,
+        });
         break;
       }
       case 'victory': {
         const t = now - victoryAt;
-        if (t > 1000) drawCranes(c, cranes, t - 1000, s.reduceMotion);
-        const best = st.towers.reduce<Tower | null>((b, k) => (!b || k.pops > b.pops ? k : b), null);
+        if (t > VICTORY_QUIET_MS) drawCranes(c, cranes, t - VICTORY_QUIET_MS, s.reduceMotion);
+        const best = bestTower();
         drawVictoryCard(c, {
-          t: t - 2200, hover: hoverEnd, settings: s,
+          t: t - 2200, hover: hoverEnd, press: pressView(), settings: s,
           line1: `Seeds left ${fmt0(st.lives)} · ${fmt0(st.stats.pops)} blots torn`,
           line2: best ? bestDefenderLine(towerTitle(best.kind, best.tiers), best.pops) : undefined,
         });
@@ -754,6 +804,10 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
       default: break;
     }
     garden.drawGrain(c);
+  }
+
+  function bestTower(): Tower | null {
+    return sim.state.towers.reduce<Tower | null>((b, k) => (!b || k.pops > b.pops ? k : b), null);
   }
 
   makeAttract();
@@ -767,13 +821,15 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
     render,
     pointerMove,
     pointerDown,
-    pointerUp() { dragKey = null; },
+    pointerUp(x, y) { pointerUp(x ?? pointer.x, y ?? pointer.y); },
     key,
     setSheet(id) { sheet = id; },
     watch(fn) { watcher = fn; },
     get selection() { return sel; },
     get go() { return currentGo(); },
     get hint() { return hintText(); },
+    get pressed() { return pressed && pressed.scene === scene ? pressed.id : null; },
+    get sceneMs() { return now - sceneAt; },
   };
 
   return {
@@ -789,4 +845,8 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
 }
 
 const MOTION_UI = 160;
+const MOTION_PRESS = 90;
+const MOTION_SCENE = 400;
+/** §10.10: quiet beat between the last blot and the cranes + sting. */
+const VICTORY_QUIET_MS = 1000;
 const fmt0 = (n: number): string => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');

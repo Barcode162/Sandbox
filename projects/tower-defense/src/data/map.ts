@@ -57,14 +57,21 @@ export const DECOR = {
   grainAlpha: 0.06,
 } as const;
 
-/** §10.1 attract mode: own seed, preplaced towers, looping R6. */
+/**
+ * §10.1 attract mode: own seed, preplaced towers, looping R6. The kill zone sits on the right loop
+ * (F-013): the left loops stay unguarded, so the ink-filled top path is the threat under the title and
+ * every peel happens right of the buttons ("type left third, play right two-thirds"). All four spots
+ * pass canPlace. `prewarmSteps` (15.4 s of sim) puts the title's t 800 ms on Drops crossing the top path
+ * (x 230–400) and its Idle 5 s frame inside the densest peel of the loop (7 pop rings at x > 560).
+ */
 export const ATTRACT = {
   seed: 11,
   round: 6,
+  prewarmSteps: 924,
   towers: [
-    { kind: 'tern', x: 340, y: 510, tiers: [2, 0] },
-    { kind: 'frog', x: 760, y: 300, tiers: [0, 0] },
-    { kind: 'koi', x: 280, y: 554, tiers: [0, 0] },
+    { kind: 'tern', x: 720, y: 300, tiers: [2, 0] },
+    { kind: 'frog', x: 860, y: 300, tiers: [0, 0] },
+    { kind: 'koi', x: 700, y: 420, tiers: [0, 0] },
     { kind: 'owl', x: 860, y: 360, tiers: [0, 0] },
   ],
-} as const satisfies { seed: number; round: number; towers: readonly { kind: TowerKind; x: number; y: number; tiers: readonly [number, number] }[] };
+} as const satisfies { seed: number; round: number; prewarmSteps: number; towers: readonly { kind: TowerKind; x: number; y: number; tiers: readonly [number, number] }[] };

@@ -19,8 +19,12 @@ export const TITLE = {
   washTo: 330, washFade: 540, title: { x: 64, y: 250 }, subtitle: { x: 68, y: 288 },
   play: r(64, 330, 240, 56), settings: r(64, 398, 240, 44), footer: { x: 64, y: 690 },
 } as const;
+// settings: §10.8 says 520×420 at (380,150); with six rows at the spec 56-px pitch from y 230 that left the
+// last toggle 10 px above Back (F-004), so the card grows to 490 tall (still centred on the field) for a footer band.
 export const CARDS = {
   pause: r(430, 190, 420, 340), pauseButtonsY: 280, pausePitch: 56, pauseButton: { w: 280, h: 44 },
-  settings: r(380, 150, 520, 420), settingsRowY: 230, settingsPitch: 56, settingsLabelX: 412, settingsControlX: [640, 860],
-  gameover: { w: 460, h: 300 }, victory: { w: 480, h: 320 },
+  settings: r(380, 120, 520, 490), settingsRowY: 230, settingsPitch: 56, settingsLabelX: 412, settingsControlX: [640, 860],
+  // end cards: §10.9/§10.10 say 460×300 / 480×320; two stat lines then the buttons left a 60–80 px dead band
+  // (F-030), so both cards close up to 280 tall (buttons 42 px under the second line).
+  gameover: { w: 460, h: 280 }, victory: { w: 480, h: 280 },
 } as const;
