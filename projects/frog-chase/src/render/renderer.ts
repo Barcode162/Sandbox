@@ -86,6 +86,11 @@ declare global {
 /** Hinge → snout tip of the head, wu (draw.ts SNOUT plus the rounded tip). */
 const SNOUT_TIP = 10.5;
 const lerpAngle = (a: number, b: number, t: number): number => a + Math.atan2(Math.sin(b - a), Math.cos(b - a)) * t;
+/** Is a pad one of the current choices? (Module-level: no per-frame closure.) */
+function isChoiceOf(sim: SimState, id: number): boolean {
+  for (let i = 0; i < sim.choices.length; i++) if (sim.choices[i]!.padId === id) return true;
+  return false;
+}
 const DASH = [3, 3];
 const NO_DASH: number[] = [];
 
@@ -246,17 +251,28 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
       return true;
     },
     clear(p: Vec2): Vec2 {
+      // Neighbouring clearance zones overlap, so push repeatedly; if a point is still trapped between two
+      // choices, lift it north of their layer.
       const sim = simRef!;
+      for (let pass = 0; pass < 4; pass++) {
+        let moved = false;
+        for (let i = 0; i < sim.choices.length; i++) {
+          const pad = sim.river.pads[sim.choices[i]!.padId]!;
+          if (pad.kind === 'bank') continue;
+          const cx = pad.x + padSwayX(pad, at), cy = pad.y;
+          const dx = p.x - cx, dy = p.y - cy;
+          const d = Math.hypot(dx, dy), min = pad.r + 6;
+          if (d >= min) continue;
+          const ux = d > 1e-6 ? dx / d : 0, uy = d > 1e-6 ? dy / d : 1;
+          p.x = cx + ux * min;
+          p.y = cy + uy * min;
+          moved = true;
+        }
+        if (!moved) return p;
+      }
       for (let i = 0; i < sim.choices.length; i++) {
         const pad = sim.river.pads[sim.choices[i]!.padId]!;
-        if (pad.kind === 'bank') continue;
-        const cx = pad.x + padSwayX(pad, at), cy = pad.y;
-        const dx = p.x - cx, dy = p.y - cy;
-        const d = Math.hypot(dx, dy), min = pad.r + 6;
-        if (d >= min) continue;
-        const ux = d > 1e-6 ? dx / d : 0, uy = d > 1e-6 ? dy / d : 1;
-        p.x = cx + ux * min;
-        p.y = cy + uy * min;
+        if (pad.kind !== 'bank') p.y = Math.max(p.y, pad.y + pad.r + 6.5);
       }
       return p;
     },
@@ -437,6 +453,24 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
     if (e.t !== 'nearMiss') {
       if (imp.shakePx > 0) shake.kick(imp.shakePx, imp.shakeMs);
     }
+  }
+
+  /** A landed droplet: a ripple on the water, and the polish-10 audit (hoisted: no per-frame closure). */
+  function onDropletLand(x: number, y: number, size: number): void {
+    ripples.spawn(x, y, size * 0.6, size * 2.6, 0.32, 0.45);
+    if (landPad < 0 || !simRef) return;
+    const lp = simRef.river.pads[landPad]!;
+    probe.droplets++;
+    if (Math.hypot(x - lp.x, y - lp.y) < lp.r * 1.08) probe.dropletsOnPad++;
+  }
+
+  /** Route point i of the win trace: the swayed centre of the landed pad (bank points as stored). */
+  function routePoint(sim: SimState, i: number, out: Vec2): Vec2 {
+    const id = route ? route[i]! : -1;
+    if (id >= 0 && sim.river.pads[id]!.kind !== 'bank') return padPos(id, out);
+    out.x = sim.trail[i]!.x;
+    out.y = sim.trail[i]!.y;
+    return out;
   }
 
   function padAt(sim: SimState, p: Vec2): number {
@@ -733,10 +767,6 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
       // ── Pads (shadows pass, then surfaces).
       const frogLayer = sim.frog.layer;
       const k0 = Math.max(1, Math.floor(bounds.yB / P) - 1), k1 = Math.min(t.layers, Math.ceil(bounds.yT / P) + 1);
-      const isChoice = (id: number) => {
-        for (let i = 0; i < sim.choices.length; i++) if (sim.choices[i]!.padId === id) return true;
-        return false;
-      };
       for (let pass = 0; pass < 2; pass++) {
         for (let k = k0; k <= k1; k++) {
           const layer = sim.river.layers[k]!;
@@ -748,7 +778,7 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
               drawPadShadow(ctx, p, shapeOf(p), look);
               continue;
             }
-            const lit = isChoice(p.id) || rt_.state === 'reachable' || rt_.state === 'flanked';
+            const lit = isChoiceOf(sim, p.id) || rt_.state === 'reachable' || rt_.state === 'flanked';
             const target = lit || p.id === sim.frog.padId || p.id === sim.frog.targetId ? 0 : k > frogLayer ? DIM_AHEAD : DIM_BEHIND;
             const was = dimOf[p.id]!;
             const step = (dt / 120) * DIM_AHEAD;
@@ -772,7 +802,7 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
       }
       // The north bank answers as one big target when it is the next hop.
       const north = sim.river.layers[t.layers + 1]?.[0];
-      if (north && isChoice(north.id)) {
+      if (north && isChoiceOf(sim, north.id)) {
         dX[north.id] = sx(view, 50);
         dY[north.id] = sy(view, north.y);
         dR[north.id] = 26 * view.k;
@@ -850,7 +880,7 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
       let chipCount = 0;
       for (let i = 0; i < 3; i++) {
         const id = lastChips[i]!;
-        if (id >= 0 && !isChoice(id)) chipBorn[id] = -1;
+        if (id >= 0 && !isChoiceOf(sim, id)) chipBorn[id] = -1;
       }
       for (let i = 0; i < 3; i++) lastChips[i] = sim.choices[i]?.padId ?? -1;
       let stagger = 0;
@@ -891,7 +921,7 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
         }
       }
       // A flanked pad keeps its ✕ while the frog is in the air (choices are empty then): the jaws are never the only warning.
-      if (flankPad >= 0 && sim.padStates[flankPad]!.state === 'flanked' && !isChoice(flankPad)) {
+      if (flankPad >= 0 && sim.padStates[flankPad]!.state === 'flanked' && !isChoiceOf(sim, flankPad)) {
         const p = sim.river.pads[flankPad]!;
         padPos(flankPad, tmp);
         drawChip(ctx, tmp.x + 0.36 * p.r, tmp.y + 0.74 * p.r, 0.42 * p.r, 'X', false, 1, px, chipPx);
@@ -922,14 +952,7 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
       }
 
       // ── Particles.
-      particles.step(dts, (x, y, size) => {
-        ripples.spawn(x, y, size * 0.6, size * 2.6, 0.32, 0.45);
-        if (landPad >= 0) {
-          const lp = sim.river.pads[landPad]!;
-          probe.droplets++;
-          if (Math.hypot(x - lp.x, y - lp.y) < lp.r * 1.08) probe.dropletsOnPad++;
-        }
-      });
+      particles.step(dts, onDropletLand);
       for (let i = 0; i < particles.cap; i++) {
         if (particles.life[i]! <= 0) continue;
         const kind = particles.kind[i]!;
@@ -986,22 +1009,15 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
           ctx.setLineDash(DASH);
           ctx.beginPath();
           const n = sim.trail.length;
-          const at_ = (i: number, out: Vec2) => {
-            const id = route![i]!;
-            if (id >= 0 && sim.river.pads[id]!.kind !== 'bank') return padPos(id, out);
-            out.x = sim.trail[i]!.x;
-            out.y = sim.trail[i]!.y;
-            return out;
-          };
-          at_(n - 1, tmp);
+          routePoint(sim, n - 1, tmp);
           ctx.moveTo(tmp.x, tmp.y);
           for (let i = n - 2; i >= 0; i--) {
-            at_(i, tmp);
+            routePoint(sim, i, tmp);
             if (arc[i]! >= cutAt) {
               ctx.lineTo(tmp.x, tmp.y);
               continue;
             }
-            at_(i + 1, tmp2);
+            routePoint(sim, i + 1, tmp2);
             const seg = arc[i + 1]! - arc[i]!;
             const f = seg > 0 ? (arc[i + 1]! - cutAt) / seg : 1;
             ctx.lineTo(lerp(tmp2.x, tmp.x, f), lerp(tmp2.y, tmp.y, f));
@@ -1012,7 +1028,7 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
           ctx.beginPath();
           for (let i = 0; i < n; i++) {
             if (arc[i]! < cutAt) continue;
-            at_(i, tmp);
+            routePoint(sim, i, tmp);
             ctx.moveTo(tmp.x + 1.1, tmp.y);
             ctx.arc(tmp.x, tmp.y, 1.1, 0, TAU);
           }
@@ -1032,7 +1048,7 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
         choiceIds[nc] = cp.id;
         choiceR[nc++] = cp.r;
       }
-      if (nc && life.minChoiceGap(lifeWorld, choiceIds, choiceR, nc) < 2) { probe.flyOverChoice++; (probe as any).__dbg = JSON.stringify({ f: (life as any).flies.map((q: any) => [q.mode, q.x.toFixed(1), q.y.toFixed(1), q.pad]), c: choiceIds.slice(0, nc), hs: resized }); }
+      if (nc && life.minChoiceGap(lifeWorld, choiceIds, choiceR, nc) < 2) probe.flyOverChoice++;
 
       // ── Print grain and the danger vignette (screen space).
       setScreen();
