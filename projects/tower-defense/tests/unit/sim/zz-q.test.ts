@@ -1,13 +1,11 @@
 import { it } from 'vitest';
 import { createSim } from '../../../src/sim';
-import { createScriptDriver } from '../../../src/sim/bot';
-import { WIN_SCRIPT, LOSS_SCRIPT } from '../../../src/data/scripts';
+import { pathCoverage } from '../../../src/sim/path';
 it('q', () => {
-  for (const [name, sc] of [['WIN', WIN_SCRIPT], ['LOSS', LOSS_SCRIPT]] as const) {
-    const sim = createSim({ seed: 1 }); const d = createScriptDriver(sc);
-    let lastLives = 100; const leaks: Record<string, number> = {};
-    while (!d.done(sim)) { d.beforeStep(sim); sim.step(); for (const e of sim.events) {
-      if (e.type === 'leak') leaks[e.kind] = (leaks[e.kind] ?? 0) + e.livesLost;
-      if (e.type === 'roundClear' || e.type === 'defeat' || e.type === 'victory') { console.log(name, 'R', (e as any).round ?? sim.state.round, e.type, 'lost', lastLives - sim.state.lives, 'lives', sim.state.lives, 'money', sim.state.money, JSON.stringify(leaks), sim.state.towers.map(t => t.kind + t.tiers.join('') + ':' + t.pops).join(',')); lastLives = sim.state.lives; for (const k in leaks) delete leaks[k]; } } }
-  }
+  const sim = createSim({ seed: 1 });
+  sim.enqueue({ type: 'place', kind: 'tern', x: 340, y: 510 });
+  sim.enqueue({ type: 'startRound' });
+  let fires = 0, first = -1;
+  for (let i = 0; i < 2400; i++) { sim.step(); for (const e of sim.events) if (e.type === 'fire') { fires++; if (first < 0) { first = i; const b = sim.state.blots.items[0]; console.log('Q first fire tick', i, 'blot', b.x.toFixed(0), b.y.toFixed(0), b.s.toFixed(0), 'angle', e.angle.toFixed(2)); } } }
+  console.log('Q fires', fires, 'pops', sim.state.stats.pops, 'lives', sim.state.lives, 'cover', pathCoverage(340, 510, 150));
 });

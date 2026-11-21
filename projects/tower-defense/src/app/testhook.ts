@@ -218,5 +218,6 @@ export function installTestHook(game: Game, errors: string[], setManual: () => v
   };
   void ECONOMY;
   window.__inkfold = hook;
+  (window as unknown as { __g: Game }).__g = game; // TEMP-SCRATCH
   return hook;
 }
