@@ -49,11 +49,12 @@ VERDICT: PASS WITH FINDINGS
 The rules are correct and fair against §4. I found no path to an unwinnable run, and no trick pad can be forced as the only safe choice. The main debt is in the evidence, not the game. The headline frame-rate-independence proof (SC1, exceptional #8) cannot fail on a frame-rate bug, and it consumes 45% of verify. One budget check is vacuous, and one input edge (F-003) can steer a fast double-tapper onto the wrong pad.
 
 ## Verification r1 (fixes at b3b4a96)
-I re-read each fix, ran unit 120/120 and tsc, and ran six e2e suites on PORT=4401, all passing.
+Re-read each fix; unit 120/120, tsc and six e2e suites pass (PORT=4401).
 - **F-001 verified.** I re-applied my one-tick-per-frame `loop.ts` mutation, then reverted it (git diff clean). The Node determinism test fails, and the e2e fails 4 checks (30 Hz sunk vs 144 Hz won; lag 17 425 ms). The real build passes with lag 0.00 / 4.17 ms. The e2e now takes 5 s (was 318 s).
 - **F-002 verified.** The vacuous check is gone, and the Node budget test is cited instead.
 - **F-003 verified.** `pressLayer()`'s retarget window matches the sim. The tap-timing sweep and shell-touch pass.
 - **F-004 verified.** The armed pad stays `flanked`, and the ✕ is drawn while airborne (`renderer.ts:923`).
 - **F-005 verified.** The button check is mandatory, and exactly one hop follows ↑.
 - **F-006 verified.** Nothing retains the reused ViewState.
-- **New: F-019 (S2, WO-003).** The wide-screen win zoom has no floor (≈0.13× at 1440×900, against §7.5's 0.4×). Pads are about 16 px and the frame is mostly sand (`look-11-win-desktop.jpg`).
+- **New: F-019 (S2, WO-003).** The wide-screen win zoom has no floor (≈0.13× at 1440×900, against §7.5's 0.4×).
+- **F-019 verified (r2, d874ae8).** Zoom is 0.40 at 1440 and 1920 wide and the pan is clamped; look-shots passes on port 4401.

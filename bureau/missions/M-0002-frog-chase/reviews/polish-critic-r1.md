@@ -70,7 +70,7 @@ Core loop and flank are flagship level; bookends and pad readability held it bac
 
 ## Verification r1 (b3b4a96, fresh captures in `evidence/polish/v1/`)
 - **Verified (11):** F-007 vellum gone (`v1/d-01-title-t3000.jpg`); F-008 choices pop, grayscale still separates (`v1/m-04-layer6*.jpg`); F-009 (`v1/d-06-tau09-rt.jpg`); F-010 and F-018 (`v1/m-02-hop-burst.jpg`); F-011 (`v1/m-06-tau-rt.jpg`); F-013 (`v1/m-08-nearmiss.jpg`); F-014 and F-016 (`v1/m-10*-card.jpg`); F-015 by computed style; F-017 (`v1/d-11a-k34.jpg`).
-- **Reopened: F-012.** Fit-to-route zoom (≈0.13×) leaves an 80 px river in ~94% sand, ≈10 px pads and a dot-sized bloom (`v1/d-11-win-newbest.jpg`, `v1/d-11-win-burst.jpg`). My r1 target caused it; new target: 0.33–0.4× with a pan along the route.
+- **F-012: reopened in r1** (0.13× zoom, `v1/d-11-win-newbest.jpg`), **verified after fix r2 (d874ae8)**: 0.4×, large bloom hold, pan with the trace, docked card at 1440 and 1920 (`v2/d-win-best-0300.jpg`, `v2/d-win-best-2600.jpg`, `v2/w-win-first-2600.jpg`). "best 10:00.00" was a test-injected best (`bestMs: 600000`); a first-ever win shows "First time: 20.95". No placeholder.
 - No other regressions; zero console errors.
 
-**Flagship?** The title now is; the desktop win does not yet (mobile win is good).
+**Flagship?** Yes: title and win frames both now are.
