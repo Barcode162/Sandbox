@@ -71,6 +71,8 @@ export interface RenderProbe {
   droplets: number;
   /** Near-miss: gap (wu) from the snout tip to the frog's shadow centre on the flash frame (F-013: ≥ 0.3P). */
   clackGap: number;
+  /** A ✕ was drawn on a flanked pad that is not a current choice (frog in squash/air). */
+  flankChipAirborne: boolean;
   /** Renderer.pickPad, for tests that cannot synthesise a tap at an exact point. */
   pick: (x: number, y: number) => number | null;
 }
@@ -173,7 +175,7 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
     camY: 0, zoom: 1, shake: 0, tau: 0, vignette: 0, eyeScale: 1, jawDeg: 0, toothFlashFrames: 0,
     gatorVisible: false, flankJaws: false, traceProgress: 0, inviteRing: false, chips: 0, pressedChipInverted: false,
     cues: Object.fromEntries(Object.keys(VISUAL_CUES).map((k) => [k, 0])),
-    flyOverChoice: 0, dropletsOnPad: 0, droplets: 0, clackGap: -1,
+    flyOverChoice: 0, dropletsOnPad: 0, droplets: 0, clackGap: -1, flankChipAirborne: false,
     pick: (x, y) => renderer.pickPad(x, y),
   };
   canvas.__lilyRender = probe;
@@ -226,7 +228,7 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
       for (let id = 0; id < dStamp.length; id++) {
         if (dStamp[id] !== drawFrame) continue;
         const p = sim.river.pads[id]!;
-        if (p.kind !== 'lily' || sim.padStates[id]!.state !== 'idle' || id === sim.frog.padId || id === sim.frog.targetId) continue;
+        if (!lifeWorld.restOk(id)) continue;
         n++;
         if (rand3(salt, id) * n < 1) pick = id;
       }
@@ -234,7 +236,14 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
     },
     restOk(id: number): boolean {
       const sim = simRef!;
-      return sim.river.pads[id]!.kind === 'lily' && sim.padStates[id]!.state === 'idle' && id !== sim.frog.padId && id !== sim.frog.targetId;
+      if (sim.river.pads[id]!.kind !== 'lily' || sim.padStates[id]!.state !== 'idle' || id === sim.frog.padId || id === sim.frog.targetId) return false;
+      // Not beside a choice either: a resting fly must stay r + 9 wu clear of every reachable pad.
+      padPos(id, tmp2);
+      for (let i = 0; i < sim.choices.length; i++) {
+        const c = sim.river.pads[sim.choices[i]!.padId]!;
+        if (c.kind !== 'bank' && Math.hypot(tmp2.x - c.x - padSwayX(c, at), tmp2.y - c.y) < c.r + 9) return false;
+      }
+      return true;
     },
     clear(p: Vec2): Vec2 {
       const sim = simRef!;
@@ -881,6 +890,13 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
           probe.inviteRing = true;
         }
       }
+      // A flanked pad keeps its ✕ while the frog is in the air (choices are empty then): the jaws are never the only warning.
+      if (flankPad >= 0 && sim.padStates[flankPad]!.state === 'flanked' && !isChoice(flankPad)) {
+        const p = sim.river.pads[flankPad]!;
+        padPos(flankPad, tmp);
+        drawChip(ctx, tmp.x + 0.36 * p.r, tmp.y + 0.74 * p.r, 0.42 * p.r, 'X', false, 1, px, chipPx);
+        probe.flankChipAirborne = true;
+      } else probe.flankChipAirborne = false;
       probe.chips = chipCount;
       probe.pressedChipInverted = false;
       if (pressedPad >= 0 && jt - pressedAt < 170) {
@@ -1016,7 +1032,7 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
         choiceIds[nc] = cp.id;
         choiceR[nc++] = cp.r;
       }
-      if (nc && life.minChoiceGap(lifeWorld, choiceIds, choiceR, nc) < 2) probe.flyOverChoice++;
+      if (nc && life.minChoiceGap(lifeWorld, choiceIds, choiceR, nc) < 2) { probe.flyOverChoice++; (probe as any).__dbg = JSON.stringify({ f: (life as any).flies.map((q: any) => [q.mode, q.x.toFixed(1), q.y.toFixed(1), q.pad]), c: choiceIds.slice(0, nc), hs: resized }); }
 
       // ── Print grain and the danger vignette (screen space).
       setScreen();

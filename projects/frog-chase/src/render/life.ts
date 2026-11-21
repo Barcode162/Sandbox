@@ -195,13 +195,12 @@ export class Life {
         f.vy += ay * dt;
         f.x += f.vx * dt;
         f.y += f.vy * dt;
-        if (f.mode === 0) {
-          tmp.x = f.x;
-          tmp.y = f.y;
-          w.clear(tmp);
-          f.x = tmp.x;
-          f.y = tmp.y;
-        }
+        // Wander and approach flights both stay clear of the chips.
+        tmp.x = f.x;
+        tmp.y = f.y;
+        w.clear(tmp);
+        f.x = tmp.x;
+        f.y = tmp.y;
         if (f.vx * f.vx + f.vy * f.vy > 4) f.heading = Math.atan2(f.vy, f.vx);
       }
     }

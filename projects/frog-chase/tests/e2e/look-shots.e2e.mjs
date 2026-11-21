@@ -217,12 +217,29 @@ for (const [vp, viewport] of shots) {
       L().frame(1000 / 60, 12);
       const flanked = L().pads().filter((p) => p.state === 'flanked').length;
       const honest = L().pads().filter((p) => p.state === 'reachable').length;
-      const res = { flanked, honest, jaws: P().flankJaws, chips: P().chips };
-      L().setTuning({ flankFromLayer: 12, flankG: 1.4, flankEvery: 4 });
-      return res;
+      return { flanked, honest, jaws: P().flankJaws, chips: P().chips };
     });
     check(s7.flanked === 1 && s7.honest >= 1 && s7.jaws, `7 flank: ${JSON.stringify(s7)}`);
     await shot(page, `look-07-flank-${vp}`);
+    // While the frog hops to an honest pad, the flanked pad keeps its jaws and its ✕ (CEO, after WO-002 F-004).
+    const s7b = await ev(() => {
+      const { L, P } = __t;
+      const s = L().sim();
+      const honest = s.choices.find((c) => s.padStates[c.padId].state === 'reachable');
+      L().press(honest.slot);
+      let frames = 0, ok = 0;
+      for (let i = 0; i < 40; i++) {
+        L().frame(1000 / 60);
+        const f = L().sim().frog;
+        if (f.phase !== 'squash' && f.phase !== 'air') break;
+        if (!L().sim().padStates.some((p) => p.state === 'flanked')) continue;
+        frames++;
+        if (P().flankJaws && P().flankChipAirborne) ok++;
+      }
+      L().setTuning({ flankFromLayer: 12, flankG: 1.4, flankEvery: 4 });
+      return { frames, ok };
+    });
+    check(s7b.frames > 0 && s7b.ok === s7b.frames, `7 flank: jaws + ✕ drawn on every squash/air frame while flanked (${s7b.ok}/${s7b.frames})`);
 
     // 11 · Win + 1.0 s with a new best: route inked, stamp legible, zoomed river.
     await page.evaluate(() => localStorage.setItem('lilyfield.v1', JSON.stringify({ version: 1, bestMs: 600000, muted: true, reducedMotion: null, runs: 4 })));
