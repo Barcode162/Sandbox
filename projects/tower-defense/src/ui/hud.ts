@@ -6,7 +6,7 @@ import { HUD } from '../data/layout';
 import { P } from '../data/palette';
 import { BANNER, FLOAT_TEXT, MOTION, SHAKE } from '../data/feel';
 import { BLOTS } from '../data/blots';
-import { DECOR, LOGICAL_W } from '../data/map';
+import { DECOR } from '../data/map';
 import { ECONOMY } from '../data/economy';
 import { FIRST_SEEN_LINES } from '../data/waves';
 import { backOut, clamp01, type Ctx, digitsWidth, displayFont, drawDigits, fmt, inQuad, outCubic, plate, renderRng, roundRectPath, tornRectPath, uiFont } from './draw';
@@ -435,4 +435,3 @@ function mix(a: string, b: string, t: number): string {
   return `rgb(${ch(16)},${ch(8)},${ch(0)})`;
 }
 
-export const HUD_WIDTH = LOGICAL_W;

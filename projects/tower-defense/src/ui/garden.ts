@@ -28,7 +28,7 @@ export interface Garden {
   /** Paper sheet only (title t 0). */
   drawPaper(c: Ctx): void;
   /** Static decor + path (alpha for the title fade-in) and ambient life; `placing` brightens edges and hatches no-build. */
-  drawGround(c: Ctx, nowMs: number, opts: { alpha: number; placing: boolean; reduceMotion: boolean; scale: number; dyn: GardenDynamic }): void;
+  drawGround(c: Ctx, nowMs: number, opts: { alpha: number; placing: boolean; reduceMotion: boolean; scale: number; dyn: GardenDynamic; petals?: number }): void;
   /** Drawn above blots: the overturned inkwell they pour out of, and the jar rim they fall into. */
   drawOccluders(c: Ctx, alpha: number): void;
   drawVignette(c: Ctx): void;
@@ -60,7 +60,7 @@ export function createGarden(): Garden {
     if (!clearOfDecor(x, y, 12)) continue;
     flowers.push({ x, y, rot: rnd() * Math.PI, tint: rnd() < 0.5 ? P.foldWhite : PETAL });
   }
-  const petals: Petal[] = Array.from({ length: DECOR.petals.count }, () => ({ x: rnd() * FIELD.w, y: HUD_TOP + rnd() * (LOGICAL_H - HUD_TOP), rot: rnd() * 6, phase: rnd() * 6 }));
+  const petals: Petal[] = Array.from({ length: DECOR.petals.count * 4 }, () => ({ x: rnd() * FIELD.w, y: HUD_TOP + rnd() * (LOGICAL_H - HUD_TOP), rot: rnd() * 6, phase: rnd() * 6 }));
   const rockShapes = DECOR.rocks.map((r, i) => {
     const rr = renderRng(31 + i);
     return Array.from({ length: 7 }, (_, k) => ({ a: (k / 7) * Math.PI * 2 + rr() * 0.3, r: r.r * (0.68 + rr() * 0.18) }));
@@ -250,9 +250,10 @@ export function createGarden(): Garden {
     c.restore();
   }
 
-  function drawPetals(c: Ctx, nowMs: number, reduceMotion: boolean): void {
+  function drawPetals(c: Ctx, nowMs: number, reduceMotion: boolean, mul: number): void {
     const t = reduceMotion ? 0 : nowMs / 1000;
-    for (const p of petals) {
+    for (let i = 0; i < Math.min(petals.length, DECOR.petals.count * mul); i++) {
+      const p = petals[i];
       const span = FIELD.w + 40;
       const x = ((p.x + t * DECOR.petals.speed) % span) - 20;
       const y = HUD_TOP + 10 + (((p.y - HUD_TOP + t * DECOR.petals.speed * 0.45) % (LOGICAL_H - HUD_TOP - 10)) + (LOGICAL_H - HUD_TOP - 10)) % (LOGICAL_H - HUD_TOP - 10);
@@ -402,7 +403,7 @@ export function createGarden(): Garden {
       drawPool(c, nowMs, o.dyn);
       drawJar(c, o.dyn);
       drawMaple(c, nowMs, o.reduceMotion);
-      drawPetals(c, nowMs, o.reduceMotion);
+      drawPetals(c, nowMs, o.reduceMotion, o.petals ?? 1);
       c.restore();
     },
     drawOccluders(c, alpha) {

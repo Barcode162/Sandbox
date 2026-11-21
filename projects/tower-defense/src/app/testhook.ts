@@ -8,7 +8,6 @@ import { createScriptDriver, summarize, type ScriptDriver } from '../sim/bot';
 import { buildStressSim, runPerf } from '../sim/bench';
 import { SCRIPTS, SCRIPT_SEED } from '../data/scripts';
 import { TOWERS } from '../data/towers';
-import { ECONOMY } from '../data/economy';
 import { FOLD } from '../data/layout';
 
 const FRAME_60 = 1000 / 60;
@@ -145,9 +144,8 @@ export function installTestHook(game: Game, errors: string[], setManual: () => v
         break;
       }
       case 'r20-shed50': {
-        const r = ensure('win', id, (s, b) => b.shed50 !== undefined || s.phase !== 'round' && s.round >= 20);
+        ensure('win', id, (s, b) => b.shed50 !== undefined || (s.phase !== 'round' && s.round >= 20));
         advance(130);
-        void r;
         break;
       }
       case 'r20-death': {
@@ -163,7 +161,7 @@ export function installTestHook(game: Game, errors: string[], setManual: () => v
       case 'gameover':
         ensure('loss', id, (s) => s.phase === 'defeat'); advance(1700); break;
       case 'victory':
-        ensure('win', id, (s) => s.phase === 'victory' || s.phase === 'defeat'); advance(3200); break;
+        ensure('win', id, (s) => s.phase === 'victory' || s.phase === 'defeat'); advance(2700); break;
       case 'blots-grid':
       case 'towers-sheet':
         d.setSheet(id); d.render(); break;
@@ -216,8 +214,6 @@ export function installTestHook(game: Game, errors: string[], setManual: () => v
       return rep;
     },
   };
-  void ECONOMY;
   window.__inkfold = hook;
-  (window as unknown as { __g: Game }).__g = game; // TEMP-SCRATCH
   return hook;
 }

@@ -16,7 +16,7 @@ import { createFx, type FxSystem } from '../render/fx';
 import { createBlotLayer } from '../render/blots';
 import { createTowerLayer, drawTowerSprite } from '../render/towers';
 import { createFixedLoop } from './loop';
-import { createSettingsStore, DEFAULT_SETTINGS } from './settings';
+import { createSettingsStore } from './settings';
 import { createAudio } from '../audio';
 import { goView, keyAction, nextTarget, type Action, type GoView } from './input';
 import { clamp01, type Ctx, inRect, outCubic } from '../ui/draw';
@@ -665,7 +665,7 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
     const shake = hud.shakeOffset(now, s);
     c.save();
     c.translate(shake.x, shake.y);
-    garden.drawGround(c, worldNow, { alpha: 1, placing: placing !== null, reduceMotion: s.reduceMotion, scale: base, dyn: hud.garden });
+    garden.drawGround(c, worldNow, { alpha: 1, placing: placing !== null, reduceMotion: s.reduceMotion, scale: base, dyn: hud.garden, petals: scene === 'victory' && now - victoryAt > 1000 ? 4 : 1 });
     passes(layers, sim, ['decals'], 1, loop.alpha);
     const selT = selectedTower();
     if (selT && scene === 'play') drawSelection(c, selT, selectedAt, now, s);
@@ -786,4 +786,3 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
 
 const MOTION_UI = 160;
 const fmt0 = (n: number): string => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-export { DEFAULT_SETTINGS };

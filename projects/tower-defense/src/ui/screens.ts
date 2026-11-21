@@ -318,7 +318,7 @@ export function makeCranes(origins: readonly { x: number; y: number }[], seed = 
     return {
       x0: o.x, y0: o.y,
       x1: o.x + (rnd() - 0.5) * 520, y1: -60 - rnd() * 140,
-      bend: (rnd() - 0.5) * 360, delay: rnd() * 900, flap: rnd() * Math.PI * 2, size: 0.8 + rnd() * 0.5,
+      bend: (rnd() - 0.5) * 360, delay: rnd() * 900, flap: rnd() * Math.PI * 2, size: 1.3 + rnd() * 0.6,
     };
   });
 }
