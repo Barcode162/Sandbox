@@ -178,7 +178,6 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
   // ───────── runs ─────────
   function makeAttract(): void {
     attract = mkSim({ seed: ATTRACT.seed, startRound: ATTRACT.round, loopRound: true, startMoney: 1_000_000 });
-    attractLayers.fx.reset(); attractLayers.blots.reset(); attractLayers.towers.reset();
     attractLayers = mkLayers();
     ATTRACT.towers.forEach((t, i) => {
       attract.enqueue({ type: 'place', kind: t.kind, x: t.x, y: t.y });
@@ -187,7 +186,7 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
     attract.enqueue({ type: 'startRound' });
     attractLoop.reset();
     // pre-warm so the title opens on a live garden (§10.1 t 800 ms: blots already crossing the top path)
-    for (let i = 0; i < 300; i++) { attract.step(); feed(attractLayers, attract, false); updateLayers(attractLayers, STEP_MS, attract); }
+    for (let i = 0; i < 420; i++) { attract.step(); feed(attractLayers, attract, false); updateLayers(attractLayers, STEP_MS, attract); }
   }
 
   function feed(L: Layers, s: Sim, main: boolean): void {
@@ -693,21 +692,21 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
         drawUpgradePreview(c, selT, tiers, now);
       }
     }
-    if (st.towers.length === 0 && !firstPlaced && roundsStarted === 0 && (scene === 'play' || scene === 'paused')) {
-      const star = BEST_SPOTS.star;
-      drawStar(c, star.x, star.y, now, placing !== null && Math.hypot(pointer.x - star.x, pointer.y - star.y) < 24, s.reduceMotion);
-    }
     if (placing && pointer.inside && pointer.x < FIELD.w) {
       const fail = canPlace(st, placing, pointer.x, pointer.y, TOWERS[placing].cost);
       if (fail && !lastFail) nudgeAt = now;
       lastFail = fail;
       drawGhost(c, { kind: placing, x: pointer.x, y: pointer.y, fail, nudgeAt, nowMs: now });
     }
+    if (st.towers.length === 0 && !firstPlaced && roundsStarted === 0 && (scene === 'play' || scene === 'paused')) {
+      const star = BEST_SPOTS.star;
+      drawStar(c, star.x, star.y, now, placing !== null && Math.hypot(pointer.x - star.x, pointer.y - star.y) < 24, s.reduceMotion);
+    }
     c.restore();
     garden.drawVignette(c);
     const hv = { state: st, settings: s, nowMs: now, offsetY: inTrans ? -(1 - outCubic(trans)) * 80 : 0, hoverPause: hoverPauseBtn && scene === 'play' };
-    hud.drawFloats(c, hv);
     hud.draw(c, hv);
+    hud.drawFloats(c, hv);
     hud.drawBossBar(c, hv);
     hud.drawBanner(c, hv);
     const pm = portraitMorph && selT && portraitMorph.towerId === selT.id ? portraitMorph : null;

@@ -315,7 +315,7 @@ function drawTierBox(c: Ctx, v: SidebarView, tower: Readonly<Tower>, path: Upgra
   const eff = wrapText(c, def.effectLine, r.w - 14).slice(0, short ? 1 : 2);
   eff.forEach((l, i) => c.fillText(l, r.x + 8, y0 + 82 + i * 14));
   if (short) { c.font = uiFont(12); c.fillStyle = P.bad; c.fillText(`need ${fmt(view.shortBy)} more`, r.x + 8, y0 + 100, r.w - 12); }
-  if (owned) glyphCheck(c, r.x + r.w - 16, y0 + 14, 12, P.glow);
+  if (owned) glyphCheck(c, r.x + r.w - 16, y0 + r.h - 16, 12, P.glow);
   c.restore();
   if (view.status === 'sealed') {
     // stamp thunks in (90 ms) when the rule first applies
@@ -381,7 +381,7 @@ function drawGo(c: Ctx, v: SidebarView): void {
   c.fillStyle = P.foldWhite;
   c.fillText(g.text, x0 + iconW + 10, cy + 7);
   c.restore();
-  badge(c, r.x + r.w - 54, r.y - 10, 'Space');
+  badge(c, r.x + r.w - 56, r.y + r.h - 26, 'Space', g.dim ? 0.45 : 1);
 }
 
 const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);

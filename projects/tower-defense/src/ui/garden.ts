@@ -106,14 +106,6 @@ export function createGarden(): Garden {
       c.strokeStyle = 'rgba(251,247,238,.8)';
       c.beginPath(); c.moveTo(x0 + 1, y0 + 1); c.lineTo(x1 + 1, y1 + 1); c.stroke();
     }
-    // moss patches under the grass
-    const mr = renderRng(77);
-    for (let i = 0; i < 16; i++) {
-      const x = mr() * FIELD.w, y = HUD_TOP + 20 + mr() * (LOGICAL_H - HUD_TOP - 20);
-      if (!clearOfDecor(x, y, 24)) continue;
-      c.fillStyle = 'rgba(157,178,127,.16)';
-      c.beginPath(); c.ellipse(x, y, 30 + mr() * 30, 14 + mr() * 12, mr() * 3, 0, Math.PI * 2); c.fill();
-    }
     // grass tufts: 3 strokes, 6–10 px, --moss-deep
     c.strokeStyle = P.mossDeep;
     c.lineWidth = 1.4;

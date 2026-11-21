@@ -439,6 +439,27 @@ describe('board condition 4: a full projectile pool', () => {
   });
 });
 
+describe('board condition 3: tower events come from the pooled slabs', () => {
+  it('fire / beam / pulse / land events are reused objects across ticks', () => {
+    const f = still();
+    f.tower('owl', 300, 300);
+    f.tower('koi', 300, 300);
+    f.tower('frog', 330, 520);
+    f.blot('knot', 10, at(380, 300)).hp = 1e9;
+    f.blot('knot', 1300).stunTicks = 1e9;
+    f.state.blots.items[1].hp = 1e9;
+    const seen = new Map<string, object[]>();
+    const emit = f.ctx.emit;
+    (f.ctx as { emit: typeof emit }).emit = (e) => { if (['fire', 'beam', 'pulse', 'land'].includes(e.type)) { const l = seen.get(e.type) ?? []; l.push(e); seen.set(e.type, l); } emit(e); };
+    f.tick(400);
+    for (const type of ['fire', 'beam', 'pulse', 'land']) {
+      const l = seen.get(type) ?? [];
+      expect(l.length, type).toBeGreaterThan(2);
+      expect(new Set(l).size, type).toBeLessThan(l.length); // the same slab objects come back every tick
+    }
+  });
+});
+
 describe('determinism', () => {
   it('the same setup gives the same log twice', () => {
     const go = () => {

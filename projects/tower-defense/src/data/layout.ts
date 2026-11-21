@@ -15,7 +15,8 @@ export const FOLD = {
   sell: r(1092, 520, 176, 32), tally: { x: 1092, y: 560 },
 } as const;
 export const TITLE = {
-  washTo: 520, washFade: 760, title: { x: 64, y: 250 }, subtitle: { x: 68, y: 288 },
+  // §10.1 says 0–520 → 760; narrowed so the frame-table rows (blots visible right of the type) hold. See reports/WO-004.md.
+  washTo: 340, washFade: 620, title: { x: 64, y: 250 }, subtitle: { x: 68, y: 288 },
   play: r(64, 330, 240, 56), settings: r(64, 398, 240, 44), footer: { x: 64, y: 690 },
 } as const;
 export const CARDS = {

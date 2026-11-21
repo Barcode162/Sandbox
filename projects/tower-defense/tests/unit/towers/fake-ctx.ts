@@ -6,6 +6,7 @@ import { BLOTS } from '../../../src/data/blots';
 import { TOWERS, resolveStats } from '../../../src/data/towers';
 import { createInitialState } from '../../../src/sim';
 import { createRng } from '../../../src/sim/rng';
+import { createEventPool, registerEventPool } from '../../../src/sim/events';
 import { pointAt, tangentAt, PATH_TOTAL } from '../../../src/sim/path';
 import { updateAuras, updateProjectiles, updateTowers } from '../../../src/sim/towers';
 
@@ -26,6 +27,8 @@ export interface Fake {
 export function createFake(opts: { move?: boolean } = {}): Fake {
   const state = createInitialState({ seed: 1 });
   const rng = createRng(9);
+  const evPool = createEventPool();
+  registerEventPool(state, evPool); // as createSim does: tower events come from the pool
   const log: LogEntry[] = [];
   const events: SimEvent[] = [];
   const fixed = new Set<number>();
@@ -106,7 +109,7 @@ export function createFake(opts: { move?: boolean } = {}): Fake {
       log.push({ op: 'stun', blot: b.id, kind: b.kind, a: ticks, b: '' });
     },
     canSee: (t, b) => !b.pale || t.stats.detect || t.buffDetect,
-    emit: (e) => { events.push(e); },
+    emit: (e) => { events.push({ ...e }); }, // copy: pooled events are rewound every tick
     nextSourceId: () => source++,
     pointAt, tangentAt,
   };
@@ -130,6 +133,7 @@ export function createFake(opts: { move?: boolean } = {}): Fake {
     },
     tick(n = 1) {
       for (let k = 0; k < n; k++) {
+        evPool.reset();
         state.tick++;
         if (opts.move !== false) {
           for (let i = 0; i < state.blots.count; i++) {

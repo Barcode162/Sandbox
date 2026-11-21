@@ -1,6 +1,6 @@
 // Tower systems (WO-003): auras, targeting, turning, firing, projectiles, stones and skips, pulses, jets, beams.
 // Signatures FROZEN by WO-001. Pure and deterministic: towers touch blots only through SimContext (plan § seams),
-// except that a Beacon aura may clear blot.pale. Hot loops allocate nothing except event literals (board cond. 3).
+// except that a Beacon aura may clear blot.pale. Hot loops allocate nothing; events come from WO-002's pool (board cond. 3).
 import type { SimContext } from '../../contracts/sim-context';
 import type { Blot, BlotKind, DamageType, Projectile, SimState, Tower, TowerKind, TowerStats, UpgradePath } from '../../contracts/types';
 import { TICK_S } from '../../contracts/types';
@@ -8,6 +8,7 @@ import { BLOTS } from '../../data/blots';
 import { TOWERS, tiersValid } from '../../data/towers';
 import { FOOTPRINT } from '../../data/map';
 import { PATH_TOTAL, type MutVec } from '../path';
+import { pooledEvents, type EventPool } from '../events';
 import { removeProjectile, spawnProjectile } from './pool';
 import { inRange, QBUF, SBUF, KBUF, selectTarget, topFirst } from './targeting';
 
@@ -29,6 +30,8 @@ const FROZEN_CRUSH_BONUS = TOWERS.koi.paths[0][2].effect.set?.frozenCrushBonus ?
 
 const toTicks = (s: number): number => Math.max(1, Math.round(s / TICK_S));
 const V: MutVec = { x: 0, y: 0 };
+/** This tick's event pool (board condition 3): set at the top of updateTowers / updateProjectiles. */
+let EV: EventPool;
 const T: MutVec = { x: 0, y: 0 };
 
 /** Final per-hit damage: (dmg incl. aura) × multVs, + the frozen-Crush bonus (sim-context contract). */
@@ -127,6 +130,7 @@ function currentSpeed(b: Readonly<Blot>): number {
 
 /** Turn, pick targets (§7 Targeting), fire when cooldown ≤ 0; spawn projectiles / pulses / beams. */
 export function updateTowers(ctx: SimContext): void {
+  EV = pooledEvents(ctx.state);
   const towers = ctx.state.towers;
   for (const t of towers) {
     t.pangle = t.angle;
@@ -186,7 +190,7 @@ function updateAimed(ctx: SimContext, t: Tower, s: TowerStats): void {
   if (s.attack === 'beam') fireBeam(ctx, t, s, target, dmg);
   else if (s.attack === 'stone') fireStone(ctx, t, s, ax, ay, leadS, dmg);
   else fireQuills(ctx, t, s, dmg);
-  ctx.emit({ type: 'fire', towerId: t.id, kind: t.kind, attack: s.attack, x: t.x, y: t.y, angle: t.angle });
+  ctx.emit(EV.fire(t.id, t.kind, s.attack, t.x, t.y, t.angle));
   t.shots++;
   t.lastFireTick = ctx.state.tick;
   rearm(t, s);
@@ -254,7 +258,7 @@ function fireBeam(ctx: SimContext, t: Tower, s: TowerStats, target: Blot, dmg: n
     const dx = target.x - t.x, dy = target.y - t.y;
     const len = Math.hypot(dx, dy) || 1;
     ctx.hit(target, hitDamage(dmg, s.multVs, s.damageType, target), s.damageType, src, t, dx / len, dy / len);
-    ctx.emit({ type: 'beam', towerId: t.id, x1: t.x, y1: t.y, x2: target.x, y2: target.y, eclipse });
+    ctx.emit(EV.beam(t.id, t.x, t.y, target.x, target.y, eclipse));
     return;
   }
   const len = s.range;
@@ -284,7 +288,7 @@ function fireBeam(ctx: SimContext, t: Tower, s: TowerStats, target: Blot, dmg: n
     const r = ctx.hit(b, hitDamage(dmg, s.multVs, s.damageType, b), s.damageType, src, t, cx, cy);
     if (r !== 'none') left--;
   }
-  ctx.emit({ type: 'beam', towerId: t.id, x1: t.x, y1: t.y, x2: t.x + cx * len, y2: t.y + cy * len, eclipse });
+  ctx.emit(EV.beam(t.id, t.x, t.y, t.x + cx * len, t.y + cy * len, eclipse));
 }
 
 /** Mist Koi pulse: fires only if a blot is in reach; hits instantly, First order, ≤ pulseMax; slows; every Nth freezes. */
@@ -312,8 +316,8 @@ function updatePulse(ctx: SimContext, t: Tower, s: TowerStats): void {
     if (s.slowPct > 0) ctx.slow(b, s.slowPct, slowTicks);
     if (freeze) ctx.freeze(b, freezeTicks, s.slowPct);
   }
-  ctx.emit({ type: 'fire', towerId: t.id, kind: t.kind, attack: 'pulse', x: t.x, y: t.y, angle: 0 });
-  ctx.emit({ type: 'pulse', towerId: t.id, x: t.x, y: t.y, radius: s.range, freeze });
+  ctx.emit(EV.fire(t.id, t.kind, 'pulse', t.x, t.y, 0));
+  ctx.emit(EV.pulse(t.id, t.x, t.y, s.range, freeze));
   t.lastFireTick = ctx.state.tick;
   rearm(t, s);
 }
@@ -348,7 +352,7 @@ function updateJets(ctx: SimContext, t: Tower, s: TowerStats): void {
     p.slowPct = s.slowPct;
     p.slowDur = s.slowDur;
   }
-  ctx.emit({ type: 'fire', towerId: t.id, kind: t.kind, attack: 'jets', x: t.x, y: t.y, angle: phase });
+  ctx.emit(EV.fire(t.id, t.kind, 'jets', t.x, t.y, phase));
   t.shots++;
   t.lastFireTick = ctx.state.tick;
   rearm(t, s);
@@ -358,6 +362,7 @@ function updateJets(ctx: SimContext, t: Tower, s: TowerStats): void {
 
 /** Move projectiles, collide via ctx.queryBlots, land stones (splash, skips), expire. */
 export function updateProjectiles(ctx: SimContext): void {
+  EV = pooledEvents(ctx.state);
   const st = ctx.state;
   const pool = st.projectiles;
   let i = 0;
@@ -454,7 +459,7 @@ function land(ctx: SimContext, p: Projectile, tower: Tower): void {
     const r = ctx.hit(b, hitDamage(p.damage, p.multVs, p.damageType, b), p.damageType, p.id, tower, len > 0 ? dx / len : 0, len > 0 ? dy / len : -1);
     if (stunTicks > 0 && r !== 'immune' && b.alive) ctx.stun(b, stunTicks);
   }
-  ctx.emit({ type: 'land', projectileId: p.id, towerId: p.towerId, x, y, radius: p.splashRadius, skip: p.hitCount > 0, stun: p.stun > 0 });
+  ctx.emit(EV.land(p.id, p.towerId, x, y, p.splashRadius, p.hitCount > 0, p.stun > 0));
 }
 const keepAny = (_b: Blot): boolean => true;
 
