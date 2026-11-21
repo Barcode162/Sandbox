@@ -409,6 +409,16 @@ export function createCore(opts: CoreOptions): Core {
     allSpawned = done;
   }
 
+  /** Hit-stop is a freeze (§11): collapse every previous-tick pose onto the current one so render
+   *  interpolation (prev + (cur − prev)·alpha) holds still instead of sliding and snapping each tick. */
+  function holdInterpolation(): void {
+    const bs = state.blots.items;
+    for (let i = 0; i < state.blots.count; i++) bs[i].ps = bs[i].s;
+    const ps = state.projectiles.items;
+    for (let i = 0; i < state.projectiles.count; i++) { ps[i].px = ps[i].x; ps[i].py = ps[i].y; }
+    for (const t of state.towers) t.pangle = t.angle;
+  }
+
   // ── movement, slows, leaks (§6 rule 4) ──
   function move(): void {
     const bp = state.blots;
@@ -497,7 +507,7 @@ export function createCore(opts: CoreOptions): Core {
       queue.length = 0;
       if (over()) return;
       if (state.phase === 'intermission' && (state.autoStart || loopRound) && clearTick >= 0 && state.tick >= clearTick + AUTO_START_TICKS) beginRound();
-      if (state.hitStop > 0) { state.hitStop--; return; }
+      if (state.hitStop > 0) { state.hitStop--; holdInterpolation(); return; }
       if (state.phase === 'round') { spawnWaves(); state.roundTick++; }
       move();
       gridCount = state.blots.count;

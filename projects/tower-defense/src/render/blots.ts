@@ -273,7 +273,7 @@ const TAU = Math.PI * 2;
 const SPRITE_KINDS: Readonly<Record<BlotKind, number>> = { dot: 0, drop: 1, splat: 2, splash: 3, blotch: 4, streak: 5, wax: 6, knot: -1, inkmaw: -1 };
 const enum Layer { Shadow = 0, Body = 1, Flash = 2 }
 
-interface Sprite { readonly cv: CanvasImageSource; /** half-extent in logical px */ readonly half: number }
+interface Sprite { readonly cv: CanvasImageSource }
 
 /** Half-extent (logical px) that holds the shape, its stroke, sheen and the comet's tail. */
 const spriteHalf = (kind: BlotKind): number => {
@@ -302,7 +302,7 @@ function createSpriteCache() {
     if (layer === Layer.Shadow) paintShadow(c, kind, -SHADOW_OFFSET.x, -SHADOW_OFFSET.y, p);
     else if (layer === Layer.Body) paintBody(c, kind, 0, 0, p);
     else { traceBody(c, kind, 0, 0, BLOTS[kind].radius, p); c.globalAlpha = HIT.flashAlpha; c.fillStyle = P.foldWhite; c.fill(); }
-    return { cv: cv as CanvasImageSource, half: px / 2 / res };
+    return { cv: cv as CanvasImageSource };
   }
 
   return {
@@ -327,6 +327,10 @@ function createSpriteCache() {
         const t = ((angle % TAU) + TAU) % TAU;
         bucket = Math.round((t / TAU) * ANGLE_BUCKETS) % ANGLE_BUCKETS;
       }
+      // Only the flags that change a layer's pixels go into its key: the shadow ignores colourblind, the
+      // flash silhouette ignores both colourblind and Pale (F-010).
+      if (layer !== Layer.Body) cb = false;
+      if (layer === Layer.Flash) pale = false;
       const key = ((((ki * 3 + layer) * 2 + (pale ? 1 : 0)) * 2 + (cb ? 1 : 0)) << 7) | bucket;
       let sp = map.get(key);
       if (sp === undefined) { sp = paint(kind, layer, pale, cb, bucket); map.set(key, sp); }
@@ -408,9 +412,11 @@ export function createBlotLayer(fx: Fx): WorldLayer {
     const reduce = f.settings.reduceMotion;
     const boss = s.boss;
     paint.cb = f.settings.colourblind;
-    paint.alpha = 1;
     const useSprites = sprites.begin(c);
     const outerAlpha = c.globalAlpha;
+    // The pass alpha (the title → play fade sets it) scales live paths too: paintShadow/paintBody set
+    // globalAlpha absolutely from paint.alpha, so it has to travel in paint (F-011).
+    paint.alpha = outerAlpha;
     // Sprites blit in device pixels, snapped to whole pixels: an integer-aligned 1:1 copy is Skia's fast
     // path, where a sub-pixel blit is filtered and costs several times more. Live paths keep the world matrix.
     const m = useSprites ? c.getTransform() : null;

@@ -27,6 +27,9 @@ export interface GardenDynamic {
 export interface Garden {
   /** Paper sheet only (title t 0). */
   drawPaper(c: Ctx): void;
+  /** True once the ground cache exists: it is opaque (paper baked in), so a full-alpha, unshaken
+   *  drawGround covers every pixel and the separate paper fill can be skipped (perf, F-006). */
+  groundCoversPaper(): boolean;
   /** Static decor + path (alpha for the title fade-in) and ambient life; `placing` brightens edges and hatches no-build. */
   drawGround(c: Ctx, nowMs: number, opts: { alpha: number; placing: boolean; reduceMotion: boolean; scale: number; dyn: GardenDynamic; petals?: number }): void;
   /** Drawn above blots: the overturned inkwell they pour out of, and the jar rim they fall into. */
@@ -72,42 +75,30 @@ export function createGarden(): Garden {
   let grainTried = false;
   let vignette: CanvasGradient | null = null;
   let vignetteCtx: Ctx | null = null;
-  // Device-resolution overlays (perf): the vignette and the grain each cover the whole canvas every
-  // frame. A full-screen gradient fill or a multiply-blended pattern is slow in CPU raster; an
-  // integer-aligned 1:1 blit is the fast path. Rebuilt when the canvas size or the world scale changes.
+  // Device-resolution overlays (perf, F-006/F-009): the vignette and the grain cover the whole canvas every
+  // frame. A full-screen gradient fill or a multiply-blended pattern is slow in CPU raster; an integer-aligned
+  // 1:1 blit is the fast path. Memory stays small: the vignette keeps only its two edge bands (its middle is
+  // transparent), and at an integer scale the grain is a device-px tile pattern rather than a full canvas.
+  // Rebuilt when the canvas size or the world transform changes.
   let overlayKey = '';
-  let vignetteCv: AnyCanvas | null = null;
-  let grainCv: AnyCanvas | null = null;
+  let overlaysOk = false;
+  let vigL: AnyCanvas | null = null;
+  let vigR: AnyCanvas | null = null;
+  let vigX1 = 0;
+  let grainPat: CanvasPattern | null = null;
+  let grainFull: AnyCanvas | null = null;
   /** The vignette is 0 inside 0.7 × the half-diagonal, so a central full-height strip never needs drawing. */
   const VIG_R0 = Math.hypot(LOGICAL_W / 2, LOGICAL_H / 2) * 0.7;
   const VIG_CLEAR_HALF = Math.floor(Math.sqrt(Math.max(0, VIG_R0 * VIG_R0 - (LOGICAL_H / 2) ** 2))) - 2;
 
-  function ensureOverlays(c: Ctx): boolean {
-    const cv = c.canvas as AnyCanvas | undefined;
-    if (!cv || !(cv.width > 0) || !(cv.height > 0) || typeof c.getTransform !== 'function') return false;
-    const m = c.getTransform() as DOMMatrix | undefined;
-    if (!m || !Number.isFinite(m.a) || !Number.isFinite(m.e) || m.b !== 0 || m.c !== 0) return false;
-    const key = `${cv.width}x${cv.height}@${m.a},${m.d},${m.e},${m.f}`;
-    if (key === overlayKey) return vignetteCv !== null && grainCv !== null;
-    overlayKey = key;
-    vignetteCv = grainCv = null;
-    const v = makeCanvas(cv.width, cv.height), g = makeCanvas(cv.width, cv.height);
-    const vc = v && ctxOf(v), gc = g && ctxOf(g);
-    if (!v || !g || !vc || !gc) return false;
-    vc.setTransform(m);
-    const hd = Math.hypot(LOGICAL_W / 2, LOGICAL_H / 2);
-    const grad = vc.createRadialGradient(LOGICAL_W / 2, LOGICAL_H / 2, hd * 0.7, LOGICAL_W / 2, LOGICAL_H / 2, hd);
-    grad.addColorStop(0, 'rgba(28,26,36,0)');
-    grad.addColorStop(1, 'rgba(28,26,36,0.10)');
-    vc.fillStyle = grad;
-    vc.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
-    // Grain: multiply at alpha a gives dst·(1 − a + a·s); black source-over at alpha a·(1 − s) gives the
-    // same dst·(1 − a·(1 − s)). The tile's channels differ by ≤ 10/255, so one alpha (the mean) is within
-    // a·10/255 ≈ 0.2 % of the per-channel multiply.
+  /** Grain as black alpha. Multiply at alpha a gives dst·(1 − a + a·s); black source-over at alpha a·(1 − s)
+   *  gives the same dst·(1 − a·(1 − s)). The tile's channels differ by ≤ 10/255, so one alpha (their mean)
+   *  is within a·10/255 ≈ 0.2 % of the per-channel multiply. */
+  function grainAlphaTile(): AnyCanvas | null {
     const n = DECOR.grainTile;
     const tile = makeCanvas(n, n);
     const tc = tile && ctxOf(tile);
-    if (!tile || !tc) return false;
+    if (!tile || !tc) return null;
     const img = tc.createImageData(n, n);
     const r = renderRng(DECOR.seed * 13);
     for (let i = 0; i < n * n; i++) {
@@ -116,12 +107,68 @@ export function createGarden(): Garden {
       img.data[i * 4 + 3] = Math.round(255 * DECOR.grainAlpha * (1 - sMean));
     }
     tc.putImageData(img, 0, 0);
-    const pat = gc.createPattern(tile as CanvasImageSource, 'repeat');
-    if (!pat) return false;
-    gc.setTransform(m);
-    gc.fillStyle = pat;
-    gc.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
-    vignetteCv = v; grainCv = g;
+    return tile;
+  }
+
+  function ensureOverlays(c: Ctx): boolean {
+    const cv = c.canvas as AnyCanvas | undefined;
+    if (!cv || !(cv.width > 0) || !(cv.height > 0) || typeof c.getTransform !== 'function') return false;
+    const m = c.getTransform() as DOMMatrix | undefined;
+    if (!m || !Number.isFinite(m.a) || !Number.isFinite(m.e) || m.b !== 0 || m.c !== 0) return false;
+    const key = `${cv.width}x${cv.height}@${m.a},${m.d},${m.e},${m.f}`;
+    if (key === overlayKey) return overlaysOk;
+    overlayKey = key;
+    overlaysOk = false;
+    vigL = vigR = grainFull = null;
+    grainPat = null;
+    const w = cv.width, h = cv.height;
+    // vignette bands: [0, x0) and [x1, w) in device px
+    const x0 = Math.max(0, Math.min(w, Math.floor((LOGICAL_W / 2 - VIG_CLEAR_HALF) * m.a + m.e)));
+    const x1 = Math.max(x0, Math.min(w, Math.ceil((LOGICAL_W / 2 + VIG_CLEAR_HALF) * m.a + m.e)));
+    const hd = Math.hypot(LOGICAL_W / 2, LOGICAL_H / 2);
+    const band = (bx: number, bw: number): AnyCanvas | null => {
+      if (bw <= 0) return null;
+      const b = makeCanvas(bw, h);
+      const bc = b && ctxOf(b);
+      if (!b || !bc) return null;
+      bc.setTransform(m.a, 0, 0, m.d, m.e - bx, m.f);
+      const grad = bc.createRadialGradient(LOGICAL_W / 2, LOGICAL_H / 2, hd * 0.7, LOGICAL_W / 2, LOGICAL_H / 2, hd);
+      grad.addColorStop(0, 'rgba(28,26,36,0)');
+      grad.addColorStop(1, 'rgba(28,26,36,0.10)');
+      bc.fillStyle = grad;
+      bc.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+      return b;
+    };
+    vigL = band(0, x0);
+    vigR = band(x1, w - x1);
+    vigX1 = x1;
+    if ((x0 > 0 && !vigL) || (x1 < w && !vigR)) return false;
+    const tile = grainAlphaTile();
+    if (!tile) return false;
+    const res = m.a;
+    if (res === m.d && Number.isInteger(res) && Number.isInteger(m.e) && Number.isInteger(m.f)) {
+      // integer scale: one tile of n·res device px, pattern-filled at identity (tiny, and still a 1:1 sample)
+      const n = DECOR.grainTile * res;
+      const dt = makeCanvas(n, n);
+      const dc = dt && ctxOf(dt);
+      if (!dt || !dc) return false;
+      dc.setTransform(res, 0, 0, res, 0, 0);
+      dc.drawImage(tile as CanvasImageSource, 0, 0);
+      grainPat = c.createPattern(dt as CanvasImageSource, 'repeat');
+      if (grainPat && (m.e !== 0 || m.f !== 0)) grainPat.setTransform?.(new DOMMatrix([1, 0, 0, 1, m.e, m.f]));
+    }
+    if (!grainPat) {
+      // fractional scale: the logical tile is magnified by a non-integer factor, so bake one full canvas
+      const g = makeCanvas(w, h);
+      const gc = g && ctxOf(g);
+      const pat = gc && gc.createPattern(tile as CanvasImageSource, 'repeat');
+      if (!g || !gc || !pat) return false;
+      gc.setTransform(m);
+      gc.fillStyle = pat;
+      gc.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+      grainFull = g;
+    }
+    overlaysOk = true;
     return true;
   }
 
@@ -237,6 +284,8 @@ export function createGarden(): Garden {
     const cc = cv && ctxOf(cv);
     if (!cv || !cc) { cache = null; cacheScale = scale; return; }
     cc.setTransform(scale, 0, 0, scale, 0, 0);
+    cc.fillStyle = P.paper;
+    cc.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
     drawStatic(cc);
     cache = cv;
     cacheScale = scale;
@@ -414,6 +463,7 @@ export function createGarden(): Garden {
   }
 
   return {
+    groundCoversPaper() { return cache !== null; },
     drawPaper(c) {
       c.fillStyle = P.paper;
       c.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
@@ -423,7 +473,13 @@ export function createGarden(): Garden {
       ensureCache(o.scale);
       c.save();
       c.globalAlpha = o.alpha;
-      if (cache) c.drawImage(cache as CanvasImageSource, 0, 0, LOGICAL_W, LOGICAL_H);
+      const m = cache && typeof c.getTransform === 'function' ? (c.getTransform() as DOMMatrix | undefined) : undefined;
+      if (cache && m && m.b === 0 && m.c === 0 && Math.abs(m.a - cacheScale) < 1e-9 && Math.abs(m.d - cacheScale) < 1e-9) {
+        // 1:1 at a whole device pixel: the opaque cache copies on Skia's fast path
+        c.setTransform(1, 0, 0, 1, Math.round(m.e), Math.round(m.f));
+        c.drawImage(cache as CanvasImageSource, 0, 0);
+        c.setTransform(m);
+      } else if (cache) c.drawImage(cache as CanvasImageSource, 0, 0, LOGICAL_W, LOGICAL_H);
       else drawStatic(c);
       if (o.placing) {
         // §10.2: path edges brighten to --glow 40 %, no-build circles hatched 45° at 30 %
@@ -466,15 +522,11 @@ export function createGarden(): Garden {
       c.restore();
     },
     drawVignette(c) {
-      if (ensureOverlays(c) && vignetteCv) {
-        const m = c.getTransform();
-        const w = vignetteCv.width, h = vignetteCv.height;
-        const x0 = Math.max(0, Math.floor((LOGICAL_W / 2 - VIG_CLEAR_HALF) * m.a + m.e));
-        const x1 = Math.min(w, Math.ceil((LOGICAL_W / 2 + VIG_CLEAR_HALF) * m.a + m.e));
+      if (ensureOverlays(c)) {
         c.save();
         c.setTransform(1, 0, 0, 1, 0, 0);
-        if (x0 > 0) c.drawImage(vignetteCv as CanvasImageSource, 0, 0, x0, h, 0, 0, x0, h);
-        if (x1 < w) c.drawImage(vignetteCv as CanvasImageSource, x1, 0, w - x1, h, x1, 0, w - x1, h);
+        if (vigL) c.drawImage(vigL as CanvasImageSource, 0, 0);
+        if (vigR) c.drawImage(vigR as CanvasImageSource, vigX1, 0);
         c.restore();
         return;
       }
@@ -489,12 +541,14 @@ export function createGarden(): Garden {
       c.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
     },
     drawGrain(c) {
-      if (ensureOverlays(c) && grainCv) {
+      if (ensureOverlays(c)) {
+        const cv = c.canvas as AnyCanvas;
         c.save();
         c.setTransform(1, 0, 0, 1, 0, 0);
         c.globalAlpha = 1;
         c.globalCompositeOperation = 'source-over';
-        c.drawImage(grainCv as CanvasImageSource, 0, 0);
+        if (grainPat) { c.fillStyle = grainPat; c.fillRect(0, 0, cv.width, cv.height); }
+        else if (grainFull) c.drawImage(grainFull as CanvasImageSource, 0, 0);
         c.restore();
         return;
       }

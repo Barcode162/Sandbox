@@ -176,6 +176,24 @@ describe('game shell', () => {
     expect(game.debug.selection).toEqual({ mode: 'none' });
   });
 
+  it('F-008: a held Backspace/Delete (key auto-repeat) never sells; the repeat is still preventDefault-ed', () => {
+    const { canvas, win, game, frames, key } = setup();
+    game.debug.newRun();
+    key('1'); pointer(canvas, 'pointerdown', 340, 510); frames(50);
+    pointer(canvas, 'pointerdown', 340, 510);
+    for (const k of ['Backspace', 'Delete']) {
+      key(k); frames(50);
+      for (let i = 0; i < 10; i++) {
+        const ev = Object.assign(new Event('keydown', { cancelable: true }), { key: k, repeat: true });
+        win.dispatchEvent(ev);
+        expect(ev.defaultPrevented).toBe(true);
+        frames(30);
+      }
+      expect(game.sim.state.towers.length).toBe(1);
+      frames(1100); // let the arm expire before the next key
+    }
+  });
+
   it('Esc pauses (sim stops), blur auto-pauses, R twice restarts; restart resets sim and every layer', () => {
     const { canvas, win, game, frames, key, resets } = setup();
     game.debug.newRun();

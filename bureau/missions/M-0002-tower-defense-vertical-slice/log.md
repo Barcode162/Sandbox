@@ -40,3 +40,32 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-21T02:22:29Z` **code-reviewer** — F-010 [S3] filed: Blot sprite cache duplicates Shadow/Flash sprites per colourblind (and Flash per Pale) flag; Sprite.half is dead
 - `2026-11-21T02:22:29Z` **code-reviewer** — F-011 [S3] filed: Live blot path ignores the pass globalAlpha while sprites honour it
 - `2026-11-21T02:22:29Z` **code-reviewer** — F-012 [S3] filed: e2e staging runs with the rAF loop live: perf and screenshots stage before freezing the clock
+- `2026-11-21T02:27:13Z` **polish-critic** — F-013 [S1] filed: Title idle: the peel happens behind the type; right two-thirds of the attract shows no action
+- `2026-11-21T02:27:13Z` **polish-critic** — F-014 [S1] filed: Boss arrival lands on an invisible boss: Inkmaw hidden behind the inkwell for ~4 s after bar, rumble and thud
+- `2026-11-21T02:27:13Z` **polish-critic** — F-015 [S2] filed: Tier boxes: check, lock and SEALED stamp collide with text
+- `2026-11-21T02:27:13Z` **polish-critic** — F-016 [S2] filed: Hotkey badges overlap button labels and the canvas edge
+- `2026-11-21T02:27:29Z` **polish-critic** — F-017 [S2] filed: Placement flecks are invisible: --crease flecks on --paper
+- `2026-11-21T02:27:29Z` **polish-critic** — F-018 [S2] filed: Hover over the star hides the ghost Tern under the star glow
+- `2026-11-21T02:27:29Z` **polish-critic** — F-019 [S2] filed: Upgrade morph: the coaster blinks out for ~2 frames
+- `2026-11-21T02:27:29Z` **polish-critic** — F-020 [S2] filed: Floating '+N/−N' chips sit on the Sheets pill's border on an opaque plate
+- `2026-11-21T02:27:29Z` **polish-critic** — F-021 [S2] filed: Banners overlap the boss bar (bar y 72-90, banner plate y ≈74-118)
+- `2026-11-21T02:27:48Z` **polish-critic** — F-022 [S2] filed: Boss shed: 6 Splashes stack on the boss's face instead of spraying out behind it
+- `2026-11-21T02:27:48Z` **polish-critic** — F-023 [S2] filed: Boss death burst reads small: 80 flecks clump within r≈12, Knots merge into one pill
+- `2026-11-21T02:27:48Z` **polish-critic** — F-024 [S2] filed: Stage hooks miss their moments: r20-shed50 shows R19 clear, title-0 is ~80 ms in
+- `2026-11-21T02:27:48Z` **polish-critic** — F-025 [S3] filed: Title→Play: the wash slides over the incoming HUD and the banner arrives at 50 ms
+- `2026-11-21T02:27:48Z` **polish-critic** — F-026 [S3] filed: Pause/end buttons act on pointerdown: no pressed state ever renders
+- `2026-11-21T02:28:01Z` **polish-critic** — F-027 [S3] filed: Sheets ticker eases over ~450 ms and lags the cards' affordability
+- `2026-11-21T02:28:01Z` **polish-critic** — F-028 [S3] filed: Crackle bed can out-peak a leak (crackleMax 0.6 > leak 0.55, and 2 kHz vs 110 Hz)
+- `2026-11-21T02:28:01Z` **polish-critic** — F-029 [S3] filed: Victory opens with a routine 'Round 20 clear · +340' banner and chime instead of 1 s of quiet
+- `2026-11-21T02:28:01Z` **polish-critic** — F-030 [S3] filed: Petal shadow offset is (+2,+3), not (+3,+4); game-over card has a 75-px dead band
+- `2026-11-21T02:34:01Z` **ceo** — Phase review → **remediation**
+- `2026-11-21T02:34:16Z` **ceo** — F-006 resolved: Raster cut: sidebar base sheet and at-rest Satchel cards blitted from a device-px cache (ui/draw.ts createBlitCache, ui/sidebar.ts), sidebar 1.04→0.29 ms; paper baked into the opaque ground cache and the paper fill skipped on unshaken play frames, ground blitted 1:1 at whole device px (ui/garden.ts, app/game.ts); grain as a device-px tile pattern. Probe: 330-frame warm-up (one lobe-phase cycle) then median of 3 restaged 300-frame passes, all passes in perf.json. Quiet box: median p95 3.8/4.0/4.2/4.6/4.9/5.8 ms across runs; worst single pass 6.7. verify:strict GREEN 28.3 s. Budget unchanged (8 ms).
+- `2026-11-21T02:34:16Z` **ceo** — F-001 resolved: Same fix as F-006 (raster cuts + median-of-3 probe). Unit flake: 165/165 across 6 consecutive runs this session; the load-sensitive failure was not reproduced on a quiet box (the 3 reviewers were running Chromium concurrently).
+- `2026-11-21T02:34:16Z` **ceo** — F-007 resolved: sim/index.ts holdInterpolation(): during hit-stop ps=s for blots, px/py=x/y for projectiles, pangle=angle for towers (none of these are hashed: determinism and parity unchanged). Test peel.test.ts 'F-007: during hit-stop every previous-tick pose equals the current one'.
+- `2026-11-21T02:34:16Z` **ceo** — F-008 resolved: app/game.ts keydown: preventDefault for Space/Backspace/Delete first (also on repeats), then all repeats dropped. Test game.test.ts 'F-008: a held Backspace/Delete (key auto-repeat) never sells' (10 repeat events each, tower survives, defaultPrevented true).
+- `2026-11-21T02:34:16Z` **ceo** — F-009 resolved: ui/garden.ts ensureOverlays: vignette stored as its two edge bands only; grain at an integer scale is an (128·res)² device tile pattern (DPR 2: 1 MB vs 31.6 MB), full canvas only at fractional scales. Rebuild only on canvas size / transform change.
+- `2026-11-21T02:34:16Z` **ceo** — F-010 resolved: render/blots.ts sprites.get: cb normalised to false for Shadow and Flash, pale to false for Flash before keying; Sprite.half removed.
+- `2026-11-21T02:34:16Z` **ceo** — F-011 resolved: render/blots.ts draw: paint.alpha = c.globalAlpha (the pass alpha), so live Knot/Inkmaw paths fade with the title→play transition exactly as sprites do.
+- `2026-11-21T02:34:16Z` **ceo** — F-012 resolved: perf.mjs: useManualClock before stage (and stage() already calls setManual itself, testhook.ts:100, so screenshots were already deterministic); header and architecture.md budget row now say 'JS + that frame's raster (1-px readback)'.
+- `2026-11-21T02:34:16Z` **ceo** — F-002 resolved: README controls: 'Esc/P pause · R R restart (in pause: press R twice within 2 s)' (matches game.ts:420).
+- `2026-11-21T02:34:16Z` **ceo** — Reviews in: code-reviewer FAIL (1 S1 perf, 3 S2, 3 S3), qa-tester PASS w/ findings (1 S2, 4 S3), polish-critic FAIL (2 S1, 10 S2, 6 S3). Phase → remediation. CEO fixed F-001/002/006-012 (perf: sidebar+card blit cache, paper skip, grain tile, median-of-3 probe with one-phase-cycle warm-up; median p95 ~4.2 ms). Polish findings go to 2 fresh engineers (UI slice / sim-render-audio slice) — headcount 12/14, last 2 reserved for the ship directors.

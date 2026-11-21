@@ -245,3 +245,37 @@ export type AnyCanvas = HTMLCanvasElement | OffscreenCanvas;
 export function ctxOf(cv: AnyCanvas): Ctx | null {
   return (cv.getContext('2d') as Ctx | null) ?? null;
 }
+
+/**
+ * Device-resolution cache for static UI pieces (perf, F-006). `blit` paints `paint` (logical coords) once
+ * into a canvas covering the box (x, y, w, h) at the current device scale. After that it copies the canvas
+ * 1:1 at a whole device pixel (Skia's fast path) instead of re-rasterising paths and text every frame.
+ * Source-over is associative, so blitting a pre-composited piece gives the same pixels as drawing its parts
+ * live. Returns false when it can't help (no canvas, rotated or skewed transform); the caller then draws live.
+ * A scale change (resize, DPR) drops every entry.
+ */
+export function createBlitCache(): { blit(c: Ctx, key: string, x: number, y: number, w: number, h: number, paint: (g: Ctx) => void): boolean } {
+  const map = new Map<string, AnyCanvas | null>();
+  let res = 0;
+  return {
+    blit(c, key, x, y, w, h, paint) {
+      if (typeof c.getTransform !== 'function') return false;
+      const m = c.getTransform() as DOMMatrix | undefined;
+      if (!m || m.b !== 0 || m.c !== 0 || !(m.a > 0) || m.a !== m.d || !Number.isFinite(m.e) || !Number.isFinite(m.f)) return false;
+      if (m.a !== res) { map.clear(); res = m.a; }
+      let cv = map.get(key);
+      if (cv === undefined) {
+        const made = makeCanvas(Math.max(1, Math.ceil(w * res)), Math.max(1, Math.ceil(h * res)));
+        const g = made && ctxOf(made);
+        if (made && g) { g.setTransform(res, 0, 0, res, -x * res, -y * res); paint(g); cv = made; } else cv = null;
+        map.set(key, cv);
+      }
+      if (!cv) return false;
+      c.save();
+      c.setTransform(1, 0, 0, 1, 0, 0);
+      c.drawImage(cv as CanvasImageSource, Math.round(x * m.a + m.e), Math.round(y * m.d + m.f));
+      c.restore();
+      return true;
+    },
+  };
+}

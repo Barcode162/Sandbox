@@ -99,7 +99,7 @@ render: compositor(alpha, nowMs) → path/decor → layers by pass → text → 
 | Sim step | p95 ≤ 4 ms with ≥ 500 blots, 30 towers, 1,000 projectiles | `perf.mjs` → `perfProbe(1200)` in headless Chromium → `evidence-local/perf/perf.json` |
 | Heap | ≤ 5 MB growth over 3,600 steps (1 min of sim) after forced GC | Chromium `--js-flags=--expose-gc --enable-precise-memory-info`; `PerfReport.heap*` |
 | Hot-loop allocation | 0 per tick in movement, grid, targeting, collision | pools plus `Int32Array` query buffers; code review plus the heap budget |
-| Render CPU | `game.frame()` JS time p95 ≤ 8 ms at R18 t 8 s, 1280×720 | `perf.mjs` on `stage('r18-8s')`, 300 manual frames. A proxy only: Canvas 2D in headless is CPU-rasterised. Real-GPU fps is never claimed. |
+| Render CPU | per-frame game JS **plus that frame's raster** (1-px readback) p95 ≤ 8 ms at R18 t 8 s, 1280×720 | `perf.mjs` on `stage('r18-8s')`, 300 manual frames. A proxy only: Canvas 2D in headless is CPU-rasterised. Real-GPU fps is never claimed. |
 | First playable | hook `ready()` ≤ 1.5 s after navigation from `dist/` | `boot.mjs` |
 | Bundle | ≤ 120 KB gzip total JS | `scripts/check-size.mjs` (scaffold: 3.3 KB) |
 | Restart | < 2,000 ms to a playable R1 | `playthrough.mjs` via `restart()` |

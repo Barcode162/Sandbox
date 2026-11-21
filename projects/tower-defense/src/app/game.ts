@@ -552,8 +552,10 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
   canvas.addEventListener('contextmenu', (e) => e.preventDefault?.());
   win?.addEventListener('keydown', (e) => {
     const ke = e as KeyboardEvent;
-    if (ke.repeat && ke.key !== 'Backspace') return;
+    // preventDefault first (also on repeats: a held Backspace must never navigate back), then drop
+    // auto-repeats for every key: a held Delete/Backspace must not satisfy the two-press sell (§13).
     if (ke.key === ' ' || ke.key === 'Backspace' || ke.key === 'Delete') ke.preventDefault?.();
+    if (ke.repeat) return;
     key(ke.key);
   });
   win?.addEventListener('pointerup', () => { dragKey = null; });
@@ -641,9 +643,9 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
     c.textAlign = 'left';
     const s = settings.get();
     if (sheet) { sheet === 'blots-grid' ? drawBlotsGrid(c, 0) : drawTowersSheet(c, 0); return; }
-    garden.drawPaper(c);
     const onTitle = scene === 'title' || (scene === 'settings' && settingsReturn === 'title');
     if (onTitle) {
+      garden.drawPaper(c);
       const t = now - sceneAt;
       const mapA = clamp01((scene === 'title' ? t : 400) / 400);
       garden.drawGround(c, worldNow, { alpha: mapA, placing: false, reduceMotion: s.reduceMotion, scale: base, dyn: attractDyn });
@@ -663,6 +665,8 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
     const trans = clamp01((now - playAt) / 400);
     const inTrans = trans < 1;
     const shake = hud.shakeOffset(now, s);
+    // the ground cache is opaque paper: only a shake (which exposes a strip at the edge) or a missing cache needs the fill
+    if (shake.x !== 0 || shake.y !== 0 || !garden.groundCoversPaper()) garden.drawPaper(c);
     c.save();
     c.translate(shake.x, shake.y);
     garden.drawGround(c, worldNow, { alpha: 1, placing: placing !== null, reduceMotion: s.reduceMotion, scale: base, dyn: hud.garden, petals: scene === 'victory' && now - victoryAt > 1000 ? 4 : 1 });

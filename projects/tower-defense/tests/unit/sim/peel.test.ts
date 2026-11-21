@@ -175,6 +175,23 @@ describe('§6 rule 5, §10.6 boss', () => {
     expect(ofType(core.sim.events, 'bossDeath')).toHaveLength(1);
     expect(live(state).filter((b) => b.kind === 'knot')).toHaveLength(4);
   });
+  it('F-007: during hit-stop every previous-tick pose equals the current one (interpolation holds still)', () => {
+    const core = createCore({ seed: 1, noWaves: true });
+    const b = core.spawnBlot('blotch', 100, false, 0, 0)!;
+    core.sim.step(); core.sim.step();
+    expect(b.s).not.toBe(b.ps);
+    core.state.hitStop = 3;
+    core.sim.step();
+    expect(b.ps).toBe(b.s);
+    const s = b.s;
+    core.sim.step(); core.sim.step();
+    expect(b.s).toBe(s); expect(b.ps).toBe(s);
+    for (let i = 0; i < core.state.projectiles.count; i++) {
+      const p = core.state.projectiles.items[i];
+      expect([p.px, p.py]).toEqual([p.x, p.y]);
+    }
+    for (const t of core.state.towers) expect(t.pangle).toBe(t.angle);
+  });
   it('slows on the boss cap at 20 %; it ignores stun and turns freeze into slow', () => {
     const { blot, ctx } = setup('inkmaw');
     ctx.slow(blot, 0.6, 60);

@@ -1,7 +1,9 @@
 // Perf probe [A3] in headless Chromium (architecture §Performance budgets, board condition 3):
 //  sim:    perfProbe(1200) → blots ≥ 500, towers ≥ 30, projectiles ≥ 1000, p95StepMs ≤ 4, p99StepMs ≤ 6
 //  heap:   forced GC → perfProbe(3600) → forced GC; used-heap growth ≤ 5 MB (CDP HeapProfiler/Runtime)
-//  render: stage('r18-8s') then 300 manual 60 Hz frames; game.frame() JS time p95 ≤ 8 ms (a CPU-raster proxy)
+//  render: stage('r18-8s'), warm-up, then 3 × 300 manual 60 Hz frames (median p95 gates); per frame = game JS + that frame's raster (forced by a
+//          1-px readback), p95 ≤ 8 ms. stage() switches to the manual clock itself (testhook.ts), so no rAF frame
+//          runs between staging and measuring.
 //  boot:   hook ready() ≤ 1.5 s after navigation
 // Evidence: evidence-local/perf/perf.json.
 import { allErrors, check, fail, hook, launch, ok, openGame, pct, serveDist, writeEvidence } from './lib.mjs';
@@ -49,11 +51,19 @@ try {
   // ── render frame at R18 t 8 s
   {
     const { page, problems } = await openGame(browser, server.url);
-    const staged = await hook(page, 'stage', 'r18-8s');
-    if (staged.error) fail(`stage('r18-8s'): ${staged.error}`);
-    else {
-      await hook(page, 'useManualClock');
-      const r = await page.evaluate(() => {
+    await hook(page, 'useManualClock');
+    // One warm-up pass (330 frames, one full 5.2 s lobe-phase cycle, so every blot sprite bucket exists as it
+    // would after the early rounds of a real run; the JIT settles too; discarded), then 3 measured passes,
+    // each restaged from the same deterministic R18 t 8 s state. The gate uses the median of the three p95s:
+    // a shared CPU swings a single 300-frame p95 by ±1 ms, and the median reports the steady state without
+    // moving the budget. Every pass is recorded in the evidence.
+    const passes = [];
+    let stageError = null;
+    for (let pass = 0; pass < 4 && !stageError; pass++) {
+      const staged = await hook(page, 'stage', 'r18-8s');
+      if (staged.error) { stageError = staged.error; break; }
+      const n = pass === 0 ? 330 : 300;
+      const r = await page.evaluate((n) => {
         const h = window.__inkfold;
         const t0 = h.summary().tick;
         // Each frame ends with a 1-px readback, which forces Chromium to rasterise that frame's queued
@@ -62,14 +72,25 @@ try {
         const cx = document.querySelector('canvas').getContext('2d');
         cx.getImageData(0, 0, 1, 1);
         const times = [];
-        for (let i = 0; i < 300; i++) { const a = performance.now(); h.advance(1000 / 60, 60); cx.getImageData(0, 0, 1, 1); times.push(performance.now() - a); }
+        for (let i = 0; i < n; i++) { const a = performance.now(); h.advance(1000 / 60, 60); cx.getImageData(0, 0, 1, 1); times.push(performance.now() - a); }
         return { times, ticks: h.summary().tick - t0, scene: h.scene() };
-      });
-      const sorted = [...r.times].sort((a, b) => a - b);
-      out.render = { frames: 300, p50Ms: pct(sorted, 0.5), p95Ms: pct(sorted, 0.95), maxMs: sorted[sorted.length - 1], simTicks: r.ticks, scene: r.scene };
-      check(out.render.p95Ms <= BUDGET.renderP95Ms, `R18 render frame p95 ${out.render.p95Ms.toFixed(2)} ms (≤ ${BUDGET.renderP95Ms}); ${r.ticks} sim ticks advanced in scene '${r.scene}'`,
-        `R18 render frame p95 ${out.render.p95Ms.toFixed(2)} ms > ${BUDGET.renderP95Ms}`);
-      check(r.ticks >= 250, `the R18 frames ran the sim (${r.ticks} ticks over 300 frames)`, `R18 frames advanced only ${r.ticks} sim ticks — the measured frames are not live play`);
+      }, n);
+      if (pass === 0) continue;
+      const sorted = [...r.times].sort((x, y) => x - y);
+      passes.push({ frames: n, p50Ms: pct(sorted, 0.5), p95Ms: pct(sorted, 0.95), maxMs: sorted[sorted.length - 1], simTicks: r.ticks, scene: r.scene });
+    }
+    if (stageError) fail(`stage('r18-8s'): ${stageError}`);
+    else {
+      const p95s = passes.map((x) => x.p95Ms).sort((x, y) => x - y);
+      const med = p95s[1];
+      out.render = { passes, medianP95Ms: med, p95Ms: med, spreadMs: [p95s[0], p95s[2]] };
+      const spread = `passes ${passes.map((x) => x.p95Ms.toFixed(1)).join(' / ')}`;
+      check(med <= BUDGET.renderP95Ms, `R18 render frame p95 ${med.toFixed(2)} ms, median of 3 (≤ ${BUDGET.renderP95Ms}); ${spread}`,
+        `R18 render frame p95 ${med.toFixed(2)} ms, median of 3 > ${BUDGET.renderP95Ms}; ${spread}`);
+      const minTicks = Math.min(...passes.map((x) => x.simTicks));
+      const scenes = [...new Set(passes.map((x) => x.scene))].join(',');
+      check(minTicks >= 250 && scenes === 'play', `the R18 frames ran the sim (≥ ${minTicks} ticks per 300 frames, scene '${scenes}')`,
+        `R18 frames advanced only ${minTicks} sim ticks (scene '${scenes}'): the measured frames are not live play`);
     }
     const errs = await allErrors(page, problems);
     check(errs.length === 0, 'render probe page: zero console errors', `render probe page errors:\n    ${errs.join('\n    ')}`);

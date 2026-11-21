@@ -32,7 +32,7 @@ Needs Chromium for the e2e steps: `PLAYWRIGHT_BROWSERS_PATH` (default here `/opt
 All sound is synthesized with Web Audio (`src/audio/`): music and sfx buses into a −18 dB / 4:1 compressor, a mute gain and a safety limiter; ducking leak/boss > UI > fire > pops; at most 6 pop voices per 50 ms with the overflow fed to a crackle bed; music in 8 states on bar lines with 800 ms crossfades; pause lowpasses the music. The context is created on the first `unlock()` (call it from a user gesture). Without Web Audio the engine is a silent no-op.
 
 ## Controls
-1–4 pick a tower · click place/select · RMB/Esc cancel · Space start round / 1×↔2× · Z/X upgrade path A/B · T targeting · Delete ×2 sell · A auto-start · M mute · Esc/P pause · R restart (in pause).
+1–4 pick a tower · click place/select · RMB/Esc cancel · Space start round / 1×↔2× · Z/X upgrade path A/B · T targeting · Delete ×2 sell · A auto-start · M mute · Esc/P pause · R R restart (in pause: press R twice within 2 s).
 
 ## Layout
 | Path | What |

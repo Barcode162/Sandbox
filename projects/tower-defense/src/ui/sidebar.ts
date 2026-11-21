@@ -2,6 +2,7 @@
 // owned/next/unaffordable/sealed states, sell/refund, tally), Auto-start toggle and the Go button.
 import type { Rect, Settings, SimState, Tower, TowerKind, UpgradePath } from '../contracts/types';
 import { FOLD, HUD } from '../data/layout';
+import { LOGICAL_H, LOGICAL_W } from '../data/map';
 import { P, PATH_FLECK } from '../data/palette';
 import { MOTION } from '../data/feel';
 import { TOWERS, TOWER_ORDER } from '../data/towers';
@@ -9,7 +10,7 @@ import { drawTowerSprite } from '../render/towers';
 import { sellValue } from '../sim/economy';
 import { tierStatus, type TierView } from '../sim/towers';
 import type { GoView } from '../app/input';
-import { backOut, badge, clamp01, type Ctx, displayFont, drawDigits, fmt, glyphArrow, glyphCheck, glyphCross, glyphLock, glyphPlay, inRect, outCubic, plate, roundRectPath, tornRectPath, typeIcon, uiFont, wrapText } from './draw';
+import { backOut, badge, clamp01, createBlitCache, type Ctx, displayFont, drawDigits, fmt, glyphArrow, glyphCheck, glyphCross, glyphLock, glyphPlay, inRect, outCubic, plate, roundRectPath, tornRectPath, typeIcon, uiFont, wrapText } from './draw';
 import { pulse } from './garden';
 
 export type SideHit =
@@ -79,16 +80,9 @@ const PANEL: Rect = { x: HUD.sidebar.x, y: 0, w: HUD.sidebar.w, h: 600 };
 export function drawSidebar(c: Ctx, v: SidebarView): void {
   c.save();
   c.translate(v.offsetX, 0);
-  // base sheet with a seeded torn left edge (zig 3 px)
-  c.fillStyle = P.shadow;
-  tornRectPath(c, HUD.sidebar.x - 3, -6, HUD.sidebar.w + 12, HUD.sidebar.h + 12, 1080, 3, 8, { t: false, r: false, b: false, l: true });
-  c.fill();
-  c.fillStyle = P.paperShade;
-  tornRectPath(c, HUD.sidebar.x, -6, HUD.sidebar.w + 10, HUD.sidebar.h + 12, 1080, 3, 8, { t: false, r: false, b: false, l: true });
-  c.fill();
-  c.strokeStyle = P.foldWhite;
-  c.lineWidth = 1;
-  c.stroke();
+  // base sheet with a seeded torn left edge (zig 3 px); static, so blitted from the cache when it can be
+  const bx = HUD.sidebar.x - 8;
+  if (v.offsetX !== 0 || !CACHE.blit(c, 'base', bx, 0, LOGICAL_W - bx, LOGICAL_H, drawBase)) drawBase(c);
 
   const face = (tower: Readonly<Tower> | null): void => (tower ? drawFoldCard(c, v, tower) : drawSatchel(c, v));
   const t = (v.nowMs - v.panelAt) / (v.settings.reduceMotion ? MOTION.uiMs : MOTION.foldMs);
@@ -116,6 +110,40 @@ export function drawSidebar(c: Ctx, v: SidebarView): void {
   c.restore();
 }
 
+const CACHE = createBlitCache();
+
+function drawBase(c: Ctx): void {
+  c.fillStyle = P.shadow;
+  tornRectPath(c, HUD.sidebar.x - 3, -6, HUD.sidebar.w + 12, HUD.sidebar.h + 12, 1080, 3, 8, { t: false, r: false, b: false, l: true });
+  c.fill();
+  c.fillStyle = P.paperShade;
+  tornRectPath(c, HUD.sidebar.x, -6, HUD.sidebar.w + 10, HUD.sidebar.h + 12, 1080, 3, 8, { t: false, r: false, b: false, l: true });
+  c.fill();
+  c.strokeStyle = P.foldWhite;
+  c.lineWidth = 1;
+  c.stroke();
+}
+
+/** One Satchel card at rest (no hover lift): plate, portrait, name, cost, hotkey badge. */
+function drawCard(c: Ctx, kind: TowerKind, r: Rect, afford: boolean, placing: boolean, lift: number): void {
+  const def = TOWERS[kind];
+  c.save();
+  if (!afford) c.globalAlpha = 0.45;
+  plate(c, r, 6, P.paper, { lift, stroke: placing ? P.ink : P.crease });
+  if (placing) { c.strokeStyle = P.ink; c.lineWidth = 2; roundRectPath(c, r.x + 1, r.y + 1 - lift, r.w - 2, r.h - 2, 6); c.stroke(); }
+  drawTowerSprite(c, kind, [0, 0], r.x + r.w / 2, r.y + 42 - lift, { angle: -Math.PI / 2, scale: 0.9, nowMs: 0, coaster: true });
+  c.fillStyle = P.ink;
+  c.font = uiFont(14);
+  c.textAlign = 'center';
+  c.fillText(def.name, r.x + r.w / 2, r.y + 84 - lift, r.w - 6);
+  c.font = uiFont(16);
+  c.fillStyle = afford ? P.ink : P.bad;
+  drawDigits(c, fmt(def.cost), r.x + r.w / 2, r.y + 103 - lift, 16, 'center');
+  c.textAlign = 'left';
+  badge(c, r.x + 4, r.y + 4 - lift, def.hotkey);
+  c.restore();
+}
+
 function drawSatchel(c: Ctx, v: SidebarView): void {
   c.font = displayFont(20);
   c.fillStyle = P.ink;
@@ -133,21 +161,10 @@ function drawSatchel(c: Ctx, v: SidebarView): void {
     const hov = v.hover?.k === 'card' && v.hover.kind === kind;
     if (hov) hovered = kind;
     const lift = hov && afford ? 2 * outCubic((v.nowMs - v.hoverSince) / MOTION.microMs) : 0;
-    c.save();
-    if (!afford) c.globalAlpha = 0.45;
-    plate(c, r, 6, P.paper, { lift, stroke: v.placing === kind ? P.ink : P.crease });
-    if (v.placing === kind) { c.strokeStyle = P.ink; c.lineWidth = 2; roundRectPath(c, r.x + 1, r.y + 1 - lift, r.w - 2, r.h - 2, 6); c.stroke(); }
-    drawTowerSprite(c, kind, [0, 0], r.x + r.w / 2, r.y + 42 - lift, { angle: -Math.PI / 2, scale: 0.9, nowMs: 0, coaster: true });
-    c.fillStyle = P.ink;
-    c.font = uiFont(14);
-    c.textAlign = 'center';
-    c.fillText(def.name, r.x + r.w / 2, r.y + 84 - lift, r.w - 6);
-    c.font = uiFont(16);
-    c.fillStyle = afford ? P.ink : P.bad;
-    drawDigits(c, fmt(def.cost), r.x + r.w / 2, r.y + 103 - lift, 16, 'center');
-    c.textAlign = 'left';
-    badge(c, r.x + 4, r.y + 4 - lift, def.hotkey);
-    c.restore();
+    const placing = v.placing === kind;
+    const paint = (g: Ctx): void => drawCard(g, kind, r, afford, placing, lift);
+    // at rest the card is static: blit it (box padded for the stroke and the +3/+4 hard shadow)
+    if (lift !== 0 || !CACHE.blit(c, `card:${kind}:${afford ? 1 : 0}:${placing ? 1 : 0}`, r.x - 4, r.y - 4, r.w + 12, r.h + 12, paint)) paint(c);
     if (v.ternGlow && kind === 'tern') {
       c.save();
       c.globalAlpha = 0.4 + 0.6 * pulse(v.nowMs, 1200);
