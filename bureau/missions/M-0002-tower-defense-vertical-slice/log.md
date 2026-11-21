@@ -20,3 +20,4 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-21T01:47:11Z` **ceo** — WO-002 PARTIAL: sim/peel done, p99 0.93ms; win script dies R14. CEO updated architecture Events row (pooled). Relayed pooledEvents request to WO-003.
 - `2026-11-21T01:49:17Z` **ceo** — WO-003 DONE. Resumed WO-002 for balance: CEO grants wave/blot/economy changes + ≤±15% tower stat exception in src/data, change table required.
 - `2026-11-21T01:53:06Z` **ceo** — WO-004 PARTIAL (all built; blocked on WO-002 balance). CEO decision: narrow §10.1 title wash so the blots in the title frame rows read (frame rows win over wash spec); WO-004 to apply after balance. Resumed WO-005 (double SFX) and WO-003 (overlay doubling).
+- `2026-11-21T01:59:32Z` **ceo** — Owner asked to wrap up for a new chat on another account. WO-002 balance and WO-004 perf fix passes were stopped mid-run. Verify 9/10 (perf FAIL). See HANDOFF.md.
