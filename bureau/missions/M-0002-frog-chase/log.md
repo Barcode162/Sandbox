@@ -19,3 +19,4 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-20T23:51:41Z` **ceo** — Phase build → **review**
 - `2026-11-20T23:51:41Z` **ceo** — Convened 1× code-reviewer
 - `2026-11-20T23:51:41Z` **ceo** — Convened 1× polish-critic
+- `2026-11-21T03:32:46Z` **ceo** — Both reviewers hit the usage limit mid-review (reset 02:20 UTC). Resume, don't re-convene (L-0005).
