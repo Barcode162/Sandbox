@@ -1,0 +1,25 @@
+{
+  "seed": 1,
+  "win": {
+    "outcome": "defeat",
+    "round": 14,
+    "tick": 23235,
+    "lives": 0,
+    "money": 908,
+    "pops": 1378,
+    "hash": "17e750b7"
+  },
+  "loss": {
+    "outcome": "defeat",
+    "round": 7,
+    "tick": 13671,
+    "lives": 0,
+    "money": 1353,
+    "pops": 293,
+    "hash": "8539a4ac"
+  },
+  "ms": {
+    "win": 117.33405499999999,
+    "loss": 50.73487299999999
+  }
+}

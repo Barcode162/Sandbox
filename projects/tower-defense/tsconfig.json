@@ -15,5 +15,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src", "tests/unit", "vite.config.ts", "vitest.config.ts"]
+  "include": ["src", "tests/unit", "scripts/e2e/parity", "vite.config.ts", "vitest.config.ts"]
 }

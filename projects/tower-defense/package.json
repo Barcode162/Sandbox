@@ -5,7 +5,9 @@
   "private": true,
   "type": "module",
   "license": "UNLICENSED",
-  "engines": { "node": ">=22.12" },
+  "engines": {
+    "node": ">=22.12"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -13,12 +15,15 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test:unit": "vitest run",
     "test:boot": "node scripts/e2e/boot.mjs",
+    "test:audio": "node scripts/e2e/audio.mjs",
     "test:playthrough": "node scripts/e2e/playthrough.mjs",
+    "test:parity": "vitest run --config scripts/e2e/parity/vitest.config.ts",
     "test:determinism": "node scripts/e2e/determinism.mjs",
     "test:screens": "node scripts/e2e/screenshots.mjs",
     "test:perf": "node scripts/e2e/perf.mjs",
     "check:size": "node scripts/check-size.mjs",
-    "verify": "node scripts/verify.mjs"
+    "verify": "node scripts/verify.mjs",
+    "verify:strict": "node scripts/verify.mjs --strict"
   },
   "devDependencies": {
     "@types/node": "22.20.5",

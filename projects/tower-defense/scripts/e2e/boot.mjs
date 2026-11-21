@@ -5,7 +5,9 @@ import { evidenceDir, fail, launch, ok, openGame, serveDist } from './lib.mjs';
 const server = await serveDist();
 const browser = await launch();
 try {
-  const { page, problems } = await openGame(browser, server.url);
+  const { page, problems, readyMs } = await openGame(browser, server.url);
+  // Architecture budget: hook ready() ≤ 1.5 s after navigation from dist/.
+  readyMs <= 1500 ? ok(`first playable in ${readyMs} ms (≤ 1500)`) : fail(`hook ready took ${readyMs} ms (> 1500)`);
   await page.waitForTimeout(500);
   const scene = await page.evaluate(() => window.__inkfold.scene());
   scene === 'title' ? ok(`boots to the title scene`) : fail(`expected title scene, got ${scene}`);

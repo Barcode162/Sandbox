@@ -1,0 +1,35 @@
+[
+  {
+    "name": "default mix, storm music, 300 pops spread over 1 s",
+    "peakDbfs": -3.650062988467738,
+    "rmsDbfs": -27.661400579983063,
+    "preLimiterPeakDbfs": -5.9299313319797236,
+    "popVoices": 117,
+    "droppedPops": 183,
+    "crackles": 17,
+    "cues": {}
+  },
+  {
+    "name": "sliders at 100, storm music, 300 pops over 1 s + 10 leaks + boss shed",
+    "peakDbfs": -4.258971800471595,
+    "rmsDbfs": -20.41893523821296,
+    "preLimiterPeakDbfs": -6.538836896697088,
+    "popVoices": 117,
+    "droppedPops": 183,
+    "crackles": 17,
+    "cues": {
+      "leak": 10,
+      "bossShed": 1
+    }
+  },
+  {
+    "name": "default mix, 300 pops in a single frame",
+    "peakDbfs": -7.271892867395037,
+    "rmsDbfs": -40.633131798408556,
+    "preLimiterPeakDbfs": -9.551758115465672,
+    "popVoices": 6,
+    "droppedPops": 294,
+    "crackles": 1,
+    "cues": {}
+  }
+]
