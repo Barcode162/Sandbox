@@ -48,3 +48,25 @@ F-001 S2 verify flaky. F-002 S3 README restart. F-003 S3 text 8 px at 900×600. 
 
 ## Not covered
 Audio by ear, touch, colourblind visual diff, full manual purchase of Frog, Koi, Owl tiers.
+
+## Verification r2
+Build at HEAD 4d0c155, served read-only on :4533.
+- F-001 verified: `perf.mjs` R18 render p95 5.00 ms (median of 3; budget 8). Full verify not run, per CEO; I accept the CEO's green run.
+- F-002 verified: README states R must be pressed twice in pause.
+- F-003 accepted: logical-px ruling stands; compact layout is a next-milestone item.
+- F-004 verified: `evidence/qa/settings-r2.jpg` shows clear spacing and a divider above Back.
+- F-005 verified: after victory retry, `stage('r18-8s')` and `stage('r20-arrival')` reach R18 and R20.
+
+Core flows re-run by real input at 1280×720, zero console or page errors:
+- Settings click and Esc back: pass.
+- Play pressed, dragged off and released outside: stays on title; click on Play works.
+- Two Terns by hotkey and click: pass.
+- Z buys; unaffordable X does not spend: pass.
+- Sell after upgrades +245 (70 % of 350): pass.
+- Pause button click; R R restarts to R1/650/100: pass.
+- Game-over Try again click and victory Enter replay: pass.
+- Boss arrival and R18 stages reached.
+- Win script: victory, 49 seeds, 5,662 pops.
+- Re-laid-out fold card (`fold-r2.jpg`) reads cleanly.
+
+No regressions; no new findings.
