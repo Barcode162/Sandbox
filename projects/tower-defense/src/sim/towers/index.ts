@@ -159,6 +159,17 @@ function updateAimed(ctx: SimContext, t: Tower, s: TowerStats): void {
     leadS = Math.min(PATH_TOTAL, target.s + currentSpeed(target) * s.arcTime);
     ctx.pointAt(leadS, V);
     ax = V.x; ay = V.y;
+  } else if (s.attack === 'quill' || s.attack === 'lance') {
+    // straight shots aim at the intercept point along the path (2 fixed-point iterations; deterministic)
+    const v = currentSpeed(target);
+    if (v > 0 && s.projectileSpeed > 0) {
+      const muzzle = FOOTPRINT[t.kind] * 0.5;
+      for (let k = 0; k < 2; k++) {
+        const flight = Math.max(0, Math.hypot(ax - t.x, ay - t.y) - muzzle) / s.projectileSpeed;
+        ctx.pointAt(Math.min(PATH_TOTAL, target.s + v * flight), V);
+        ax = V.x; ay = V.y;
+      }
+    }
   }
   const want = Math.atan2(ay - t.y, ax - t.x);
   const rate = TOWERS[t.kind].turnRateDeg * DEG * TICK_S;

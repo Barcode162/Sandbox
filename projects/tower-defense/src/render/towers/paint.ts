@@ -108,5 +108,3 @@ export function curve(pen: Pen, x0: number, y0: number, cx: number, cy: number, 
   c.stroke();
 }
 
-/** Lerp of two points from flat coordinates. */
-export const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;

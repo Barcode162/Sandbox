@@ -43,7 +43,7 @@ export function paintTower(ctx: CanvasRenderingContext2D, kind: TowerKind, tiers
   ctx.scale(o.scale, o.scale);
   ctx.globalAlpha *= o.alpha;
   const R = coasterRadius(kind);
-  if (o.coaster) drawCoaster(ctx, kind, R, a, b);
+  if (o.coaster) drawCoaster(ctx, R, a, b);
   const pen: Pen = { ctx, shadow: true };
   // hard shadow: union silhouette, screen-space offset, filled once
   ctx.save();
@@ -68,7 +68,7 @@ function body(pen: Pen, kind: TowerKind, a: number, b: number, o: DrawSpec, feel
 }
 
 /** Coaster disc r fr+4 in --paper-deep with a crease ring and tier notches: A left arcs, B right (§7 markers). */
-function drawCoaster(ctx: CanvasRenderingContext2D, kind: TowerKind, R: number, a: number, b: number): void {
+function drawCoaster(ctx: CanvasRenderingContext2D, R: number, a: number, b: number): void {
   ctx.beginPath();
   ctx.arc(SHADOW_OFFSET.x, SHADOW_OFFSET.y, R, 0, TAU);
   ctx.fillStyle = P.shadow;

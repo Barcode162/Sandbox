@@ -5,7 +5,7 @@ import { TOWERS, TOWER_ORDER, resolveStats } from '../../../src/data/towers';
 import { BLOTS } from '../../../src/data/blots';
 import { pointAt, tangentAt } from '../../../src/sim/path';
 import { PROJECTILE_CAPACITY } from '../../../src/sim';
-import { projectileDrops, remainingRbe, selectTarget, tierStatus, SKIP_TICKS } from '../../../src/sim/towers';
+import { projectileDrops, remainingRbe, selectTarget, tierStatus } from '../../../src/sim/towers';
 import { createFake, type Fake } from './fake-ctx';
 
 const still = () => createFake({ move: false });
@@ -95,6 +95,14 @@ describe('turning, cooldown and fire', () => {
     }
     expect(ticks).toBe(15);
     expect(Math.abs(Math.cos(t.angle) + 1)).toBeLessThan(1e-9);
+  });
+  it('quills aim at the path intercept: the first quill hits a 208 px/s Blotch', () => {
+    const f = createFake();
+    f.tower('tern', 330, 340); // beside the (460,180)→(460,400) leg
+    const b = f.blot('blotch', 660);
+    for (let i = 0; i < 60 && hits(f).length === 0; i++) f.tick();
+    expect(hits(f)[0]?.blot).toBe(b.id);
+    expect(ofType(f, 'fire')).toHaveLength(1);
   });
   it('fires at its interval (Tern 0.95 s = 57 ticks)', () => {
     const f = still();

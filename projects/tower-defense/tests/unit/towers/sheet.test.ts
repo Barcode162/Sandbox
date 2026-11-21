@@ -1,5 +1,5 @@
 // WO-003 done-when: the 4 × 12 sprite sheet rendered in headless Chromium, saved to
-// evidence-local/screens/towers-sheet.jpg, and every cell differs from its left neighbour by ≥ 2 % of its pixels.
+// evidence-local/screens/towers-sheet-annotated.jpg (the stage capture is WO-005's towers-sheet.jpg), and every cell differs from its left neighbour by ≥ 2 % of its pixels.
 import { mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -33,7 +33,7 @@ describe('towers sheet (Chromium)', () => {
       const diffs = await page.evaluate(() => (window as unknown as { sheet: { diffs(): number[][] } }).sheet.diffs());
       const dir = join(ROOT, 'evidence-local', 'screens');
       mkdirSync(dir, { recursive: true });
-      await page.screenshot({ path: join(dir, 'towers-sheet.jpg'), type: 'jpeg', quality: 80 });
+      await page.screenshot({ path: join(dir, 'towers-sheet-annotated.jpg'), type: 'jpeg', quality: 80 });
       await page.evaluate(() => (window as unknown as { sheet: { draw(ms: number): void } }).sheet.draw(1234));
       await page.screenshot({ path: join(dir, 'towers-sheet-motion.jpg'), type: 'jpeg', quality: 80 });
       for (const t of [150, 212]) {

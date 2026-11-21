@@ -16,7 +16,7 @@ export interface Fake {
   state: SimState;
   log: LogEntry[];
   events: SimEvent[];
-  /** Add a blot; if `at` is given it is placed there and stays still, otherwise it walks the path from s. */
+  /** Add a blot; if `at` is given it is parked there (stunned, speed 0), otherwise it walks the path from s. */
   blot(kind: BlotKind, s: number, opts?: { pale?: boolean; at?: { x: number; y: number }; hp?: number }): Blot;
   tower(kind: TowerKind, x: number, y: number, tiers?: [number, number], target?: TargetMode): Tower;
   /** One tower-system tick: move walking blots, auras, towers, projectiles, compact. */
@@ -116,7 +116,7 @@ export function createFake(opts: { move?: boolean } = {}): Fake {
     blot(kind, s, o = {}) {
       const b = add(kind, s, o.pale ?? false, 0);
       if (o.hp !== undefined) b.hp = o.hp;
-      if (o.at) { b.x = o.at.x; b.y = o.at.y; fixed.add(b.id); }
+      if (o.at) { b.x = o.at.x; b.y = o.at.y; b.stunTicks = 1e9; fixed.add(b.id); } // parked: speed 0, so no aim lead
       return b;
     },
     tower(kind, x, y, tiers = [0, 0], target = 'first') {
