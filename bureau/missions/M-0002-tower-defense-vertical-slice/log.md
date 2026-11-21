@@ -16,3 +16,4 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-20T21:34:26Z` **ceo** — Phase plan-review → **build**
 - `2026-11-20T21:34:26Z` **ceo** — Convened 4× engineer — wave 1: WO-002..005
 - `2026-11-20T21:34:26Z` **ceo** — Gate 1 PASS (DE CONDITIONAL 8.0). CEO folded 5 conditions: StageId +blots-grid/towers-sheet, PerfReport.p99StepMs, plan § Board conditions.
+- `2026-11-21T01:28:36Z` **ceo** — Wave 1: all 4 engineers hit the 5-hour usage limit early; resumed all 4 via SendMessage after reset (no new convenings).
