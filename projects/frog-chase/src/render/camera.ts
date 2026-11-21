@@ -99,23 +99,30 @@ export const sy = (v: View, y: number): number => v.ay - (y - v.camY) * v.k + v.
 export const wx = (v: View, px: number): number => 50 + (px - v.cx - v.shakeX) / v.k;
 export const wy = (v: View, py: number): number => v.camY - (py - v.ay - v.shakeY) / v.k;
 
-/** HUD clearance above the win route (timer tab + best), px. */
-export const WIN_TOP_PX = 112;
 /**
- * Win framing (§7.5 step 4). Wide screens (≥ 1024 px) fit the whole route, start to finish, below the HUD
- * (F-012). Narrower screens zoom to the spec floor (0.4× / 0.33× under 700 px) with the finish 22% down.
- * `topY` / `bottomY` are the world y extent of the route (finish bank, start bank).
+ * Win framing (§7.5 step 4): zoom to the spec floor (0.4×, 0.33× under 700 px) with the finish bank 22%
+ * down. Wide screens (≥ 1024 px) also pan along the route while it is inked (`winPan`), so the river fills
+ * the frame instead of a whole-route thumbnail (F-012, F-019).
  */
 export function winGoal(w: number, h: number, topY: number, bottomY: number): { zoom: number; focusY: number } {
   const s = baseScale(w, h);
-  if (w >= 1024) {
-    const k = (h - WIN_TOP_PX - 24) / (topY - bottomY);
-    const zoom = Math.min(1, k / s);
-    return { zoom, focusY: topY - (h * ANCHOR - WIN_TOP_PX) / (s * zoom) };
-  }
   const floor = w < 700 ? 0.33 : 0.4;
   const fit = h / ((topY - bottomY) * s);
   const zoom = Math.max(floor, Math.min(1, fit));
   const visible = h / (s * zoom);
   return { zoom, focusY: topY - visible * (ANCHOR - 0.22) };
+}
+
+/** Wide-screen win: when the trace runs and for how long (ms after the win), and the pan's return. */
+export const WIN_WIDE = { traceAt: 300, traceMs: 1200, returnAt: 2000 } as const;
+
+/**
+ * Camera focus that keeps the trace's drawing head at mid-screen, clamped so the view never leaves the
+ * river (finish framing at the top, start bank at the bottom).
+ */
+export function winPan(w: number, h: number, zoom: number, headY: number, finishFocus: number, bottomY: number): number {
+  const k = baseScale(w, h) * zoom;
+  const centred = headY - (h * (ANCHOR - 0.5)) / k;
+  const lowest = bottomY + (h * (1 - ANCHOR)) / k;
+  return Math.min(finishFocus, Math.max(lowest, centred));
 }

@@ -251,12 +251,17 @@ for (const [vp, viewport] of shots) {
       fresh();
       L().setBot('runner', { delayMs: 320 });
       until(() => L().phase() === 'result', 20000);
-      L().frame(1000 / 60, 60);
+      // Narrow: +1.0 s. Wide screens ink the route over 1.2 s while the camera pans along it: capture at +1.6 s.
+      L().frame(1000 / 60, innerWidth >= 1024 ? 96 : 60);
       return { kind: L().sim().result?.kind, stamp: visible('[data-test="stamp"]'), trace: P().traceProgress, zoom: P().zoom, card: document.querySelector('[data-test="card-won"]')?.innerText };
     });
-    check(s11.kind === 'won' && s11.stamp && s11.trace === 1 && s11.zoom < 0.5, `11 win: ${JSON.stringify(s11)}`);
+    check(s11.kind === 'won' && s11.stamp && s11.trace === 1 && s11.zoom > 0.32 && s11.zoom < 0.41, `11 win: ${JSON.stringify(s11)}`);
     await page.waitForTimeout(260); // let the card's CSS entrance finish (wall time)
     await shot(page, `look-11-win-${vp}`);
+    if (vp === 'desktop') {
+      await page.evaluate(() => __t.L().frame(1000 / 60, 60));
+      await shot(page, 'look-11-win-desktop-settled');
+    }
   });
 }
 
@@ -269,6 +274,21 @@ await withPage('look shots wide title', { viewport: VIEWPORTS.wide }, async ({ p
   }, DT);
   check(s.ring && s.phase === 'title' && s.chips === 3, `1 title at 1920×1080: ${JSON.stringify(s)}`);
   await shot(page, 'look-01-title-wide');
+  await page.evaluate(() => localStorage.setItem('lilyfield.v1', JSON.stringify({ version: 1, bestMs: 600000, muted: true, reducedMotion: null, runs: 4 })));
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForFunction(() => !!window.__lily);
+  await prep(page);
+  const w = await page.evaluate(() => {
+    const { L, P, fresh, until } = __t;
+    fresh();
+    L().setBot('runner', { delayMs: 320 });
+    until(() => L().phase() === 'result', 20000);
+    L().frame(1000 / 60, 96);
+    return { kind: L().sim().result?.kind, zoom: P().zoom, trace: P().traceProgress };
+  });
+  await page.waitForTimeout(260);
+  check(w.kind === 'won' && w.trace === 1 && w.zoom > 0.39 && w.zoom < 0.41, `11 win at 1920×1080: ${JSON.stringify(w)}`);
+  await shot(page, 'look-11-win-wide');
 });
 
 done();

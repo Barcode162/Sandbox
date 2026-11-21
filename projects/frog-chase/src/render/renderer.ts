@@ -8,7 +8,7 @@
  */
 import type { Pad, Renderer, SimEvent, SimState, Slot, Vec2, ViewState } from '../contracts';
 import { heartbeatPhase } from '../sim/sim';
-import { createCamera, createView, stepCamera, sx, sy, updateView, winGoal, wx, wy, DANGER_ZOOM } from './camera';
+import { createCamera, createView, stepCamera, sx, sy, updateView, winGoal, winPan, wx, wy, DANGER_ZOOM, WIN_WIDE } from './camera';
 import { advancePresentation } from './clock';
 import { bottomBandAlpha, eyeScale, jawRad, vignetteAlpha } from './danger';
 import { DIM_AHEAD, DIM_BEHIND, SHADOW, rgba } from './color';
@@ -438,7 +438,7 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
         for (let i = 0; i < 24; i++) {
           const a = (i / 24) * TAU + rand3(e.tick, i, 8) * 0.25;
           const lifeS = 0.9;
-          const sp = 16 + 18 * rand3(e.tick, i, 10);
+          const sp = 34 + 30 * rand3(e.tick, i, 10); // a 360° spray that clears the frog by ~+0.3 s
           const peak = 3 + 4 * rand3(e.tick, i, 11);
           const g = (8 * peak) / (lifeS * lifeS) * 0.6;
           const k = particles.spawn(PK.Petal, pose.x, pose.y, Math.cos(a) * sp, Math.sin(a) * sp, 0.5, Math.sqrt(2 * g * peak), g, lifeS, 2.5 + rand3(e.tick, i, 12) * 0.8);
@@ -471,6 +471,18 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
     out.x = sim.trail[i]!.x;
     out.y = sim.trail[i]!.y;
     return out;
+  }
+
+  /** World y of the route at arc length a (trail polyline). */
+  function routeYAt(sim: SimState, a: number): number {
+    const arc = sim.trailArc, tr = sim.trail;
+    for (let i = 1; i < arc.length; i++) {
+      if (arc[i]! < a) continue;
+      const seg = arc[i]! - arc[i - 1]!;
+      const f = seg > 0 ? (a - arc[i - 1]!) / seg : 1;
+      return lerp(tr[i - 1]!.y, tr[i]!.y, f);
+    }
+    return tr[tr.length - 1]!.y;
   }
 
   function padAt(sim: SimState, p: Vec2): number {
@@ -634,6 +646,12 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
         focusY = goal.focusY;
         zoom = goal.zoom;
         cut = reduced;
+        const e = jt - winAt;
+        if (w >= 1024 && !reduced && e > WIN_WIDE.traceAt && e < WIN_WIDE.returnAt) {
+          // Pan with the trace's drawing head so the river fills the frame (F-012, F-019).
+          const u = clamp01((e - WIN_WIDE.traceAt) / WIN_WIDE.traceMs);
+          focusY = winPan(w, h, zoom, routeYAt(sim, sim.trailArc[sim.trailArc.length - 1]! * (1 - EASE_UI(u))), goal.focusY, -6);
+        }
       }
       stepCamera(camera, { focusY, zoom, cut }, dts);
       shake.step(dts, shakeOff);
@@ -996,7 +1014,8 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
       // ── Win route trace (§7.5, polish 21): dashed ink through every landed pad centre, finish → start.
       probe.traceProgress = 0;
       if (winAt >= 0 && route) {
-        const u = clamp01((jt - winAt - 120) / 700);
+        const wide = w >= 1024 && !reduced;
+        const u = wide ? clamp01((jt - winAt - WIN_WIDE.traceAt) / WIN_WIDE.traceMs) : clamp01((jt - winAt - 120) / 700);
         probe.traceProgress = u;
         const arc = sim.trailArc;
         const total = arc[arc.length - 1] ?? 0;

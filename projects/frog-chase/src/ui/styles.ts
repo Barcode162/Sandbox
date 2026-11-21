@@ -68,7 +68,8 @@ export function uiCss(): string {
 #ui .ly-cardwrap.ly-bottom { top: auto; bottom: calc(7% + env(safe-area-inset-bottom)); transform: translate(-50%, 0); }
 @media (min-width: 700px) { #ui .ly-cardwrap { width: 460px; } }
 /* Wide win: the whole route is on screen, so the card docks on the right bank, clear of the river (F-012). */
-@media (min-width: 1024px) { #ui .ly-cardwrap.ly-bottom { left: calc(50% + 104px); top: 54%; bottom: auto; transform: translate(0, -50%); width: min(460px, calc(50vw - 136px)); } }
+@media (min-width: 1024px) { #ui .ly-cardwrap.ly-bottom { --col: calc(20 * min(1vw, 100vh / 150)); left: calc(50% + var(--col) + 48px);
+  top: 56%; bottom: auto; transform: translate(0, -50%); width: min(460px, calc(50vw - var(--col) - 72px)); } }
 #ui .ly-card { background: ${C.paper}; clip-path: ${tornTop}; padding: 22px 20px 18px; transform: rotate(1.5deg); text-align: center;
   opacity: 0; translate: 0 24px; transition: opacity 180ms ${CSS_EASE.ui}, translate 180ms ${CSS_EASE.ui}; }
 #ui .ly-card.ly-in { opacity: 1; translate: 0 0; }
