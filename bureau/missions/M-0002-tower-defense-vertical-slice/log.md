@@ -160,3 +160,5 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-22T19:23:49Z` **ceo** — ship gate PASSED (round 1)
 - `2026-11-22T19:23:49Z` **ceo** — Phase ship-review → **delivery**
 - `2026-11-22T19:23:55Z` **ceo** — Gate 2 PASS round 1: vision APPROVE 8.2, engineering APPROVE 8.4; all 37 findings verified (F-003 by CEO ruling). Phase → delivery.
+- `2026-11-22T19:23:59Z` **ceo** — Phase delivery → **retro**
+- `2026-11-22T19:24:52Z` **ceo** — Phase retro → **closed**

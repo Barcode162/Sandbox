@@ -5,7 +5,7 @@
   "tier": 3,
   "domain": "game",
   "output": "projects/tower-defense",
-  "phase": "delivery",
+  "phase": "closed",
   "created": "2026-11-20T21:00:43Z",
   "rounds": {
     "plan": 1,
@@ -68,14 +68,23 @@
     {
       "phase": "delivery",
       "at": "2026-11-22T19:23:49Z"
+    },
+    {
+      "phase": "retro",
+      "at": "2026-11-22T19:23:59Z"
+    },
+    {
+      "phase": "closed",
+      "at": "2026-11-22T19:24:52Z"
     }
   ],
-  "updated": "2026-11-22T19:23:49Z",
+  "updated": "2026-11-22T19:24:52Z",
   "budget_overrides": [
     {
       "n": 1,
       "owner": "+1: one verifier (Recommended) — then the two directors vote, total 15 of 14",
       "at": "2026-11-22T03:43:55Z"
     }
-  ]
+  ],
+  "closed": "2026-11-22T19:24:52Z"
 }

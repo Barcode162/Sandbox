@@ -22,3 +22,19 @@ Entries are appended below by the CLI. Don't edit their headers by hand.
 - **Change:** Agent budgets per tier enforced by convene (T1 2, T2 8, T3 14, T4 30, T5 6) with an Owner-only override; quality levers (bakeoff, polish, hardening, audit, spike) decoupled from tier, each adding a mechanical gate requirement; word caps on plan docs (gate) and board reports (vote); bake-offs as 450-word direction cards; frame-table exemplar; contracts in code; 2-6 vertical slices with at most 4 per wave; resume-before-convene; tier 2 and 3 boards and reviews slimmed (inspector-general via the audit lever or tier 4+; the finder verifies fixes); mechanical roles on sonnet; CEO-written retros at tier 2 and 3; Charter Article XIII Economy; amended Articles III, IV, VI.3 and VIII.6
 - **Files:** CLAUDE.md, bureau/CHARTER.md, bureau/config.json, bureau/README.md, bureau/bin/bureau, bureau/tests/test_bureau.py, bureau/exemplars/frame-table.md, bureau/templates/*, .claude/skills/bureau/SKILL.md, .claude/skills/bureau-retro/SKILL.md, .claude/agents/*
 - **Approved by:** owner
+
+## U-0003 · v2.0.1 · template · 2026-11-22
+
+- **Title:** Mission HANDOFF template with an 'owed by agents who are gone' table
+- **Trigger:** M-0002 L-0006
+- **Change:** New bureau/templates/mission/HANDOFF.md: resume line, state, a table of verifications and votes still owed by agents of an ended session, next steps.
+- **Files:** bureau/templates/mission/HANDOFF.md
+- **Approved by:** ceo
+
+## U-0004 · v2.0.2 · playbook · 2026-11-22
+
+- **Title:** Game playbook: isolate timing tests; verify motion fixes on sequences
+- **Trigger:** M-0002 L-0007, L-0008 (F-001, F-031, F-032, F-034, F-036)
+- **Change:** game.md verify list: timing assertions run in isolation. Reviewer checklist: motion fixes verified on ≥ 4 frames + one paused mid-animation capture.
+- **Files:** bureau/playbooks/game.md
+- **Approved by:** ceo

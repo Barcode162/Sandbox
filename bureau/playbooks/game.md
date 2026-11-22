@@ -62,11 +62,12 @@ If WebGL fails to start in headless Chromium, launch with `args: ['--use-angle=s
 - **scripted playthroughs**, where a bot drives the inputs (hold W for 3 s → the vehicle moved forward 20–40 m; complete the tutorial → its flag is set);
 - a **frame-rate-independence test** (the same input script at 30 and 144 render Hz gives the same outcome within tolerance);
 - screenshot capture of the key moments;
-- the perf probe.
+- the perf probe. Timing assertions run **in isolation**, never in the parallel unit pool (`fileParallelism: false` or their own verify step): worker contention flaked M-0002's perf test across two sessions (L-0007).
 
 The polish-critic captures: the title screen; a burst over the first 10 seconds; the core action in motion; HUD close-ups; pause and settings; fail and retry; every time of day.
 
 ## Reviewer checklist (game addendum)
+- **Motion fixes are verified on a sequence:** at least 4 frames across the moment, plus one capture paused mid-animation. A still frame let 3 of M-0002's 4 late regressions through (L-0008).
 - **Juice audit:** every player action gets a visual, audio and, where relevant, camera response.
 - **No dead air:** nothing waits without feedback.
 - **Readability:** the player always knows where they are, what is dangerous, and what to do next.

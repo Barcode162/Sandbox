@@ -28,3 +28,15 @@ Freeze contracts as code (types file + stubs) and build in few vertical slices. 
 ## L-0005 · 2026-11-20 · M-0001 · tags: ceo, economy, dispatch
 
 Resume agents with SendMessage for their next pass (designer cards to spec, engineer build to fixes, director plan to ship) instead of convening fresh ones, and keep waves at 4 or fewer; 8 parallel Opus agents hit the rate limit within 8 minutes.
+
+## L-0006 · 2026-11-22 · M-0002 · tags: ceo, economy, handoff
+
+Agents can't be resumed across sessions. Before a session ends, land every pending verification and vote, or list them in HANDOFF.md (finding, filer, what to check), so the next session can close them with one fresh verifier. M-0002 spent 2 extra convenings because a handoff omitted them.
+
+## L-0007 · 2026-11-22 · M-0002 · tags: game, test-engineer, perf
+
+Timing assertions don't belong in a parallel unit pool: worker contention flaked the Node perf test across two sessions (F-001, F-036). Run timing tests in isolation (fileParallelism false or a separate verify step) from wave 0.
+
+## L-0008 · 2026-11-22 · M-0002 · tags: polish-critic, engineer, game, review
+
+Verify motion fixes on a sequence, not a still: 3 of 4 late regressions (F-031, F-032, F-034) came from fixes judged on one frame that broke the frames around it or under pause. Capture ≥ 4 frames across the moment, plus once paused mid-animation.
