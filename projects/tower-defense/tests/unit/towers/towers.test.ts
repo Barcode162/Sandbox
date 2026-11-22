@@ -318,6 +318,15 @@ describe('Pondfrog stones', () => {
     expect(lands[1].x - lands[0].x).toBeCloseTo(tan.x * 70, 6);
     expect(lands[1].y - lands[0].y).toBeCloseTo(tan.y * 70, 6);
   });
+  it('F-035: Bullfrog Barrage skips twice: 3 landings (40, 32, 32), each 70 px further along', () => {
+    const g = still();
+    g.tower('frog', 520, 650, [0, 3]);
+    parked(g, 'knot', 1450).hp = 1e6;
+    for (let i = 0; i < 100 && ofType(g, 'land').length < 3; i++) g.tick();
+    const lands = ofType(g, 'land').slice(0, 3);
+    expect(lands.map((l) => [l.skip, l.radius])).toEqual([[false, 40], [true, 32], [true, 32]]);
+    for (const k of [1, 2]) expect(Math.hypot(lands[k].x - lands[k - 1].x, lands[k].y - lands[k - 1].y)).toBeCloseTo(70, 0);
+  });
 });
 
 describe('Mist Koi pulses', () => {

@@ -141,3 +141,14 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-22T03:43:55Z` **ceo** — Budget raised by 1 with the Owner's approval: "+1: one verifier (Recommended) — then the two directors vote, total 15 of 14"
 - `2026-11-22T03:43:55Z` **ceo** — Convened 1× director-engineering — Gate 2 ship vote (Gate-1 director not resumable across sessions)
 - `2026-11-22T03:44:11Z` **ceo** — Verifier r3: F-031..F-033 verified, no regressions. Phase → ship-review. Convened director-vision + director-engineering (15 of 14, Owner-approved).
+- `2026-11-22T03:46:35Z` **director-engineering** — F-034 [S3] filed: Pause during a 220 ms upgrade morph drops the coaster under the frozen figure
+- `2026-11-22T03:46:35Z` **director-engineering** — F-035 [S3] filed: Bullfrog 2-skip path is untested; a skipsLeft mutation passes all 182 unit tests
+- `2026-11-22T03:46:52Z` **director-vision** — ship gate r1: CONDITIONAL (8.1)
+- `2026-11-22T03:46:58Z` **director-engineering** — ship gate r1: APPROVE (8.4)
+- `2026-11-22T19:20:53Z` **director-vision** — F-036 [S2] filed: Gate 2 condition: Node perf unit test flakes (p99 > 6 ms 2 of 6 runs)
+- `2026-11-22T19:20:53Z` **director-vision** — F-037 [S2] filed: Gate 2 condition: victory cranes paint over the Sheets pill (1,092 hidden)
+- `2026-11-22T19:20:59Z` **ceo** — F-036 resolved: vitest.config.ts fileParallelism:false (the perf test's CPU was stolen by parallel workers). 10/10 consecutive 'npx vitest run' green, best-of-3 p99 0.79-1.18 ms (budget unchanged 6 ms); verify:strict GREEN 40.2 s afterwards (unit 7.9 s).
+- `2026-11-22T19:20:59Z` **ceo** — F-037 resolved: src/app/game.ts: drawCranes moved before hud.draw/drawSidebar (world layer, under the chrome). bureau/missions/M-0002-tower-defense-vertical-slice/evidence/gate2/victory-cranes-under-hud-1500-2250ms.jpg (cranes pass under the pills; 1,092 whole at 1750 ms), raw frames bureau/missions/M-0002-tower-defense-vertical-slice/evidence/gate2/raw-victory-*.jpg; 0 console errors.
+- `2026-11-22T19:20:59Z` **ceo** — F-034 resolved: src/app/game.ts: morph born = worldNow and drawMorphBase/drawMorph take worldNow, the same clock as the tower layer, so pause freezes figure and coaster together. Sell sinks and the sidebar portrait stay on wall time (UI). verify:strict GREEN.
+- `2026-11-22T19:20:59Z` **ceo** — F-035 resolved: tests/unit/towers/towers.test.ts 'F-035: Bullfrog Barrage skips twice' (3 landings 40/32/32, 70 px apart); tests/unit/sim/scripts.test.ts pins win script victory tick 38438, 49 seeds, hash 59bb1388. Mutation skipsLeft -= 2 now fails 1 test (reverted). 184/184.
+- `2026-11-22T19:20:59Z` **ceo** — Ship votes r1: engineering APPROVE 8.4 (F-034, F-035 S3); vision CONDITIONAL 8.1 (2 conditions filed as F-036, F-037). CEO fixed all four as glue; verify:strict GREEN 40.2 s. Resuming both directors to verify.

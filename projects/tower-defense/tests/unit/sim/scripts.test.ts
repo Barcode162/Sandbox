@@ -20,6 +20,10 @@ describe('§8 reference scripts on the real towers', () => {
     expect(r.outcome).toBe('defeat');
     expect(r.round).toBeLessThanOrEqual(LOSS_BY_ROUND);
   });
+  it('F-035: the win script lands on a pinned golden end state (any sim drift fails here)', () => {
+    // Re-pin only with a logged balance/sim change: victory at tick 38438, 49 seeds, hash 59bb1388.
+    expect(playScript(WIN_SCRIPT, { seed: SCRIPT_SEED })).toMatchObject({ outcome: 'victory', tick: 38438, lives: 49, hash: '59bb1388' });
+  });
   it('the same seed and script give the same stateHash twice', () => {
     expect(playScript(WIN_SCRIPT, { seed: SCRIPT_SEED })).toEqual(playScript(WIN_SCRIPT, { seed: SCRIPT_SEED }));
   });

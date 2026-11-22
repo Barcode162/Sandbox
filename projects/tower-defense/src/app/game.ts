@@ -294,7 +294,7 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
         boxChange.set(`${e.towerId}:${e.path}:${e.tier}`, now);
         if (e.tier >= 2) for (const tier of [2, 3]) boxChange.set(`${e.towerId}:${1 - e.path}:${tier}`, now);
         if (prev && t) {
-          morphs.push({ towerId: t.id, kind: t.kind, from: [prev.tiers[0], prev.tiers[1]], to: [t.tiers[0], t.tiers[1]], x: t.x, y: t.y, angle: t.angle, born: now });
+          morphs.push({ towerId: t.id, kind: t.kind, from: [prev.tiers[0], prev.tiers[1]], to: [t.tiers[0], t.tiers[1]], x: t.x, y: t.y, angle: t.angle, born: worldNow }); // F-034: world clock, so pause freezes the morph
           portraitMorph = { towerId: t.id, from: [prev.tiers[0], prev.tiers[1]], born: now };
         }
         if (!headless) audio.ui(e.tier >= 3 ? 'upgrade3' : e.tier === 2 ? 'upgrade2' : 'upgrade1');
@@ -716,9 +716,9 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
     if (selT && scene === 'play') drawSelection(c, selT, selectedAt, now, s);
     passes(layers, sim, PASSES_LOW, 1, loop.alpha);
     garden.drawOccluders(c, 1);
-    for (const m of morphs) drawMorphBase(c, m, now);
+    for (const m of morphs) drawMorphBase(c, m, worldNow);
     passes(layers, sim, ['towers'], 1, loop.alpha);
-    morphs = morphs.filter((m) => drawMorph(c, m, now));
+    morphs = morphs.filter((m) => drawMorph(c, m, worldNow));
     sinks = sinks.filter((k) => drawSink(c, k, now));
     passes(layers, sim, PASSES_HIGH, 1, loop.alpha);
     if (inTrans) {
@@ -754,6 +754,9 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
     // F-025: the leaving title wash slides away under the incoming HUD and sidebar, never over them
     if (inTrans) drawTitle(c, { t: 1e6, leave: trans, hover: null, press: null, settings: s });
     const hv = { state: st, settings: s, nowMs: now, offsetY: inTrans ? -(1 - outCubic(trans)) * 80 : 0, hoverPause: hoverPauseBtn && scene === 'play' };
+    // Gate 2 (vision): the victory cranes rise through the world layer, under the HUD pills and the sidebar,
+    // so the final Sheets/Seeds values stay readable while they fly off the top of the page.
+    if (scene === 'victory' && now - victoryAt > VICTORY_QUIET_MS) drawCranes(c, cranes, now - victoryAt - VICTORY_QUIET_MS, s.reduceMotion);
     hud.draw(c, hv);
     hud.drawFloats(c, hv);
     hud.drawBossBar(c, hv);
@@ -792,7 +795,6 @@ export function createGame(canvas: CanvasLike, opts: GameOptions = {}): Game {
       }
       case 'victory': {
         const t = now - victoryAt;
-        if (t > VICTORY_QUIET_MS) drawCranes(c, cranes, t - VICTORY_QUIET_MS, s.reduceMotion);
         const best = bestTower();
         drawVictoryCard(c, {
           t: t - 2200, hover: hoverEnd, press: pressView(), settings: s,
