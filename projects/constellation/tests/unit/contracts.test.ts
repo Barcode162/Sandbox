@@ -30,3 +30,11 @@ test('[C1] seed carries the v1 envelope', () => {
   assert.ok(Array.isArray(seed.nodes) && seed.nodes.length > 0);
   assert.ok(seed.perspectives.length >= 2);
 });
+
+test('[C2] no core module still calls a wave-0 stub', async () => {
+  const { readdirSync } = await import('node:fs');
+  const dir = new URL('../../src/core/', import.meta.url);
+  for (const f of readdirSync(dir).filter((n) => n.endsWith('.ts') && n !== 'errors.ts')) {
+    assert.doesNotMatch(readFileSync(new URL(f, dir), 'utf8'), /notImplemented\(/, f);
+  }
+});

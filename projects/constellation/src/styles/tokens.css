@@ -1,0 +1,78 @@
+/* src/styles/tokens.css — design tokens from design/experience.md §7. */
+@font-face { font-family: 'Manrope'; font-style: normal; font-weight: 400; font-display: swap; src: url('./fonts/manrope-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Manrope'; font-style: normal; font-weight: 500; font-display: swap; src: url('./fonts/manrope-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Manrope'; font-style: normal; font-weight: 700; font-display: swap; src: url('./fonts/manrope-latin-700-normal.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('./fonts/ibm-plex-mono-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 500; font-display: swap; src: url('./fonts/ibm-plex-mono-latin-500-normal.woff2') format('woff2'); }
+
+/* The lens accent tweens 1000 ms across every surface that uses it (pill, focus ring, facet dot). */
+@property --lens {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #ff9f5a;
+}
+
+:root {
+  color-scheme: dark;
+  --void: #000000;
+  --panel: rgba(8, 10, 16, 0.74);
+  --panel-solid: #0a0c12;
+  --panel-blur: 14px;
+  --hairline: rgba(232, 236, 245, 0.1);
+  --hairline-strong: rgba(232, 236, 245, 0.22);
+  --ink: #e8ecf5;
+  --ink-dim: #9aa3b8;
+  --ink-faint: #6e778a;
+  --star: #f4f6ff;
+  --pulse: #8cffd1;
+  --false: #ff8a7a;
+  --trail-long: #8e96c8;
+  --signal: #e6ff6e;
+  --danger: #ff6b6b;
+  --lens-cook: #ff9f5a;
+  --lens-physicist: #6fd3ff;
+  --lens-child: #ff7ec8;
+  --lens: var(--lens-cook);
+
+  --font-ui: 'Manrope', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --fs-11: 11px;
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-15: 15px;
+  --fs-19: 19px;
+  --fs-28: 28px;
+
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --control-h: 32px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --t-hover: 120ms;
+  --t-panel-in: 220ms;
+  --t-panel-out: 160ms;
+  --t-toast: 240ms;
+  --t-press: 90ms;
+
+  --topbar-h: 56px;
+  --drawer-w: 340px;
+  --inspector-w: 360px;
+
+  transition: --lens 1000ms var(--ease-inout);
+}
+
+@media (pointer: coarse) {
+  :root { --control-h: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { transition: none; }
+}

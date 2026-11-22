@@ -63,6 +63,8 @@ export interface MemoryNode {
   value: Value;
   /** Per-perspective values ("facets"). Missing key → falls back to `value`. */
   facets: Partial<Record<PerspectiveId, Value>>;
+  /** Optional display unit per perspective (e.g. "°C", "K", "hand-feel"); key "*" is the base unit. Display only. */
+  units?: Partial<Record<PerspectiveId | '*', string>>;
   tags: string[];
   notes?: string;
   file?: FileRef;
@@ -79,6 +81,7 @@ export interface NodeInput {
   kind?: NodeKind; // default 'concept'
   value?: Value; // default null
   facets?: Partial<Record<PerspectiveId, Value>>;
+  units?: Partial<Record<PerspectiveId | '*', string>>;
   tags?: string[];
   notes?: string;
   file?: FileRef;
@@ -144,6 +147,8 @@ export interface FacetView {
   value: Value;
   /** true if the value comes from node.facets[perspective], false if it fell back to node.value. */
   own: boolean;
+  /** Display unit for this perspective (units[perspective] ?? units['*']), if any. */
+  unit?: string;
 }
 
 export interface ForceLayoutOptions {

@@ -13,3 +13,4 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-22T19:39:09Z` **ceo** — plan gate PASSED (round 1)
 - `2026-11-22T19:39:09Z` **ceo** — Phase plan-review → **build**
 - `2026-11-22T19:39:09Z` **ceo** — Convened 2× engineer — WO-002 core, WO-003 view
+- `2026-11-22T20:05:12Z` **ceo** — CEO decisions on WO-002 REQUESTS: (1) retrieval keeps the frozen non-flow spreading rule; spec F11 amended to 2/4/12/11. (2) types.ts additively gains optional MemoryNode.units / NodeInput.units (per-lens + '*') and FacetView.unit; WO-002 to validate + seed them.

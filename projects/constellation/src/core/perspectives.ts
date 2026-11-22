@@ -1,32 +1,37 @@
 // src/core/perspectives.ts — facets & per-perspective visibility. Signatures FROZEN; bodies are WO-002's.
-import { notImplemented } from './errors.ts';
+import { hasOwn } from './internal.ts';
 import type { FacetView, MemoryGraph, MemoryNode, Perspective, PerspectiveId, Relation, Value } from './types.ts';
 
 /** node.facets[perspective] if the key exists (even if null), else node.value. */
 export function resolveValue(node: MemoryNode, perspective: PerspectiveId): Value {
-  void [node, perspective];
-  return notImplemented('resolveValue');
+  if (hasOwn(node.facets, perspective)) {
+    const v = node.facets[perspective];
+    if (v !== undefined) return v;
+  }
+  return node.value;
 }
 
 /** One FacetView per perspective, in the given order. */
 export function facetsOf(node: MemoryNode, perspectives: readonly Perspective[]): FacetView[] {
-  void [node, perspectives];
-  return notImplemented('facetsOf');
+  return perspectives.map((p) => {
+    const own = hasOwn(node.facets, p.id) && node.facets[p.id] !== undefined;
+    return { perspective: p.id, value: resolveValue(node, p.id), own };
+  });
 }
 
 /** True when the resolved values across `perspectives` are not all equal (strict, by JSON value). */
 export function disagrees(node: MemoryNode, perspectives: readonly Perspective[]): boolean {
-  void [node, perspectives];
-  return notImplemented('disagrees');
+  if (perspectives.length < 2) return false;
+  const first = resolveValue(node, perspectives[0]!.id);
+  for (let i = 1; i < perspectives.length; i++) if (resolveValue(node, perspectives[i]!.id) !== first) return true;
+  return false;
 }
 
 /** relation.perspectives absent, or includes `perspective`. */
 export function isRelationVisible(relation: Relation, perspective: PerspectiveId): boolean {
-  void [relation, perspective];
-  return notImplemented('isRelationVisible');
+  return relation.perspectives === undefined || relation.perspectives.includes(perspective);
 }
 
 export function visibleRelations(graph: MemoryGraph, perspective: PerspectiveId): Relation[] {
-  void [graph, perspective];
-  return notImplemented('visibleRelations');
+  return graph.relations().filter((r) => isRelationVisible(r, perspective));
 }

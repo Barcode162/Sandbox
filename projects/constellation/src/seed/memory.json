@@ -2,26 +2,3710 @@
   "schema": "constellation.memory",
   "version": 1,
   "meta": {
-    "title": "Placeholder seed (WO-002 replaces with the design/experience.md seed)",
-    "defaultPerspective": "physicist",
-    "featured": { "route": { "from": "n_a", "to": "n_e" }, "query": "temp" }
+    "title": "Heat, a long road and two pathways",
+    "description": "The seed memory: one kitchen seen by a Cook, a Physicist and a Child. Switch lenses to watch values, lines and outcomes change.",
+    "defaultPerspective": "cook",
+    "featured": {
+      "route": {
+        "from": "road-a",
+        "to": "road-z"
+      },
+      "pathway": "p1",
+      "query": "boil"
+    }
   },
   "perspectives": [
-    { "id": "physicist", "label": "Physicist" },
-    { "id": "cook", "label": "Cook" }
+    {
+      "id": "cook",
+      "label": "Cook",
+      "description": "Kitchen truths in °C. Pathways and recipe files pulled close; variables pushed far away.",
+      "accent": "#FF9F5A",
+      "positions": {
+        "temperature": {
+          "x": -0.47,
+          "y": 13.15,
+          "z": 15.1
+        },
+        "boiling-point": {
+          "x": -17.44,
+          "y": 18.74,
+          "z": 5.64
+        },
+        "flame-step": {
+          "x": -3.92,
+          "y": -12.31,
+          "z": -27.62
+        },
+        "safe-to-touch": {
+          "x": -11.25,
+          "y": -5.69,
+          "z": 19.79
+        },
+        "room": {
+          "x": 14.46,
+          "y": 25.93,
+          "z": 7.66
+        },
+        "heat": {
+          "x": 4.74,
+          "y": 0.98,
+          "z": -2.92
+        },
+        "steam": {
+          "x": -18.69,
+          "y": 29.09,
+          "z": -9.7
+        },
+        "soup": {
+          "x": -1.31,
+          "y": 36.14,
+          "z": -14.04
+        },
+        "burn": {
+          "x": 0.57,
+          "y": -15.04,
+          "z": 6.68
+        },
+        "energy": {
+          "x": -27.27,
+          "y": -8.71,
+          "z": 14.21
+        },
+        "molecules": {
+          "x": -23.69,
+          "y": -6.97,
+          "z": -6.8
+        },
+        "kelvin": {
+          "x": 26.56,
+          "y": 15.23,
+          "z": -17.03
+        },
+        "stove": {
+          "x": -0.82,
+          "y": 4.6,
+          "z": -20.4
+        },
+        "pot": {
+          "x": -8.17,
+          "y": 21.11,
+          "z": -23.56
+        },
+        "ice": {
+          "x": 13.06,
+          "y": 6.2,
+          "z": 29.57
+        },
+        "thermometer": {
+          "x": -5.42,
+          "y": 28.52,
+          "z": 30.39
+        },
+        "recipe": {
+          "x": -150.13,
+          "y": 70.39,
+          "z": -70.72
+        },
+        "boiling-curve": {
+          "x": -154.68,
+          "y": 84.69,
+          "z": -17.92
+        },
+        "drawing-of-a-sun": {
+          "x": -141.83,
+          "y": 95.27,
+          "z": -65.79
+        },
+        "lab-notes": {
+          "x": -129.7,
+          "y": 40.08,
+          "z": -58.08
+        },
+        "shopping-list": {
+          "x": -160.72,
+          "y": 85.03,
+          "z": -54.97
+        },
+        "thermostat": {
+          "x": -97.03,
+          "y": 51.99,
+          "z": -43.71
+        },
+        "kettle-manual": {
+          "x": -121.52,
+          "y": 39.86,
+          "z": -19.63
+        },
+        "timer": {
+          "x": -157.01,
+          "y": 48.91,
+          "z": -31.52
+        },
+        "loop-notes": {
+          "x": -110.06,
+          "y": 78.93,
+          "z": -70.92
+        },
+        "readme": {
+          "x": -128.63,
+          "y": 70.72,
+          "z": -40.27
+        },
+        "sim-config": {
+          "x": -98.04,
+          "y": 88.25,
+          "z": -30.92
+        },
+        "bedtime-story": {
+          "x": -101.69,
+          "y": 52.22,
+          "z": -58.07
+        },
+        "var-limit": {
+          "x": 151.21,
+          "y": -64.64,
+          "z": -56.45
+        },
+        "var-unit": {
+          "x": 161.99,
+          "y": -64.36,
+          "z": -118.74
+        },
+        "var-count": {
+          "x": 151.61,
+          "y": -64.52,
+          "z": -76.85
+        },
+        "var-i": {
+          "x": 133.25,
+          "y": -59.26,
+          "z": -83.83
+        },
+        "var-done": {
+          "x": 159.23,
+          "y": -93.56,
+          "z": -105.62
+        },
+        "var-step": {
+          "x": 134.58,
+          "y": -56.53,
+          "z": -104.28
+        },
+        "var-total": {
+          "x": 169.05,
+          "y": -71.75,
+          "z": -84.52
+        },
+        "var-name": {
+          "x": 161.78,
+          "y": -42.17,
+          "z": -95.67
+        },
+        "var-epsilon": {
+          "x": 149.45,
+          "y": -96.3,
+          "z": -75.54
+        },
+        "var-retries": {
+          "x": 127.85,
+          "y": -86.92,
+          "z": -98.5
+        },
+        "meta-memory": {
+          "x": 7.87,
+          "y": 113.75,
+          "z": -81.8
+        },
+        "meta-perspective": {
+          "x": -5.45,
+          "y": 102.98,
+          "z": -70.24
+        },
+        "meta-facet": {
+          "x": -23.49,
+          "y": 112.92,
+          "z": -73.94
+        },
+        "meta-relation": {
+          "x": 2.47,
+          "y": 133.73,
+          "z": -75.99
+        },
+        "meta-shortcut": {
+          "x": 4.2,
+          "y": 145.51,
+          "z": -93.35
+        },
+        "meta-route": {
+          "x": 19.48,
+          "y": 135.43,
+          "z": -103.77
+        },
+        "meta-recall": {
+          "x": 26.07,
+          "y": 118.65,
+          "z": -92.38
+        },
+        "meta-pathway": {
+          "x": -5.57,
+          "y": 114.65,
+          "z": -100.49
+        },
+        "meta-loop": {
+          "x": -5.22,
+          "y": 93.91,
+          "z": -103.85
+        },
+        "meta-condition": {
+          "x": -20.37,
+          "y": 128.48,
+          "z": -104.18
+        },
+        "road-a": {
+          "x": 0,
+          "y": -149.58,
+          "z": 33.44
+        },
+        "road-b": {
+          "x": 16.25,
+          "y": -151.24,
+          "z": 36.99
+        },
+        "road-c": {
+          "x": 27.82,
+          "y": -145.45,
+          "z": 24.57
+        },
+        "road-d": {
+          "x": 40.32,
+          "y": -142.45,
+          "z": 18.15
+        },
+        "road-e": {
+          "x": 57.73,
+          "y": -140.76,
+          "z": 14.53
+        },
+        "road-f": {
+          "x": 61.41,
+          "y": -133.8,
+          "z": -0.41
+        },
+        "road-g": {
+          "x": 62.11,
+          "y": -127.33,
+          "z": -14.28
+        },
+        "road-h": {
+          "x": 73.9,
+          "y": -121.75,
+          "z": -26.26
+        },
+        "road-i": {
+          "x": 71.98,
+          "y": -115.07,
+          "z": -40.57
+        },
+        "road-j": {
+          "x": 59.59,
+          "y": -110.03,
+          "z": -51.38
+        },
+        "road-k": {
+          "x": 58.78,
+          "y": -103.24,
+          "z": -65.93
+        },
+        "road-l": {
+          "x": 51.94,
+          "y": -96.95,
+          "z": -79.44
+        },
+        "road-m": {
+          "x": 34.01,
+          "y": -96.26,
+          "z": -80.9
+        },
+        "road-n": {
+          "x": 21.75,
+          "y": -93,
+          "z": -87.9
+        },
+        "road-o": {
+          "x": 8.47,
+          "y": -88.09,
+          "z": -98.42
+        },
+        "road-p": {
+          "x": -7.18,
+          "y": -91.14,
+          "z": -91.88
+        },
+        "road-q": {
+          "x": -20.49,
+          "y": -93.97,
+          "z": -85.81
+        },
+        "road-r": {
+          "x": -38.22,
+          "y": -92.9,
+          "z": -88.11
+        },
+        "road-s": {
+          "x": -49.36,
+          "y": -97.79,
+          "z": -77.63
+        },
+        "road-t": {
+          "x": -52.81,
+          "y": -104.72,
+          "z": -62.77
+        },
+        "road-u": {
+          "x": -66.55,
+          "y": -108.64,
+          "z": -54.37
+        },
+        "road-v": {
+          "x": -73.8,
+          "y": -114.72,
+          "z": -41.31
+        },
+        "road-w": {
+          "x": -65.01,
+          "y": -121.34,
+          "z": -27.12
+        },
+        "road-x": {
+          "x": -65.94,
+          "y": -127.57,
+          "z": -13.76
+        },
+        "road-y": {
+          "x": -67.35,
+          "y": -134.88,
+          "z": 1.91
+        },
+        "road-z": {
+          "x": -51.93,
+          "y": -138.42,
+          "z": 9.5
+        },
+        "p1": {
+          "x": -60,
+          "y": 0,
+          "z": 50
+        },
+        "p2": {
+          "x": -60,
+          "y": -12,
+          "z": 50
+        },
+        "p3": {
+          "x": -60,
+          "y": -24,
+          "z": 50
+        },
+        "p4": {
+          "x": -60,
+          "y": -36,
+          "z": 50
+        },
+        "p5": {
+          "x": -46,
+          "y": -36,
+          "z": 50
+        },
+        "p6": {
+          "x": -53,
+          "y": -47,
+          "z": 50
+        },
+        "p7": {
+          "x": -70,
+          "y": -50,
+          "z": 50
+        },
+        "q1": {
+          "x": 60,
+          "y": 0,
+          "z": 50
+        },
+        "q2": {
+          "x": 60,
+          "y": -12,
+          "z": 50
+        },
+        "q3": {
+          "x": 60,
+          "y": -24,
+          "z": 50
+        },
+        "q4": {
+          "x": 46,
+          "y": -36,
+          "z": 50
+        },
+        "q5": {
+          "x": 74,
+          "y": -36,
+          "z": 50
+        },
+        "q6": {
+          "x": 66,
+          "y": -50,
+          "z": 50
+        },
+        "q7": {
+          "x": 84,
+          "y": -50,
+          "z": 50
+        }
+      }
+    },
+    {
+      "id": "physicist",
+      "label": "Physicist",
+      "description": "Kelvin and molecules. Exclusive lines to Kelvin, Molecules and Energy; the Long Road is a precise flat ring.",
+      "accent": "#6FD3FF",
+      "positions": {
+        "temperature": {
+          "x": -9.48,
+          "y": -1.4,
+          "z": -7.37
+        },
+        "boiling-point": {
+          "x": -11.28,
+          "y": 11.6,
+          "z": 15.37
+        },
+        "flame-step": {
+          "x": 38.02,
+          "y": -7.76,
+          "z": -4.23
+        },
+        "safe-to-touch": {
+          "x": -13.15,
+          "y": -22.42,
+          "z": -22.1
+        },
+        "room": {
+          "x": 13.06,
+          "y": -2.85,
+          "z": -26.22
+        },
+        "heat": {
+          "x": 2.17,
+          "y": 24.1,
+          "z": -12.06
+        },
+        "steam": {
+          "x": 4.41,
+          "y": 19.32,
+          "z": 27.35
+        },
+        "soup": {
+          "x": 25.02,
+          "y": -9.82,
+          "z": 31.25
+        },
+        "burn": {
+          "x": -12.29,
+          "y": -39.13,
+          "z": -9.02
+        },
+        "energy": {
+          "x": -14.03,
+          "y": 37.08,
+          "z": -7.49
+        },
+        "molecules": {
+          "x": -33.97,
+          "y": -7.84,
+          "z": 0.01
+        },
+        "kelvin": {
+          "x": -23.5,
+          "y": 9.28,
+          "z": -26.61
+        },
+        "stove": {
+          "x": 28.81,
+          "y": 11.03,
+          "z": 1.81
+        },
+        "pot": {
+          "x": 23.04,
+          "y": 9.83,
+          "z": 22.5
+        },
+        "ice": {
+          "x": -24.32,
+          "y": -16.69,
+          "z": 12.79
+        },
+        "thermometer": {
+          "x": 7.49,
+          "y": -14.33,
+          "z": 4.04
+        },
+        "recipe": {
+          "x": 145.61,
+          "y": 1.67,
+          "z": -37.58
+        },
+        "boiling-curve": {
+          "x": 124.63,
+          "y": 49.75,
+          "z": -48.16
+        },
+        "drawing-of-a-sun": {
+          "x": 139.53,
+          "y": 56.15,
+          "z": -24.5
+        },
+        "lab-notes": {
+          "x": 145.06,
+          "y": 26.73,
+          "z": -58.44
+        },
+        "shopping-list": {
+          "x": 116.15,
+          "y": 42.03,
+          "z": -37.61
+        },
+        "thermostat": {
+          "x": 153.34,
+          "y": 57.82,
+          "z": -64.07
+        },
+        "kettle-manual": {
+          "x": 135.9,
+          "y": 28.06,
+          "z": -20.43
+        },
+        "timer": {
+          "x": 174.81,
+          "y": 11.67,
+          "z": -60.12
+        },
+        "loop-notes": {
+          "x": 116.89,
+          "y": 17.35,
+          "z": -45.35
+        },
+        "readme": {
+          "x": 162.33,
+          "y": 33.16,
+          "z": -85.81
+        },
+        "sim-config": {
+          "x": 138.75,
+          "y": 11.2,
+          "z": -71.03
+        },
+        "bedtime-story": {
+          "x": 132.32,
+          "y": 23.95,
+          "z": -16.91
+        },
+        "var-limit": {
+          "x": -151.75,
+          "y": 10.38,
+          "z": -24.61
+        },
+        "var-unit": {
+          "x": -147.92,
+          "y": 42.67,
+          "z": -15.2
+        },
+        "var-count": {
+          "x": -143.55,
+          "y": 22.06,
+          "z": -36.88
+        },
+        "var-i": {
+          "x": -157.19,
+          "y": 34.42,
+          "z": -41.54
+        },
+        "var-done": {
+          "x": -173.81,
+          "y": 28.12,
+          "z": -18.86
+        },
+        "var-step": {
+          "x": -168.89,
+          "y": 22.52,
+          "z": -49.42
+        },
+        "var-total": {
+          "x": -125.87,
+          "y": 19.58,
+          "z": -42.48
+        },
+        "var-name": {
+          "x": -127.63,
+          "y": 21.81,
+          "z": -12.52
+        },
+        "var-epsilon": {
+          "x": -149.69,
+          "y": 0.75,
+          "z": -8.74
+        },
+        "var-retries": {
+          "x": -153.68,
+          "y": -2.29,
+          "z": -49.74
+        },
+        "meta-memory": {
+          "x": -1.75,
+          "y": 98,
+          "z": -39.67
+        },
+        "meta-perspective": {
+          "x": -13.85,
+          "y": 110.52,
+          "z": -35.38
+        },
+        "meta-facet": {
+          "x": -29.22,
+          "y": 100.94,
+          "z": -36.74
+        },
+        "meta-relation": {
+          "x": -2.64,
+          "y": 90.14,
+          "z": -55.79
+        },
+        "meta-shortcut": {
+          "x": 13.37,
+          "y": 92.12,
+          "z": -63.34
+        },
+        "meta-route": {
+          "x": 22.65,
+          "y": 103.38,
+          "z": -52.92
+        },
+        "meta-recall": {
+          "x": 13.35,
+          "y": 108.05,
+          "z": -38.5
+        },
+        "meta-pathway": {
+          "x": 1.23,
+          "y": 84.57,
+          "z": -27.75
+        },
+        "meta-loop": {
+          "x": 0.65,
+          "y": 69.4,
+          "z": -37.19
+        },
+        "meta-condition": {
+          "x": -3.76,
+          "y": 92.88,
+          "z": -12.72
+        },
+        "road-a": {
+          "x": 0,
+          "y": -124.55,
+          "z": 68.47
+        },
+        "road-b": {
+          "x": 15.03,
+          "y": -124.21,
+          "z": 66.87
+        },
+        "road-c": {
+          "x": 29.36,
+          "y": -123.21,
+          "z": 62.16
+        },
+        "road-d": {
+          "x": 42.32,
+          "y": -121.59,
+          "z": 54.54
+        },
+        "road-e": {
+          "x": 53.31,
+          "y": -119.43,
+          "z": 44.38
+        },
+        "road-f": {
+          "x": 61.81,
+          "y": -116.83,
+          "z": 32.14
+        },
+        "road-g": {
+          "x": 67.42,
+          "y": -113.91,
+          "z": 18.41
+        },
+        "road-h": {
+          "x": 69.89,
+          "y": -110.81,
+          "z": 3.82
+        },
+        "road-i": {
+          "x": 69.1,
+          "y": -107.67,
+          "z": -10.95
+        },
+        "road-j": {
+          "x": 65.08,
+          "y": -104.64,
+          "z": -25.21
+        },
+        "road-k": {
+          "x": 58.03,
+          "y": -101.86,
+          "z": -38.29
+        },
+        "road-l": {
+          "x": 48.27,
+          "y": -99.46,
+          "z": -49.58
+        },
+        "road-m": {
+          "x": 36.26,
+          "y": -97.55,
+          "z": -58.57
+        },
+        "road-n": {
+          "x": 22.56,
+          "y": -96.22,
+          "z": -64.82
+        },
+        "road-o": {
+          "x": 7.8,
+          "y": -95.54,
+          "z": -68.04
+        },
+        "road-p": {
+          "x": -7.32,
+          "y": -95.53,
+          "z": -68.1
+        },
+        "road-q": {
+          "x": -22.1,
+          "y": -96.19,
+          "z": -64.97
+        },
+        "road-r": {
+          "x": -35.84,
+          "y": -97.5,
+          "z": -58.81
+        },
+        "road-s": {
+          "x": -47.92,
+          "y": -99.39,
+          "z": -49.91
+        },
+        "road-t": {
+          "x": -57.76,
+          "y": -101.78,
+          "z": -38.68
+        },
+        "road-u": {
+          "x": -64.9,
+          "y": -104.55,
+          "z": -25.65
+        },
+        "road-v": {
+          "x": -69.02,
+          "y": -107.57,
+          "z": -11.42
+        },
+        "road-w": {
+          "x": -69.92,
+          "y": -110.71,
+          "z": 3.34
+        },
+        "road-x": {
+          "x": -67.55,
+          "y": -113.82,
+          "z": 17.95
+        },
+        "road-y": {
+          "x": -62.03,
+          "y": -116.74,
+          "z": 31.72
+        },
+        "road-z": {
+          "x": -53.62,
+          "y": -119.36,
+          "z": 44.01
+        },
+        "p1": {
+          "x": -95,
+          "y": -5,
+          "z": 60
+        },
+        "p2": {
+          "x": -95,
+          "y": -17,
+          "z": 60
+        },
+        "p3": {
+          "x": -95,
+          "y": -29,
+          "z": 60
+        },
+        "p4": {
+          "x": -95,
+          "y": -41,
+          "z": 60
+        },
+        "p5": {
+          "x": -81,
+          "y": -41,
+          "z": 60
+        },
+        "p6": {
+          "x": -88,
+          "y": -52,
+          "z": 60
+        },
+        "p7": {
+          "x": -105,
+          "y": -55,
+          "z": 60
+        },
+        "q1": {
+          "x": 95,
+          "y": -5,
+          "z": 60
+        },
+        "q2": {
+          "x": 95,
+          "y": -17,
+          "z": 60
+        },
+        "q3": {
+          "x": 95,
+          "y": -29,
+          "z": 60
+        },
+        "q4": {
+          "x": 81,
+          "y": -41,
+          "z": 60
+        },
+        "q5": {
+          "x": 109,
+          "y": -41,
+          "z": 60
+        },
+        "q6": {
+          "x": 101,
+          "y": -55,
+          "z": 60
+        },
+        "q7": {
+          "x": 119,
+          "y": -55,
+          "z": 60
+        }
+      }
+    },
+    {
+      "id": "child",
+      "label": "Child",
+      "description": "Values on a 0–5 hand-feel scale. Drawing and bedtime-story lines appear. It cannot see F–X, so its shortcut is longer.",
+      "accent": "#FF7EC8",
+      "positions": {
+        "temperature": {
+          "x": -14.81,
+          "y": -17.87,
+          "z": 38.48
+        },
+        "boiling-point": {
+          "x": 4.45,
+          "y": -16.73,
+          "z": 19.39
+        },
+        "flame-step": {
+          "x": 1.75,
+          "y": 1.06,
+          "z": -13.03
+        },
+        "safe-to-touch": {
+          "x": -24.13,
+          "y": 8.52,
+          "z": 42.84
+        },
+        "room": {
+          "x": -6.4,
+          "y": -43.41,
+          "z": 42.42
+        },
+        "heat": {
+          "x": 4.23,
+          "y": -10.43,
+          "z": 55.73
+        },
+        "steam": {
+          "x": 9.07,
+          "y": 4.36,
+          "z": 22.56
+        },
+        "soup": {
+          "x": 5.15,
+          "y": 38.49,
+          "z": 34.73
+        },
+        "burn": {
+          "x": -4.98,
+          "y": 11.78,
+          "z": 58.56
+        },
+        "energy": {
+          "x": -34.42,
+          "y": 23.7,
+          "z": 57.45
+        },
+        "molecules": {
+          "x": 37.64,
+          "y": 23.3,
+          "z": 8.64
+        },
+        "kelvin": {
+          "x": 38.67,
+          "y": -16.09,
+          "z": 32.89
+        },
+        "stove": {
+          "x": -12.57,
+          "y": 18.12,
+          "z": -3.63
+        },
+        "pot": {
+          "x": -2.64,
+          "y": 23.84,
+          "z": 17.36
+        },
+        "ice": {
+          "x": -35.45,
+          "y": -24.66,
+          "z": 55.2
+        },
+        "thermometer": {
+          "x": -31.86,
+          "y": -17.11,
+          "z": 19.04
+        },
+        "recipe": {
+          "x": -70.37,
+          "y": 79.74,
+          "z": 1.6
+        },
+        "boiling-curve": {
+          "x": -48.48,
+          "y": 51.55,
+          "z": 8.42
+        },
+        "drawing-of-a-sun": {
+          "x": -97.84,
+          "y": 80.38,
+          "z": -22.58
+        },
+        "lab-notes": {
+          "x": -92.42,
+          "y": 55.13,
+          "z": 14.76
+        },
+        "shopping-list": {
+          "x": -74.21,
+          "y": 41.32,
+          "z": 9.29
+        },
+        "thermostat": {
+          "x": -36.68,
+          "y": 84.82,
+          "z": 15.95
+        },
+        "kettle-manual": {
+          "x": -42.77,
+          "y": 82.49,
+          "z": -21.4
+        },
+        "timer": {
+          "x": -71.35,
+          "y": 51.72,
+          "z": -21.48
+        },
+        "loop-notes": {
+          "x": -66.2,
+          "y": 71.99,
+          "z": 36.87
+        },
+        "readme": {
+          "x": -62.57,
+          "y": 110.45,
+          "z": 19.41
+        },
+        "sim-config": {
+          "x": -96.16,
+          "y": 95.91,
+          "z": 21.17
+        },
+        "bedtime-story": {
+          "x": -80.29,
+          "y": 82.8,
+          "z": -38.55
+        },
+        "var-limit": {
+          "x": 169.11,
+          "y": 97.47,
+          "z": -97.16
+        },
+        "var-unit": {
+          "x": 156.63,
+          "y": 70.62,
+          "z": -132.5
+        },
+        "var-count": {
+          "x": 160.33,
+          "y": 92.31,
+          "z": -112.77
+        },
+        "var-i": {
+          "x": 171.22,
+          "y": 98.49,
+          "z": -127.62
+        },
+        "var-done": {
+          "x": 143.19,
+          "y": 96.59,
+          "z": -136.85
+        },
+        "var-step": {
+          "x": 170.05,
+          "y": 96.83,
+          "z": -146.91
+        },
+        "var-total": {
+          "x": 142.03,
+          "y": 90.77,
+          "z": -108.91
+        },
+        "var-name": {
+          "x": 181.78,
+          "y": 73.04,
+          "z": -116.07
+        },
+        "var-epsilon": {
+          "x": 150.12,
+          "y": 118.21,
+          "z": -118.18
+        },
+        "var-retries": {
+          "x": 155.54,
+          "y": 65.66,
+          "z": -103.04
+        },
+        "meta-memory": {
+          "x": -135.14,
+          "y": -14.86,
+          "z": -53.65
+        },
+        "meta-perspective": {
+          "x": -121.08,
+          "y": -25.08,
+          "z": -40.03
+        },
+        "meta-facet": {
+          "x": -125.82,
+          "y": -46.55,
+          "z": -44.19
+        },
+        "meta-relation": {
+          "x": -155.78,
+          "y": -20.33,
+          "z": -45.71
+        },
+        "meta-shortcut": {
+          "x": -168.21,
+          "y": -9.55,
+          "z": -60.31
+        },
+        "meta-route": {
+          "x": -156.1,
+          "y": 5.99,
+          "z": -70.1
+        },
+        "meta-recall": {
+          "x": -135.39,
+          "y": 4.37,
+          "z": -62.73
+        },
+        "meta-pathway": {
+          "x": -134.63,
+          "y": -28.25,
+          "z": -71.65
+        },
+        "meta-loop": {
+          "x": -154.35,
+          "y": -36.71,
+          "z": -75.69
+        },
+        "meta-condition": {
+          "x": -113.5,
+          "y": -29.03,
+          "z": -75.94
+        },
+        "road-a": {
+          "x": 40,
+          "y": -131.55,
+          "z": 45.05
+        },
+        "road-b": {
+          "x": 54.66,
+          "y": -138.23,
+          "z": 54.6
+        },
+        "road-c": {
+          "x": 59.48,
+          "y": -124.18,
+          "z": 34.53
+        },
+        "road-d": {
+          "x": 68.59,
+          "y": -121.61,
+          "z": 30.86
+        },
+        "road-e": {
+          "x": 92.2,
+          "y": -125.48,
+          "z": 36.39
+        },
+        "road-f": {
+          "x": 87.63,
+          "y": -114.53,
+          "z": 20.75
+        },
+        "road-g": {
+          "x": 80.58,
+          "y": -106.5,
+          "z": 9.28
+        },
+        "road-h": {
+          "x": 104.27,
+          "y": -102.06,
+          "z": 2.94
+        },
+        "road-i": {
+          "x": 101.01,
+          "y": -94.33,
+          "z": -8.1
+        },
+        "road-j": {
+          "x": 78.33,
+          "y": -91.3,
+          "z": -12.43
+        },
+        "road-k": {
+          "x": 87.34,
+          "y": -81.69,
+          "z": -26.15
+        },
+        "road-l": {
+          "x": 86.49,
+          "y": -72,
+          "z": -39.99
+        },
+        "road-m": {
+          "x": 63.24,
+          "y": -77.99,
+          "z": -31.44
+        },
+        "road-n": {
+          "x": 55.83,
+          "y": -73.32,
+          "z": -38.1
+        },
+        "road-o": {
+          "x": 47.68,
+          "y": -60.71,
+          "z": -56.11
+        },
+        "road-p": {
+          "x": 34.58,
+          "y": -70.41,
+          "z": -42.25
+        },
+        "road-q": {
+          "x": 26.4,
+          "y": -76.54,
+          "z": -33.5
+        },
+        "road-r": {
+          "x": 6.29,
+          "y": -67.57,
+          "z": -46.32
+        },
+        "road-s": {
+          "x": -1,
+          "y": -74.95,
+          "z": -35.77
+        },
+        "road-t": {
+          "x": 6.17,
+          "y": -86.71,
+          "z": -18.98
+        },
+        "road-u": {
+          "x": -14.84,
+          "y": -87.29,
+          "z": -18.15
+        },
+        "road-v": {
+          "x": -25.38,
+          "y": -93.66,
+          "z": -9.06
+        },
+        "road-w": {
+          "x": -3.49,
+          "y": -101.22,
+          "z": 1.74
+        },
+        "road-x": {
+          "x": -9.31,
+          "y": -107.68,
+          "z": 10.97
+        },
+        "road-y": {
+          "x": -21.13,
+          "y": -118.33,
+          "z": 26.18
+        },
+        "road-z": {
+          "x": 1.81,
+          "y": -118.38,
+          "z": 26.25
+        },
+        "p1": {
+          "x": -90,
+          "y": -30,
+          "z": 60
+        },
+        "p2": {
+          "x": -90,
+          "y": -42,
+          "z": 60
+        },
+        "p3": {
+          "x": -90,
+          "y": -54,
+          "z": 60
+        },
+        "p4": {
+          "x": -90,
+          "y": -66,
+          "z": 60
+        },
+        "p5": {
+          "x": -76,
+          "y": -66,
+          "z": 60
+        },
+        "p6": {
+          "x": -83,
+          "y": -77,
+          "z": 60
+        },
+        "p7": {
+          "x": -100,
+          "y": -80,
+          "z": 60
+        },
+        "q1": {
+          "x": 110,
+          "y": 40,
+          "z": 60
+        },
+        "q2": {
+          "x": 110,
+          "y": 28,
+          "z": 60
+        },
+        "q3": {
+          "x": 110,
+          "y": 16,
+          "z": 60
+        },
+        "q4": {
+          "x": 96,
+          "y": 4,
+          "z": 60
+        },
+        "q5": {
+          "x": 124,
+          "y": 4,
+          "z": 60
+        },
+        "q6": {
+          "x": 116,
+          "y": -10,
+          "z": 60
+        },
+        "q7": {
+          "x": 134,
+          "y": -10,
+          "z": 60
+        }
+      }
+    }
   ],
   "nodes": [
-    { "id": "n_a", "label": "Kettle", "kind": "concept", "value": null, "facets": {}, "tags": ["kitchen"], "created": 0, "updated": 0 },
-    { "id": "n_b", "label": "Water", "kind": "concept", "value": null, "facets": {}, "tags": [], "created": 0, "updated": 0 },
-    { "id": "n_c", "label": "Temperature", "kind": "variable", "value": 300, "facets": { "physicist": 300, "cook": "hot" }, "tags": [], "created": 0, "updated": 0 },
-    { "id": "n_d", "label": "Steam", "kind": "concept", "value": null, "facets": {}, "tags": [], "created": 0, "updated": 0 },
-    { "id": "n_e", "label": "Tea", "kind": "note", "value": "ready", "facets": {}, "tags": [], "notes": "Endpoint of the demo chain.", "created": 0, "updated": 0 }
+    {
+      "id": "temperature",
+      "label": "Temperature",
+      "kind": "variable",
+      "value": 20,
+      "facets": {
+        "physicist": 293,
+        "cook": 20,
+        "child": 2
+      },
+      "tags": [
+        "heat"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "boiling-point",
+      "label": "Boiling Point",
+      "kind": "variable",
+      "value": 100,
+      "facets": {
+        "physicist": 373,
+        "cook": 100,
+        "child": 5
+      },
+      "tags": [
+        "heat"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "flame-step",
+      "label": "Flame Step",
+      "kind": "variable",
+      "value": 40,
+      "facets": {
+        "physicist": 20,
+        "cook": 40,
+        "child": 1
+      },
+      "tags": [
+        "heat"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "safe-to-touch",
+      "label": "Safe To Touch",
+      "kind": "variable",
+      "value": 45,
+      "facets": {
+        "physicist": 318,
+        "cook": 45,
+        "child": 1
+      },
+      "tags": [
+        "heat"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "room",
+      "label": "Room",
+      "kind": "variable",
+      "value": 18,
+      "facets": {
+        "physicist": 295,
+        "cook": 18,
+        "child": 1
+      },
+      "tags": [
+        "heat"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "heat",
+      "label": "Heat",
+      "kind": "concept",
+      "value": "how high the flame is",
+      "facets": {
+        "physicist": "energy moving from hot to cold",
+        "cook": "how high the flame is",
+        "child": "the thing that says ouch"
+      },
+      "tags": [
+        "heat"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "steam",
+      "label": "Steam",
+      "kind": "concept",
+      "value": "the soup is ready",
+      "facets": {
+        "physicist": "water as gas, above 373 K",
+        "cook": "the soup is ready",
+        "child": "the cloud from the pot"
+      },
+      "tags": [
+        "heat"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "soup",
+      "label": "Soup",
+      "kind": "concept",
+      "value": "Tuesday's leek soup",
+      "facets": {
+        "physicist": "mostly water, 1.0 kg",
+        "cook": "Tuesday's leek soup",
+        "child": "dinner"
+      },
+      "tags": [
+        "heat"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "burn",
+      "label": "Burn",
+      "kind": "concept",
+      "value": "what happens when you rush",
+      "facets": {
+        "physicist": "tissue damage above ~317 K",
+        "cook": "what happens when you rush",
+        "child": "ouch"
+      },
+      "tags": [
+        "heat"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "energy",
+      "label": "Energy",
+      "kind": "concept",
+      "value": "never made or destroyed",
+      "facets": {},
+      "tags": [
+        "heat"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "molecules",
+      "label": "Molecules",
+      "kind": "concept",
+      "value": "jiggle faster when hot",
+      "facets": {},
+      "tags": [
+        "heat"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "kelvin",
+      "label": "Kelvin",
+      "kind": "concept",
+      "value": "absolute scale",
+      "facets": {},
+      "tags": [
+        "heat"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "stove",
+      "label": "Stove",
+      "kind": "concept",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "heat"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "pot",
+      "label": "Pot",
+      "kind": "concept",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "heat"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "ice",
+      "label": "Ice",
+      "kind": "concept",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "heat"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "thermometer",
+      "label": "Thermometer",
+      "kind": "concept",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "heat"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "recipe",
+      "label": "recipe.txt",
+      "kind": "file",
+      "value": "Grandma's leek soup",
+      "facets": {
+        "physicist": "2.1 KB of UTF-8 text",
+        "cook": "Grandma's leek soup",
+        "child": "the paper with the soup on it"
+      },
+      "tags": [
+        "files"
+      ],
+      "file": {
+        "name": "recipe.txt",
+        "path": "/kitchen/recipe.txt",
+        "mime": "text/plain",
+        "sizeNote": "2.1 KB",
+        "content": "Leeks, butter, stock. Simmer until it smells like home."
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "boiling-curve",
+      "label": "boiling-curve.csv",
+      "kind": "file",
+      "value": "why soup is slow in the mountains",
+      "facets": {
+        "physicist": "pressure vs boiling point, 40 rows",
+        "cook": "why soup is slow in the mountains",
+        "child": "numbers"
+      },
+      "tags": [
+        "files"
+      ],
+      "file": {
+        "name": "boiling-curve.csv",
+        "path": "/lab/boiling-curve.csv",
+        "mime": "text/csv",
+        "sizeNote": "38 KB"
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "drawing-of-a-sun",
+      "label": "drawing-of-a-sun.png",
+      "kind": "file",
+      "value": "stuck on the fridge",
+      "facets": {
+        "physicist": "a 5778 K blackbody, roughly",
+        "cook": "stuck on the fridge",
+        "child": "MY SUN"
+      },
+      "tags": [
+        "files"
+      ],
+      "file": {
+        "name": "drawing-of-a-sun.png",
+        "path": "/home/drawings/sun.png",
+        "mime": "image/png",
+        "sizeNote": "640 KB"
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "lab-notes",
+      "label": "lab-notes.md",
+      "kind": "file",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "files"
+      ],
+      "file": {
+        "name": "lab-notes.md",
+        "path": "/lab/lab-notes.md",
+        "mime": "text/markdown"
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "shopping-list",
+      "label": "shopping-list.txt",
+      "kind": "file",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "files"
+      ],
+      "file": {
+        "name": "shopping-list.txt",
+        "path": "/home/shopping-list.txt",
+        "mime": "text/plain"
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "thermostat",
+      "label": "thermostat.cfg",
+      "kind": "file",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "files"
+      ],
+      "file": {
+        "name": "thermostat.cfg",
+        "path": "/home/thermostat.cfg",
+        "mime": "text/plain"
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "kettle-manual",
+      "label": "kettle-manual.pdf",
+      "kind": "file",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "files"
+      ],
+      "file": {
+        "name": "kettle-manual.pdf",
+        "path": "/home/kettle-manual.pdf",
+        "mime": "application/pdf"
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "timer",
+      "label": "timer.js",
+      "kind": "file",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "files"
+      ],
+      "file": {
+        "name": "timer.js",
+        "path": "/code/timer.js",
+        "mime": "text/javascript"
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "loop-notes",
+      "label": "loop-notes.md",
+      "kind": "file",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "files"
+      ],
+      "file": {
+        "name": "loop-notes.md",
+        "path": "/code/loop-notes.md",
+        "mime": "text/markdown"
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "readme",
+      "label": "README.md",
+      "kind": "file",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "files"
+      ],
+      "file": {
+        "name": "README.md",
+        "path": "/code/README.md",
+        "mime": "text/markdown"
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "sim-config",
+      "label": "sim-config.json",
+      "kind": "file",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "files"
+      ],
+      "file": {
+        "name": "sim-config.json",
+        "path": "/lab/sim-config.json",
+        "mime": "application/json"
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "bedtime-story",
+      "label": "bedtime-story.txt",
+      "kind": "file",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "files"
+      ],
+      "file": {
+        "name": "bedtime-story.txt",
+        "path": "/home/bedtime-story.txt",
+        "mime": "text/plain"
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "var-limit",
+      "label": "limit",
+      "kind": "variable",
+      "value": 90,
+      "facets": {
+        "physicist": 100,
+        "cook": 90,
+        "child": 3
+      },
+      "tags": [
+        "variables"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "var-unit",
+      "label": "unit",
+      "kind": "variable",
+      "value": "°C",
+      "facets": {
+        "physicist": "K",
+        "cook": "°C",
+        "child": "hand-feel"
+      },
+      "tags": [
+        "variables"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "var-count",
+      "label": "count",
+      "kind": "variable",
+      "value": 0,
+      "facets": {},
+      "tags": [
+        "variables"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "var-i",
+      "label": "i",
+      "kind": "variable",
+      "value": 0,
+      "facets": {},
+      "tags": [
+        "variables"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "var-done",
+      "label": "done",
+      "kind": "variable",
+      "value": false,
+      "facets": {},
+      "tags": [
+        "variables"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "var-step",
+      "label": "step",
+      "kind": "variable",
+      "value": 1,
+      "facets": {},
+      "tags": [
+        "variables"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "var-total",
+      "label": "total",
+      "kind": "variable",
+      "value": 0,
+      "facets": {},
+      "tags": [
+        "variables"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "var-name",
+      "label": "name",
+      "kind": "variable",
+      "value": "Constellation",
+      "facets": {},
+      "tags": [
+        "variables"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "var-epsilon",
+      "label": "epsilon",
+      "kind": "variable",
+      "value": 0.001,
+      "facets": {},
+      "tags": [
+        "variables"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "var-retries",
+      "label": "retries",
+      "kind": "variable",
+      "value": 3,
+      "facets": {},
+      "tags": [
+        "variables"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "meta-memory",
+      "label": "Memory",
+      "kind": "concept",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "meta"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "meta-perspective",
+      "label": "Perspective",
+      "kind": "concept",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "meta"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "meta-facet",
+      "label": "Facet",
+      "kind": "concept",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "meta"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "meta-relation",
+      "label": "Relation",
+      "kind": "concept",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "meta"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "meta-shortcut",
+      "label": "Shortcut",
+      "kind": "concept",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "meta"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "meta-route",
+      "label": "Route",
+      "kind": "concept",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "meta"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "meta-recall",
+      "label": "Recall",
+      "kind": "concept",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "meta"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "meta-pathway",
+      "label": "Pathway",
+      "kind": "concept",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "meta"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "meta-loop",
+      "label": "Loop",
+      "kind": "concept",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "meta"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "meta-condition",
+      "label": "Condition",
+      "kind": "concept",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "meta"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-a",
+      "label": "A",
+      "kind": "concept",
+      "value": "stop 1 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-b",
+      "label": "B",
+      "kind": "concept",
+      "value": "stop 2 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-c",
+      "label": "C",
+      "kind": "concept",
+      "value": "stop 3 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-d",
+      "label": "D",
+      "kind": "concept",
+      "value": "stop 4 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-e",
+      "label": "E",
+      "kind": "concept",
+      "value": "stop 5 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-f",
+      "label": "F",
+      "kind": "concept",
+      "value": "stop 6 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-g",
+      "label": "G",
+      "kind": "concept",
+      "value": "stop 7 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-h",
+      "label": "H",
+      "kind": "concept",
+      "value": "stop 8 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-i",
+      "label": "I",
+      "kind": "concept",
+      "value": "stop 9 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-j",
+      "label": "J",
+      "kind": "concept",
+      "value": "stop 10 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-k",
+      "label": "K",
+      "kind": "concept",
+      "value": "stop 11 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-l",
+      "label": "L",
+      "kind": "concept",
+      "value": "stop 12 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-m",
+      "label": "M",
+      "kind": "concept",
+      "value": "stop 13 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-n",
+      "label": "N",
+      "kind": "concept",
+      "value": "stop 14 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-o",
+      "label": "O",
+      "kind": "concept",
+      "value": "stop 15 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-p",
+      "label": "P",
+      "kind": "concept",
+      "value": "stop 16 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-q",
+      "label": "Q",
+      "kind": "concept",
+      "value": "stop 17 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-r",
+      "label": "R",
+      "kind": "concept",
+      "value": "stop 18 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-s",
+      "label": "S",
+      "kind": "concept",
+      "value": "stop 19 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-t",
+      "label": "T",
+      "kind": "concept",
+      "value": "stop 20 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-u",
+      "label": "U",
+      "kind": "concept",
+      "value": "stop 21 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-v",
+      "label": "V",
+      "kind": "concept",
+      "value": "stop 22 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-w",
+      "label": "W",
+      "kind": "concept",
+      "value": "stop 23 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-x",
+      "label": "X",
+      "kind": "concept",
+      "value": "stop 24 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-y",
+      "label": "Y",
+      "kind": "concept",
+      "value": "stop 25 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "road-z",
+      "label": "Z",
+      "kind": "concept",
+      "value": "stop 26 of 26",
+      "facets": {},
+      "tags": [
+        "long-road"
+      ],
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "p1",
+      "label": "Simmer until done",
+      "kind": "pathway",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "simmer"
+      ],
+      "pathway": {
+        "op": "start"
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "p2",
+      "label": "read heat ← Temperature",
+      "kind": "pathway",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "simmer"
+      ],
+      "pathway": {
+        "op": "read",
+        "target": "heat",
+        "source": "temperature"
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "p3",
+      "label": "assign stirs ← 0",
+      "kind": "pathway",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "simmer"
+      ],
+      "pathway": {
+        "op": "assign",
+        "target": "stirs",
+        "expr": "0"
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "p4",
+      "label": "while heat is too low",
+      "kind": "pathway",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "simmer"
+      ],
+      "pathway": {
+        "op": "while",
+        "expr": "heat < @\"Boiling Point\""
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "p5",
+      "label": "assign heat ← heat + Flame Step",
+      "kind": "pathway",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "simmer"
+      ],
+      "pathway": {
+        "op": "assign",
+        "target": "heat",
+        "expr": "heat + @\"Flame Step\""
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "p6",
+      "label": "assign stirs ← stirs + 1",
+      "kind": "pathway",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "simmer"
+      ],
+      "pathway": {
+        "op": "assign",
+        "target": "stirs",
+        "expr": "stirs + 1"
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "p7",
+      "label": "end: done after n stirs",
+      "kind": "pathway",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "simmer"
+      ],
+      "pathway": {
+        "op": "end",
+        "expr": "\"Done after \" + stirs + \" stirs · heat \" + heat + \" \" + @unit"
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "q1",
+      "label": "What should I do with it?",
+      "kind": "pathway",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "serve"
+      ],
+      "pathway": {
+        "op": "start"
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "q2",
+      "label": "read t ← Temperature",
+      "kind": "pathway",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "serve"
+      ],
+      "pathway": {
+        "op": "read",
+        "target": "t",
+        "source": "temperature"
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "q3",
+      "label": "if t > Safe To Touch",
+      "kind": "pathway",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "serve"
+      ],
+      "pathway": {
+        "op": "if",
+        "expr": "t > @\"Safe To Touch\""
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "q4",
+      "label": "end: Wait, too hot to touch.",
+      "kind": "pathway",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "serve"
+      ],
+      "pathway": {
+        "op": "end",
+        "expr": "\"Wait, too hot to touch.\""
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "q5",
+      "label": "if t < Room",
+      "kind": "pathway",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "serve"
+      ],
+      "pathway": {
+        "op": "if",
+        "expr": "t < @Room"
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "q6",
+      "label": "end: Warm it up.",
+      "kind": "pathway",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "serve"
+      ],
+      "pathway": {
+        "op": "end",
+        "expr": "\"Warm it up.\""
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    },
+    {
+      "id": "q7",
+      "label": "end: Serve it.",
+      "kind": "pathway",
+      "value": null,
+      "facets": {},
+      "tags": [
+        "serve"
+      ],
+      "pathway": {
+        "op": "end",
+        "expr": "\"Serve it.\""
+      },
+      "created": 1793491200000,
+      "updated": 1793491200000
+    }
   ],
   "relations": [
-    { "id": "r_1", "from": "n_a", "to": "n_b", "type": "chain", "weight": 0.5, "directed": true, "created": 0 },
-    { "id": "r_2", "from": "n_b", "to": "n_c", "type": "chain", "weight": 0.5, "directed": true, "created": 0 },
-    { "id": "r_3", "from": "n_c", "to": "n_d", "type": "chain", "weight": 0.5, "directed": true, "created": 0 },
-    { "id": "r_4", "from": "n_d", "to": "n_e", "type": "chain", "weight": 0.5, "directed": true, "created": 0 },
-    { "id": "r_5", "from": "n_a", "to": "n_e", "type": "shortcut", "weight": 0.9, "directed": false, "perspectives": ["cook"], "created": 0 }
+    {
+      "id": "heat-01",
+      "from": "temperature",
+      "to": "heat",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "heat-02",
+      "from": "temperature",
+      "to": "thermometer",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "heat-03",
+      "from": "boiling-point",
+      "to": "temperature",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "heat-04",
+      "from": "ice",
+      "to": "temperature",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "heat-05",
+      "from": "room",
+      "to": "temperature",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "heat-06",
+      "from": "safe-to-touch",
+      "to": "temperature",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "heat-07",
+      "from": "temperature",
+      "to": "kelvin",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "perspectives": [
+        "physicist"
+      ],
+      "created": 1793491200000
+    },
+    {
+      "id": "heat-08",
+      "from": "temperature",
+      "to": "molecules",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "perspectives": [
+        "physicist"
+      ],
+      "created": 1793491200000
+    },
+    {
+      "id": "heat-09",
+      "from": "heat",
+      "to": "energy",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "is-a",
+      "perspectives": [
+        "physicist"
+      ],
+      "created": 1793491200000
+    },
+    {
+      "id": "heat-10",
+      "from": "heat",
+      "to": "stove",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "perspectives": [
+        "cook"
+      ],
+      "created": 1793491200000
+    },
+    {
+      "id": "heat-11",
+      "from": "heat",
+      "to": "burn",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "perspectives": [
+        "cook",
+        "child"
+      ],
+      "created": 1793491200000
+    },
+    {
+      "id": "heat-12",
+      "from": "boiling-point",
+      "to": "steam",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "heat-13",
+      "from": "steam",
+      "to": "pot",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "heat-14",
+      "from": "pot",
+      "to": "stove",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "heat-15",
+      "from": "soup",
+      "to": "pot",
+      "type": "part-of",
+      "weight": 1,
+      "directed": false,
+      "label": "part-of",
+      "created": 1793491200000
+    },
+    {
+      "id": "heat-16",
+      "from": "soup",
+      "to": "steam",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "perspectives": [
+        "cook"
+      ],
+      "created": 1793491200000
+    },
+    {
+      "id": "heat-17",
+      "from": "ice",
+      "to": "molecules",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "perspectives": [
+        "physicist"
+      ],
+      "created": 1793491200000
+    },
+    {
+      "id": "heat-18",
+      "from": "flame-step",
+      "to": "stove",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "heat-19",
+      "from": "safe-to-touch",
+      "to": "burn",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "file-01",
+      "from": "recipe",
+      "to": "soup",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "references",
+      "created": 1793491200000
+    },
+    {
+      "id": "file-02",
+      "from": "recipe",
+      "to": "pot",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "references",
+      "perspectives": [
+        "cook"
+      ],
+      "created": 1793491200000
+    },
+    {
+      "id": "file-03",
+      "from": "lab-notes",
+      "to": "kelvin",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "references",
+      "created": 1793491200000
+    },
+    {
+      "id": "file-04",
+      "from": "lab-notes",
+      "to": "molecules",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "references",
+      "created": 1793491200000
+    },
+    {
+      "id": "file-05",
+      "from": "boiling-curve",
+      "to": "boiling-point",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "references",
+      "created": 1793491200000
+    },
+    {
+      "id": "file-06",
+      "from": "shopping-list",
+      "to": "recipe",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "perspectives": [
+        "cook"
+      ],
+      "created": 1793491200000
+    },
+    {
+      "id": "file-07",
+      "from": "drawing-of-a-sun",
+      "to": "heat",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "references",
+      "perspectives": [
+        "child"
+      ],
+      "created": 1793491200000
+    },
+    {
+      "id": "file-08",
+      "from": "drawing-of-a-sun",
+      "to": "bedtime-story",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "perspectives": [
+        "child"
+      ],
+      "created": 1793491200000
+    },
+    {
+      "id": "file-09",
+      "from": "thermostat",
+      "to": "room",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "references",
+      "created": 1793491200000
+    },
+    {
+      "id": "file-10",
+      "from": "kettle-manual",
+      "to": "boiling-point",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "references",
+      "created": 1793491200000
+    },
+    {
+      "id": "file-11",
+      "from": "timer",
+      "to": "meta-loop",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "references",
+      "created": 1793491200000
+    },
+    {
+      "id": "file-12",
+      "from": "timer",
+      "to": "var-count",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "references",
+      "created": 1793491200000
+    },
+    {
+      "id": "file-13",
+      "from": "loop-notes",
+      "to": "meta-loop",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "references",
+      "created": 1793491200000
+    },
+    {
+      "id": "file-14",
+      "from": "loop-notes",
+      "to": "meta-condition",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "references",
+      "created": 1793491200000
+    },
+    {
+      "id": "file-15",
+      "from": "readme",
+      "to": "meta-memory",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "references",
+      "created": 1793491200000
+    },
+    {
+      "id": "file-16",
+      "from": "sim-config",
+      "to": "var-epsilon",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "references",
+      "created": 1793491200000
+    },
+    {
+      "id": "file-17",
+      "from": "sim-config",
+      "to": "lab-notes",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "perspectives": [
+        "physicist"
+      ],
+      "created": 1793491200000
+    },
+    {
+      "id": "file-18",
+      "from": "bedtime-story",
+      "to": "soup",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "references",
+      "perspectives": [
+        "child"
+      ],
+      "created": 1793491200000
+    },
+    {
+      "id": "var-01",
+      "from": "var-limit",
+      "to": "var-count",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "var-02",
+      "from": "var-count",
+      "to": "var-i",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "var-03",
+      "from": "var-i",
+      "to": "var-step",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "var-04",
+      "from": "var-done",
+      "to": "meta-condition",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "var-05",
+      "from": "var-total",
+      "to": "var-count",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "var-06",
+      "from": "var-unit",
+      "to": "temperature",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "var-07",
+      "from": "var-unit",
+      "to": "kelvin",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "perspectives": [
+        "physicist"
+      ],
+      "created": 1793491200000
+    },
+    {
+      "id": "var-08",
+      "from": "var-epsilon",
+      "to": "var-limit",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "perspectives": [
+        "physicist"
+      ],
+      "created": 1793491200000
+    },
+    {
+      "id": "var-09",
+      "from": "var-retries",
+      "to": "meta-loop",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "var-10",
+      "from": "var-name",
+      "to": "meta-memory",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "meta-01",
+      "from": "meta-memory",
+      "to": "meta-perspective",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "meta-02",
+      "from": "meta-memory",
+      "to": "meta-relation",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "meta-03",
+      "from": "meta-memory",
+      "to": "meta-recall",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "meta-04",
+      "from": "meta-memory",
+      "to": "meta-pathway",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "meta-05",
+      "from": "meta-shortcut",
+      "to": "meta-relation",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "is-a",
+      "created": 1793491200000
+    },
+    {
+      "id": "meta-06",
+      "from": "meta-recall",
+      "to": "meta-route",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "meta-07",
+      "from": "meta-route",
+      "to": "meta-shortcut",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "meta-08",
+      "from": "meta-pathway",
+      "to": "meta-loop",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "meta-09",
+      "from": "meta-pathway",
+      "to": "meta-condition",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "meta-10",
+      "from": "meta-perspective",
+      "to": "meta-facet",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "bridge-01",
+      "from": "meta-facet",
+      "to": "temperature",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "bridge-02",
+      "from": "meta-route",
+      "to": "road-a",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "bridge-03",
+      "from": "meta-pathway",
+      "to": "p1",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "bridge-04",
+      "from": "meta-pathway",
+      "to": "q1",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "bridge-05",
+      "from": "meta-loop",
+      "to": "p4",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "bridge-06",
+      "from": "meta-condition",
+      "to": "q3",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "road-01",
+      "from": "road-a",
+      "to": "road-b",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-02",
+      "from": "road-b",
+      "to": "road-c",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-03",
+      "from": "road-c",
+      "to": "road-d",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-04",
+      "from": "road-d",
+      "to": "road-e",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-05",
+      "from": "road-e",
+      "to": "road-f",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-06",
+      "from": "road-f",
+      "to": "road-g",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-07",
+      "from": "road-g",
+      "to": "road-h",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-08",
+      "from": "road-h",
+      "to": "road-i",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-09",
+      "from": "road-i",
+      "to": "road-j",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-10",
+      "from": "road-j",
+      "to": "road-k",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-11",
+      "from": "road-k",
+      "to": "road-l",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-12",
+      "from": "road-l",
+      "to": "road-m",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-13",
+      "from": "road-m",
+      "to": "road-n",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-14",
+      "from": "road-n",
+      "to": "road-o",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-15",
+      "from": "road-o",
+      "to": "road-p",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-16",
+      "from": "road-p",
+      "to": "road-q",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-17",
+      "from": "road-q",
+      "to": "road-r",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-18",
+      "from": "road-r",
+      "to": "road-s",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-19",
+      "from": "road-s",
+      "to": "road-t",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-20",
+      "from": "road-t",
+      "to": "road-u",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-21",
+      "from": "road-u",
+      "to": "road-v",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-22",
+      "from": "road-v",
+      "to": "road-w",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-23",
+      "from": "road-w",
+      "to": "road-x",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-24",
+      "from": "road-x",
+      "to": "road-y",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-25",
+      "from": "road-y",
+      "to": "road-z",
+      "type": "chain",
+      "weight": 1,
+      "directed": false,
+      "label": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "road-26",
+      "from": "road-a",
+      "to": "road-f",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "road-27",
+      "from": "road-f",
+      "to": "road-x",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "perspectives": [
+        "physicist",
+        "cook"
+      ],
+      "created": 1793491200000
+    },
+    {
+      "id": "road-28",
+      "from": "road-x",
+      "to": "road-z",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1793491200000
+    },
+    {
+      "id": "flow-01",
+      "from": "p1",
+      "to": "p2",
+      "type": "flow",
+      "weight": 1,
+      "directed": true,
+      "branch": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "flow-02",
+      "from": "p2",
+      "to": "p3",
+      "type": "flow",
+      "weight": 1,
+      "directed": true,
+      "branch": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "flow-03",
+      "from": "p3",
+      "to": "p4",
+      "type": "flow",
+      "weight": 1,
+      "directed": true,
+      "branch": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "flow-04",
+      "from": "p4",
+      "to": "p5",
+      "type": "flow",
+      "weight": 1,
+      "directed": true,
+      "branch": "true",
+      "label": "body",
+      "created": 1793491200000
+    },
+    {
+      "id": "flow-05",
+      "from": "p5",
+      "to": "p6",
+      "type": "flow",
+      "weight": 1,
+      "directed": true,
+      "branch": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "flow-06",
+      "from": "p6",
+      "to": "p4",
+      "type": "flow",
+      "weight": 1,
+      "directed": true,
+      "branch": "next",
+      "label": "loop",
+      "created": 1793491200000
+    },
+    {
+      "id": "flow-07",
+      "from": "p4",
+      "to": "p7",
+      "type": "flow",
+      "weight": 1,
+      "directed": true,
+      "branch": "false",
+      "label": "exit",
+      "created": 1793491200000
+    },
+    {
+      "id": "flow-08",
+      "from": "q1",
+      "to": "q2",
+      "type": "flow",
+      "weight": 1,
+      "directed": true,
+      "branch": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "flow-09",
+      "from": "q2",
+      "to": "q3",
+      "type": "flow",
+      "weight": 1,
+      "directed": true,
+      "branch": "next",
+      "created": 1793491200000
+    },
+    {
+      "id": "flow-10",
+      "from": "q3",
+      "to": "q4",
+      "type": "flow",
+      "weight": 1,
+      "directed": true,
+      "branch": "true",
+      "label": "then",
+      "created": 1793491200000
+    },
+    {
+      "id": "flow-11",
+      "from": "q3",
+      "to": "q5",
+      "type": "flow",
+      "weight": 1,
+      "directed": true,
+      "branch": "false",
+      "label": "else",
+      "created": 1793491200000
+    },
+    {
+      "id": "flow-12",
+      "from": "q5",
+      "to": "q6",
+      "type": "flow",
+      "weight": 1,
+      "directed": true,
+      "branch": "true",
+      "label": "then",
+      "created": 1793491200000
+    },
+    {
+      "id": "flow-13",
+      "from": "q5",
+      "to": "q7",
+      "type": "flow",
+      "weight": 1,
+      "directed": true,
+      "branch": "false",
+      "label": "else",
+      "created": 1793491200000
+    },
+    {
+      "id": "read-01",
+      "from": "p2",
+      "to": "temperature",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "reads",
+      "created": 1793491200000
+    },
+    {
+      "id": "read-02",
+      "from": "p4",
+      "to": "boiling-point",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "reads",
+      "created": 1793491200000
+    },
+    {
+      "id": "read-03",
+      "from": "p5",
+      "to": "flame-step",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "reads",
+      "created": 1793491200000
+    },
+    {
+      "id": "read-04",
+      "from": "q2",
+      "to": "temperature",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "reads",
+      "created": 1793491200000
+    },
+    {
+      "id": "read-05",
+      "from": "q3",
+      "to": "safe-to-touch",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "reads",
+      "created": 1793491200000
+    },
+    {
+      "id": "read-06",
+      "from": "q5",
+      "to": "room",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "label": "reads",
+      "created": 1793491200000
+    }
   ]
 }
