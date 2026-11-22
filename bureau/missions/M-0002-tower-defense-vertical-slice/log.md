@@ -99,3 +99,5 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-21T02:58:37Z` **qa-tester** — F-003 verified: Accept CEO ruling: spec units are logical px at 1280x720 with uniform letterbox; compact small-window layout deferred to next milestone.
 - `2026-11-21T02:58:37Z` **qa-tester** — F-004 verified: settings-r2.jpg: card 520x490, divider above Back/legend row, clear spacing under Auto-start.
 - `2026-11-21T02:58:37Z` **qa-tester** — F-005 verified: stage('victory'), Enter, stage('r18-8s') now gives R18 board (tick 28466); r20-arrival gives R20; no stale run.
+- `2026-11-22T03:33:42Z` **ceo** — Resumed in new session on claude/hopeful-franklin-ypk49c (fast-forward from tender-keller-hldqd8). verify:strict GREEN 26.7 s at 73bbb61 (R18 p95 4.8 ms). code-reviewer and polish-critic verifications never landed; originals not resumable. Owner chose one fresh polish-critic to verify all 20 unverified findings (+1 over budget).
+- `2026-11-22T03:33:42Z` **ceo** — Convened 1× polish-critic — verify F-006..F-030 (20 unverified) incl. code-reviewer's; originals not resumable across sessions
