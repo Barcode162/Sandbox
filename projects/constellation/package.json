@@ -1,0 +1,36 @@
+{
+  "name": "constellation",
+  "version": "0.1.0",
+  "description": "Constellation: a 3D relational memory space with perspectives, shortcuts and runnable pathways.",
+  "private": true,
+  "type": "module",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4174 --strictPort",
+    "typecheck": "tsc -p tsconfig.json",
+    "test:unit": "node --test --disable-warning=ExperimentalWarning 'tests/unit/**/*.test.ts'",
+    "test:e2e": "playwright test",
+    "check:size": "node scripts/check-size.mjs",
+    "verify": "node scripts/verify.mjs"
+  },
+  "dependencies": {
+    "three": "0.187.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.63.0",
+    "@types/node": "22.20.5",
+    "@types/three": "0.187.0",
+    "playwright-core": "1.63.0",
+    "typescript": "6.0.2",
+    "vite": "8.3.8"
+  },
+  "overrides": {
+    "playwright-core": "1.63.0"
+  }
+}

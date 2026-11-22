@@ -7,3 +7,4 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-22T19:29:38Z` **ceo** — CEO: tier 2 + polish; no bakeoff — Owner described the visual (black void, dots, lines). Designer and architect run in parallel; brief pins the data model so contracts don't wait on the spec.
 - `2026-11-22T19:29:40Z` **ceo** — Convened 1× experience-designer — spec
 - `2026-11-22T19:29:40Z` **ceo** — Convened 1× architect — contracts+scaffold
+- `2026-11-22T19:36:12Z` **ceo** — Architect DONE: contracts frozen, verify green (127.9 KB gz). Tier 2: architecture.md not required; decisions live in plan.md. Brief trimmed under cap.

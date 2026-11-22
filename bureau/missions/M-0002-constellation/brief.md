@@ -30,7 +30,7 @@ A **spatial memory**: a real, usable store where anything (a variable, a file re
 
 ## Scope
 - **In:** single-page web app (Vite + TypeScript + Three.js). A headless, tested core (graph store, facets/perspectives, pathfinding & shortcuts, spreading-activation retrieval, a small flow interpreter for if/while pathways, JSON persistence). A rendered void with points, lines, labels, facet ghosts, pulses. Panels: inspector, perspective switcher, route finder, pathway runner, search, add/link. A rich original seed memory that demonstrates every idea (including a 26-point A…Z chain with hidden shortcuts). localStorage autosave + JSON import/export.
-- **Out (and why):** real filesystem indexing, multi-user sync, a backend, a full programming language — each is a later milestone. File "storage" is a reference (name, path, type, size note) plus optional small text content.
+- **Out:** real filesystem indexing, sync, a backend, a full language — later milestones. A "file" is a reference (name, path, type) plus optional short text.
 - **Milestones:** M1 (this) the vertical slice above. Later: file drop-ingest, embedding-based similarity edges, a textual pathway editor, VR/WebXR.
 
 ## Constraints & assumptions
@@ -51,6 +51,6 @@ A **spatial memory**: a real, usable store where anything (a variable, a file re
 - L-0005: resume agents with SendMessage; waves ≤ 4.
 
 ## Risks known at intake
-- Label legibility in 3D (overlap, scale) — billboarded sprites with depth fade and declutter.
-- The concept can feel abstract; the seed memory must *teach* it in 30 seconds.
-- Performance of line rendering + labels at 500 nodes.
+- 3D label legibility — declutter and depth fade.
+- Abstract concept; the seed must teach it in 30 s.
+- Line + label performance at 500 nodes.

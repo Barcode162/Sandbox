@@ -1,0 +1,27 @@
+{
+  "schema": "constellation.memory",
+  "version": 1,
+  "meta": {
+    "title": "Placeholder seed (WO-002 replaces with the design/experience.md seed)",
+    "defaultPerspective": "physicist",
+    "featured": { "route": { "from": "n_a", "to": "n_e" }, "query": "temp" }
+  },
+  "perspectives": [
+    { "id": "physicist", "label": "Physicist" },
+    { "id": "cook", "label": "Cook" }
+  ],
+  "nodes": [
+    { "id": "n_a", "label": "Kettle", "kind": "concept", "value": null, "facets": {}, "tags": ["kitchen"], "created": 0, "updated": 0 },
+    { "id": "n_b", "label": "Water", "kind": "concept", "value": null, "facets": {}, "tags": [], "created": 0, "updated": 0 },
+    { "id": "n_c", "label": "Temperature", "kind": "variable", "value": 300, "facets": { "physicist": 300, "cook": "hot" }, "tags": [], "created": 0, "updated": 0 },
+    { "id": "n_d", "label": "Steam", "kind": "concept", "value": null, "facets": {}, "tags": [], "created": 0, "updated": 0 },
+    { "id": "n_e", "label": "Tea", "kind": "note", "value": "ready", "facets": {}, "tags": [], "notes": "Endpoint of the demo chain.", "created": 0, "updated": 0 }
+  ],
+  "relations": [
+    { "id": "r_1", "from": "n_a", "to": "n_b", "type": "chain", "weight": 0.5, "directed": true, "created": 0 },
+    { "id": "r_2", "from": "n_b", "to": "n_c", "type": "chain", "weight": 0.5, "directed": true, "created": 0 },
+    { "id": "r_3", "from": "n_c", "to": "n_d", "type": "chain", "weight": 0.5, "directed": true, "created": 0 },
+    { "id": "r_4", "from": "n_d", "to": "n_e", "type": "chain", "weight": 0.5, "directed": true, "created": 0 },
+    { "id": "r_5", "from": "n_a", "to": "n_e", "type": "shortcut", "weight": 0.9, "directed": false, "perspectives": ["cook"], "created": 0 }
+  ]
+}
