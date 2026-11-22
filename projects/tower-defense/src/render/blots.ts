@@ -342,8 +342,10 @@ function createSpriteCache() {
 
 // ───────────────────────────── world layer ─────────────────────────────
 
-/** Kinds by radius, largest first (§10.5 draw order: blots largest R first). */
-const DRAW_ORDER: readonly BlotKind[] = (Object.keys(BLOTS) as BlotKind[]).sort((a, b) => BLOTS[b].radius - BLOTS[a].radius || a.localeCompare(b));
+/** Kinds by radius, largest first (§10.5 draw order: blots largest R first); the boss is drawn last so the
+ *  Splashes it sheds (F-031) run under the maw and come out ahead of it instead of crossing its face. */
+const DRAW_ORDER: readonly BlotKind[] = (Object.keys(BLOTS) as BlotKind[]).sort((a, b) =>
+  Number(!!BLOTS[a].boss) - Number(!!BLOTS[b].boss) || BLOTS[b].radius - BLOTS[a].radius || a.localeCompare(b));
 const SLOTS = 4096;
 const backOut = (t: number): number => { const c1 = MOTION.backOutS, c3 = c1 + 1; return 1 + c3 * (t - 1) ** 3 + c1 * (t - 1) ** 2; };
 const outCubic = (t: number): number => 1 - (1 - t) ** 3;

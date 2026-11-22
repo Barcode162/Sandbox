@@ -315,13 +315,14 @@ export function createHud(): Hud {
         c.save();
         let clipX = r.x - 6, clipW = r.w + 12;
         if (half >= 0) {
-          const fall = inQuad(td) * 120;
+          // F-033: the halves drop at most 60 px (y 72 → ~132) and are gone by 300 ms, clear of the burst
+          const fall = inQuad(td) * 60;
           const cx = r.x + r.w / 2;
           clipX = half === 0 ? r.x - 6 : cx; clipW = r.w / 2 + 6;
           c.translate(cx, r.y);
           c.rotate((half === 0 ? -1 : 1) * td * 0.5);
           c.translate(-cx + (half === 0 ? -1 : 1) * td * 18, -r.y + fall);
-          c.globalAlpha = 1 - td * 0.6;
+          c.globalAlpha = clamp01(1 - td * 1.5);
         }
         c.beginPath(); c.rect(clipX, r.y - 8, clipW, r.h + 20); c.clip();
         c.translate(0, r.y);

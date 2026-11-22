@@ -336,8 +336,9 @@ export function createTowerLayer(fx: Fx): WorldLayer {
         const mu = (clock - r.upgradeAt) / MORPH_MS;
         if (mu >= 0 && mu < 1) {
           // morph: the new fold backOuts in. The outgoing fold (scale to 0.8, fade) is WO-004's overlay
-          // (src/ui/ghost.ts drawMorph), so it is drawn exactly once.
-          paintTower(c, t.kind, t.tiers, t.x, t.y, { angle: ang, scale: Math.max(0.01, backOut(clamp01(mu))), alpha: clamp01(mu * 1.5), nowMs: ambient, coaster: true }, feel);
+          // (src/ui/ghost.ts drawMorph), so it is drawn exactly once. The coaster stays at scale 1 for the
+          // whole morph (F-032): ghost.ts drawMorphBase paints it under this pass, so only the figure scales.
+          paintTower(c, t.kind, t.tiers, t.x, t.y, { angle: ang, scale: Math.max(0.01, backOut(clamp01(mu))), alpha: clamp01(mu * 1.5), nowMs: ambient, coaster: false }, feel);
           continue;
         }
       }
