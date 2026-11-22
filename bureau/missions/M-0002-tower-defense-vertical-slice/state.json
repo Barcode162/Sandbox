@@ -5,7 +5,7 @@
   "tier": 3,
   "domain": "game",
   "output": "projects/tower-defense",
-  "phase": "remediation",
+  "phase": "ship-review",
   "created": "2026-11-20T21:00:43Z",
   "rounds": {
     "plan": 1,
@@ -21,11 +21,12 @@
   "headcount": {
     "experience-designer": 1,
     "architect": 1,
-    "director-engineering": 1,
+    "director-engineering": 2,
     "engineer": 6,
     "code-reviewer": 1,
     "qa-tester": 1,
-    "polish-critic": 2
+    "polish-critic": 2,
+    "director-vision": 1
   },
   "levers": [
     "polish"
@@ -54,7 +55,18 @@
     {
       "phase": "remediation",
       "at": "2026-11-21T02:34:01Z"
+    },
+    {
+      "phase": "ship-review",
+      "at": "2026-11-22T03:43:55Z"
     }
   ],
-  "updated": "2026-11-22T03:33:42Z"
+  "updated": "2026-11-22T03:43:55Z",
+  "budget_overrides": [
+    {
+      "n": 1,
+      "owner": "+1: one verifier (Recommended) — then the two directors vote, total 15 of 14",
+      "at": "2026-11-22T03:43:55Z"
+    }
+  ]
 }

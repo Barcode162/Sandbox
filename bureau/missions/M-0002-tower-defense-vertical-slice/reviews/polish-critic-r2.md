@@ -51,12 +51,26 @@ HEAD 73bbb61. dist/ is newer than every file in src/. I checked 25 resolved find
 **F-031 is a regression introduced by the F-022 fix.** The Splashes now spawn behind the boss. They move at 160 px/s and the boss at 28 px/s, so they overtake it and are drawn over the maw. That recreates the original "caterpillar on the face" for about 1 s, three times per fight (F-022-shed-overtake-600-2100ms-x1.5.jpg). Fix: sort the blots pass by radius so the boss draws above smaller blots while they overlap.
 
 ## Checks that passed
-- No new overlaps in the r2 frames: fold cards, HUD chips, banners, badges and the title wash all hold.
-- The press-on-down and act-on-release behaviour works for pointers, and a release outside the button cancels correctly.
-- Every stage hook landed on its moment, with zero console errors.
-
-## Strengths worth keeping
-The tier-box relayout reads at a glance. The death burst finally feels like the one big hit. The victory silence and the arrival of the cranes give the ending room to breathe.
+No new overlaps in the r2 frames (fold cards, chips, banners, badges, title wash). Press and release behave correctly. Every stage hook landed on its moment, with zero console errors.
 
 ## Overall assessment
-All 25 fixes hold in the pixels. What remains is one S2 regression in the boss fight (F-031) and two S3 refinements. The Flagship Test holds everywhere except the 50% shed beat, where F-031 should be fixed before the slice ships. Perf margin is adequate but thin on the worst pass (7.1 / 8 ms).
+All 25 fixes hold in the pixels. What remains is one S2 regression in the boss fight (F-031) and two S3 refinements. F-031 blocks the Flagship Test at the 50% shed beat. Perf margin is adequate but thin on the worst pass (7.1 / 8 ms).
+
+## Round 3: verification of F-031, F-032, F-033
+Working tree on top of 848d4d1; dist/ was rebuilt after the src changes. vitest 182/182. I recaptured the same frames with the same scripts.
+
+| ID | Verdict | Evidence (evidence/verify-r2/…) |
+|---|---|---|
+| F-031 | verified | r3-F-031-shed-overtake-600-2100ms-x1.5.jpg: the Splashes pass under the maw from 600 to 1400 ms and come out ahead. r3-F-031-shed-launch-x1.5.jpg: the spray behind the boss still reads at 130–280 ms. |
+| F-032 | verified | r3-F-032-morph-0-320ms-x3.jpg: the coaster edge sits at x 319 in all six sampled frames (pixel scan at y 510). Only the figure morphs. |
+| F-033 | verified | r3-F-033-death-0150-0900.jpg: the halves are pale, stay near the bar (y ≈ 60–100), are faint at 250 ms and gone by 300 ms. The empty track reads as a light paper tear, not as girders. |
+
+Regression scan:
+- **Over-inkwell pass (s < 175).** At arrival +0 to +2.5 s the boss stays above both the inkwell and the Knots, and the heave is intact (r3-F-031-arrival-overinkwell-x2.jpg).
+- **R20 death.** The burst radius, the Knots and the "The Inkmaw tears!" timing at ~500 ms are unchanged from r2.
+- **Victory.** Quiet from 0 to 1100 ms; cranes from 1300 ms (re-run, victory reached 6.85 s after death).
+- **Console.** Zero errors.
+
+Note: the r3 run overwrote raw/f023-death-d0300.jpg, so that file now shows the fixed tear. The r2 "before" state survives in F-023-F-021-death-0150-0900.jpg.
+
+All three are verified, with no new findings.
