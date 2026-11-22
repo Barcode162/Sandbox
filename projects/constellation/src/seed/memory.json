@@ -1371,6 +1371,11 @@
         "cook": 20,
         "child": 2
       },
+      "units": {
+        "physicist": "K",
+        "cook": "°C",
+        "child": "· warm"
+      },
       "tags": [
         "heat"
       ],
@@ -1386,6 +1391,11 @@
         "physicist": 373,
         "cook": 100,
         "child": 5
+      },
+      "units": {
+        "physicist": "K",
+        "cook": "°C",
+        "child": "· bubbly"
       },
       "tags": [
         "heat"
@@ -1403,6 +1413,11 @@
         "cook": 40,
         "child": 1
       },
+      "units": {
+        "physicist": "K",
+        "cook": "°C",
+        "child": "· a bit"
+      },
       "tags": [
         "heat"
       ],
@@ -1419,6 +1434,11 @@
         "cook": 45,
         "child": 1
       },
+      "units": {
+        "physicist": "K",
+        "cook": "°C",
+        "child": "· cool"
+      },
       "tags": [
         "heat"
       ],
@@ -1434,6 +1454,11 @@
         "physicist": 295,
         "cook": 18,
         "child": 1
+      },
+      "units": {
+        "physicist": "K",
+        "cook": "°C",
+        "child": "· cool"
       },
       "tags": [
         "heat"
@@ -2479,7 +2504,7 @@
       ],
       "pathway": {
         "op": "end",
-        "expr": "\"Done after \" + stirs + \" stirs · heat \" + heat + \" \" + @unit"
+        "expr": "\"Done after \" + stirs + \" stirs · heat \" + heat"
       },
       "created": 1793491200000,
       "updated": 1793491200000

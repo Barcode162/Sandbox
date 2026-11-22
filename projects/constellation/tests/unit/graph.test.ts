@@ -98,6 +98,19 @@ test('[U-graph-7] updateNode fires one node-updated with previous; snapshots nev
   assert.throws(() => g.updateNode(before.id, { id: 'other' } as never), isCode('invalid'));
 });
 
+test('[U-graph-14] units are carried through add/update and validated', () => {
+  const g = createGraph();
+  g.addPerspective({ id: 'cook', label: 'Cook' });
+  const t = g.addNode({ label: 'Temp', value: 20, units: { cook: '°C', '*': 'K' } });
+  assert.deepEqual(t.units, { cook: '°C', '*': 'K' });
+  assert.ok(Object.isFrozen(t.units));
+  assert.deepEqual(g.updateNode(t.id, { units: { cook: '°F' } }).units, { cook: '°F' });
+  assert.equal('units' in g.updateNode(t.id, { units: undefined }), false);
+  assert.throws(() => g.addNode({ label: 'X', units: { chef: '°C' } }), isCode('invalid'));
+  assert.throws(() => g.addNode({ label: 'X', units: { cook: '' } }), isCode('invalid'));
+  assert.throws(() => g.addNode({ label: 'X', units: { cook: 5 as unknown as string } }), isCode('invalid'));
+});
+
 test('[U-graph-8] removeNode cascades: one node-removed event carrying the removed relations', () => {
   const { g, events } = withEvents();
   const a = g.addNode({ label: 'A' }).id, b = g.addNode({ label: 'B' }).id, c = g.addNode({ label: 'C' }).id;

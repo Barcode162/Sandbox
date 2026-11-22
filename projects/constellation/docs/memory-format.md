@@ -8,7 +8,7 @@ A memory is one JSON document. The seed (`src/seed/memory.json`), **Export**, **
   "version": 1,
   "meta": { "title": "…", "defaultPerspective": "cook", "featured": { "route": { "from": "road-a", "to": "road-z" }, "pathway": "p1", "query": "boil" } },
   "perspectives": [ { "id": "cook", "label": "Cook", "accent": "#FF9F5A", "positions": { "temperature": { "x": 0, "y": 10, "z": 0 } } } ],
-  "nodes": [ { "id": "temperature", "label": "Temperature", "kind": "variable", "value": 20, "facets": { "physicist": 293, "cook": 20, "child": 2 }, "tags": ["heat"], "created": 0, "updated": 0 } ],
+  "nodes": [ { "id": "temperature", "label": "Temperature", "kind": "variable", "value": 20, "facets": { "physicist": 293, "cook": 20, "child": 2 }, "units": { "physicist": "K", "cook": "°C", "child": "· warm" }, "tags": ["heat"], "created": 0, "updated": 0 } ],
   "relations": [ { "id": "heat-01", "from": "temperature", "to": "heat", "type": "association", "weight": 1, "directed": false, "created": 0 } ]
 }
 ```
@@ -17,9 +17,10 @@ A memory is one JSON document. The seed (`src/seed/memory.json`), **Export**, **
 
 **Perspectives** (lenses) are the different ways of seeing one memory. Each has an `id`, a `label`, an optional `description` and `accent` colour, and optional `positions` (node id → `{x, y, z}`). Nodes without an authored position get a deterministic force layout seeded by the perspective id, so a layout is the same on every load.
 
-**Nodes** ("lights") have an `id`, a `label`, a `kind` (`concept`, `variable`, `file`, `note`, `pathway`), a base `value`, `facets`, `tags`, and timestamps in milliseconds (`created`, `updated`). Optional fields are `notes`, `file` and `pathway`.
+**Nodes** ("lights") have an `id`, a `label`, a `kind` (`concept`, `variable`, `file`, `note`, `pathway`), a base `value`, `facets`, `tags`, and timestamps in milliseconds (`created`, `updated`). Optional fields are `units`, `notes`, `file` and `pathway`.
 - A **value** is text (at most 500 characters), a number, `true`/`false`, or `null`.
 - **Facets** hold a value per perspective id. A missing key falls back to `value`. A key that is present, even with `null`, is that lens's own value. A node **disagrees** when its resolved values differ across lenses.
+- **Units** are for display only. They map a perspective id, or `"*"` for every lens, to short text (up to 40 characters). The unit for a lens is `units[lens] ?? units["*"]`, so `20` with `°C` reads *20 °C*. A unit that starts with `·` is a scale word naming one value (`2` with `· warm` reads *2 · warm*). Pathway notes show a scale word only beside the value it names.
 - A **file** is stored by reference: `{ name, path?, mime?, sizeNote?, content? }`. Inline `content` is text up to 64 KB.
 - A **pathway** step is `{ op, target?, expr?, source? }`, with `op` one of `start`, `assign`, `read`, `if`, `while` or `end`. Only nodes of kind `pathway` carry one.
 

@@ -56,7 +56,7 @@ export class StoreSheet {
       for (const b of seg.querySelectorAll<HTMLButtonElement>('button')) {
         const on = b.dataset.kind === k;
         b.setAttribute('aria-checked', String(on));
-        b.setAttribute('aria-pressed', String(on));
+        b.classList.toggle('on', on);
         b.tabIndex = on ? 0 : -1;
       }
       fileBox.style.display = k === 'file' ? 'flex' : 'none';

@@ -239,7 +239,7 @@ export class Drawer {
       const trace = playing?.trace ?? (isActive ? rec?.trace : undefined);
       if (trace) {
         const upto = playing ? playing.index : trace.steps.length - 1;
-        const ol = h('ol.trace', { 'aria-label': `Trace under ${app.lensLabel(playing?.lens ?? app.lens)}` });
+        const ol = h('ol.trace', { tabindex: '0', 'aria-label': `Trace under ${app.lensLabel(playing?.lens ?? app.lens)}` });
         trace.steps.forEach((s, i) => {
           if (i > upto) return;
           ol.append(this.traceItem(s, i, i === upto && !!playing, playing?.lens ?? app.lens));

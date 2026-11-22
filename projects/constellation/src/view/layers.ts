@@ -123,7 +123,7 @@ void main() {
   } else {
     core = fill(d - R);
   }
-  float halo = exp(-pow(d / (R * 1.35 * vMisc.z * haloK), 2.0)) * 0.42 * step(d, R * 3.2 * vMisc.z * haloK);
+  float halo = exp(-pow(d / (R * 1.35 * vMisc.z * haloK), 2.0)) * (kind == 3.0 ? 0.14 : 0.42) * step(d, R * 3.2 * vMisc.z * haloK);
   float ring = vMisc.w > 0.0 ? stroke(d - max(R * 2.4, R + 7.0), 1.5) * vMisc.w : 0.0;
   float b = vMisc.x;
   vec3 col = coreCol * core * b + vHalo * halo * min(b, 1.4) + vec3(0.96, 0.97, 1.0) * ring;
@@ -318,7 +318,7 @@ export const DASH = { solid: 0, dashed: 1, dotted: 2, fine: 3, dots: 4 } as cons
 export const SHEEN = { none: 0, isa: 1, road: 2 } as const;
 
 const LINE_VS = /* glsl */ `
-// position.x: t (0|1), position.y: side (-1|1) — named `position` so three.js draws it.
+// position.x: t (0|1), position.y: side (-1|1) — named 'position' so three.js draws it.
 attribute vec3 iA;
 attribute vec3 iB;
 attribute vec4 iColA;   // rgb + alpha

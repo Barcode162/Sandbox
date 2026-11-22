@@ -1337,7 +1337,7 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
         text: n.data.label,
         x: n.sx,
         y: n.sy,
-        offset: n.pxR + 6,
+        offset: (n.id === selected ? Math.max(n.pxR * 2.4, n.pxR + 7) : n.pxR) + 6,
         anchors: ['right', 'left', 'above', 'below'],
         priority: pr,
         opacity: op,
@@ -1430,7 +1430,7 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
       });
     }
     const cores: Array<{ x: number; y: number; r: number }> = [];
-    for (const n of order) if (n.onScreen && n.bright > 0.1) cores.push({ x: n.sx, y: n.sy, r: Math.max(3, n.pxR * (n.data.kind === 'pathway' ? 1.5 : 1)) + 1 });
+    for (const n of order) if (n.onScreen && n.bright > 0.1) cores.push({ x: n.sx, y: n.sy, r: (n.id === selected ? Math.max(n.pxR * 2.4, n.pxR + 7) : Math.max(3, n.pxR * (n.data.kind === 'pathway' ? 1.5 : 1))) + 1 });
     overlay.place(items, cap, width, height, cores);
   }
 

@@ -3,8 +3,8 @@
 // holds (including `previous` in events) never changes under them.
 import { CoreError } from './errors.ts';
 import {
-  canonMeta, canonNode, canonPerspective, canonRelation, canonStep, canonFile, deepFreeze, hasOwn, isValue,
-  MAX_FILE_CONTENT, MAX_VALUE_CHARS, NODE_KINDS, RELATION_TYPES, FLOW_BRANCHES,
+  canonMeta, canonNode, canonPerspective, canonRelation, canonStep, canonFile, canonUnits, deepFreeze, hasOwn, isValue,
+  MAX_FILE_CONTENT, MAX_UNIT_CHARS, MAX_VALUE_CHARS, NODE_KINDS, RELATION_TYPES, FLOW_BRANCHES,
 } from './internal.ts';
 import { SCHEMA_ID, SCHEMA_VERSION } from './types.ts';
 import type {
@@ -93,6 +93,7 @@ class Store implements MemoryGraph {
       created: now,
       updated: now,
     };
+    if (input.units !== undefined) node.units = canonUnits(input.units);
     if (input.notes !== undefined) node.notes = input.notes;
     if (input.file !== undefined) node.file = canonFile(input.file);
     if (input.pathway !== undefined) node.pathway = canonStep(input.pathway);
@@ -109,15 +110,15 @@ class Store implements MemoryGraph {
     const previous = this.#requireNode(id);
     const draft: MemoryNode = { ...previous, facets: { ...previous.facets }, tags: [...previous.tags] };
     for (const key of Object.keys(patch ?? {}) as (keyof NodePatch)[]) {
-      if (!['label', 'kind', 'value', 'facets', 'tags', 'notes', 'file', 'pathway'].includes(key)) {
+      if (!['label', 'kind', 'value', 'facets', 'units', 'tags', 'notes', 'file', 'pathway'].includes(key)) {
         throw new CoreError('invalid', `"${String(key)}" can't be changed on a node.`);
       }
       const v = patch[key];
       if (v === undefined) {
-        if (key === 'notes' || key === 'file' || key === 'pathway') delete draft[key];
+        if (key === 'units' || key === 'notes' || key === 'file' || key === 'pathway') delete draft[key];
         continue;
       }
-      (draft as unknown as Record<string, unknown>)[key] = key === 'facets' ? { ...(v as object) } : key === 'tags' ? [...(v as string[])] : v;
+      (draft as unknown as Record<string, unknown>)[key] = key === 'facets' || key === 'units' ? { ...(v as object) } : key === 'tags' ? [...(v as string[])] : v;
     }
     draft.updated = Math.max(this.#stamp(), previous.updated);
     this.#checkNode(draft);
@@ -353,6 +354,13 @@ class Store implements MemoryGraph {
     for (const [p, v] of Object.entries(n.facets)) {
       if (!this.#perspectives.has(p)) throw new CoreError('invalid', `There is no perspective "${p}" to hold a value for.`);
       checkValue(v as Value, `Its value under ${this.#perspectives.get(p)!.label}`);
+    }
+    if (n.units !== undefined) {
+      if (!n.units || typeof n.units !== 'object' || Array.isArray(n.units)) throw new CoreError('invalid', 'Units must be an object of perspective → unit text.');
+      for (const [p, u] of Object.entries(n.units)) {
+        if (p !== '*' && !this.#perspectives.has(p)) throw new CoreError('invalid', `There is no perspective "${p}" to hold a unit for.`);
+        if (typeof u !== 'string' || !u.trim() || u.length > MAX_UNIT_CHARS) throw new CoreError('invalid', `A unit is a short piece of text (up to ${MAX_UNIT_CHARS} characters), like "°C".`);
+      }
     }
     if (!Array.isArray(n.tags) || n.tags.some((t) => typeof t !== 'string')) throw new CoreError('invalid', 'Tags must be a list of words.');
     if (n.notes !== undefined && typeof n.notes !== 'string') throw new CoreError('invalid', 'Notes must be text.');

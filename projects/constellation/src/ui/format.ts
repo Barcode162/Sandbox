@@ -41,6 +41,8 @@ export class Units {
   }
 
   unitFor(node: MemoryNode, lens: PerspectiveId): string {
+    // The core's own per-node units win (MemoryNode.units); the "unit" variable is the fallback.
+    if (node.units) return node.units[lens] ?? node.units['*'] ?? '';
     if (!this.unitNode || node.id === this.unitNode.id || node.kind !== 'variable') return '';
     if (!node.tags.some((t) => this.tags.has(t))) return '';
     const u = resolveValue(this.unitNode, lens);

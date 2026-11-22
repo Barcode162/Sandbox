@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { disagrees, facetsOf, isRelationVisible, resolveValue, visibleRelations } from '../../src/core/index.ts';
+import { disagrees, facetsOf, formatValue, isRelationVisible, resolveValue, visibleRelations } from '../../src/core/index.ts';
 import type { MemoryNode } from '../../src/core/index.ts';
 import { seedGraph } from './support/seed.ts';
 
@@ -22,6 +22,16 @@ test('[U-perspectives-2] facetsOf: one view per perspective, in order, marking o
     { perspective: 'physicist', value: 293, own: true },
     { perspective: 'child', value: 'base', own: false },
   ]);
+});
+
+test('[U-perspectives-8] facetsOf fills unit from units[lens] ?? units["*"]; formatValue reads it', () => {
+  const n = { ...node({ cook: 20, physicist: 293 }), units: { physicist: 'K', '*': '°C' } };
+  assert.deepEqual(facetsOf(n, P).map((f) => f.unit), ['°C', 'K', '°C']);
+  assert.equal('unit' in facetsOf(node({}), P)[0]!, false);
+  const g = seedGraph();
+  assert.deepEqual(facetsOf(g.getNode('temperature')!, g.perspectives()).map((f) => formatValue(f.value, f.unit)), ['20 °C', '293 K', '2 · warm']);
+  assert.equal(formatValue('hot', 'K'), 'hot', 'units attach to numbers only');
+  assert.equal(formatValue(null), 'empty');
 });
 
 test('[U-perspectives-3] disagrees compares resolved values strictly', () => {

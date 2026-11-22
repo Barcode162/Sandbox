@@ -33,8 +33,7 @@ test('[U-flow-3] Simmer (while loop) per lens: stirs, heat trail and visit count
   assert.equal(child.vars.heat, 5);
   assert.equal(child.steps.length, 14);
   assert.deepEqual(heats(child), [2, 3, 4, 5]);
-  // §5 writes this as "heat 5 · bubbly"; the format has no per-value words (REQUEST in reports/WO-002.md).
-  assert.equal(child.result, 'Done after 3 stirs · heat 5 hand-feel');
+  assert.equal(child.result, 'Done after 3 stirs · heat 5 · bubbly');
 });
 
 test('[U-flow-4] Serve (if/else) per lens: three different outcomes and visit paths', () => {
@@ -54,15 +53,15 @@ test('[U-flow-5] trace steps: readable notes, branch and via, vars after each st
   const t = runPathway(g, 'p1', 'cook');
   assert.deepEqual(t.steps.map((s) => s.note), [
     'start · Simmer until done (Cook)',
-    'read heat ← Temperature · 20',
+    'read heat ← Temperature · 20 °C',
     'assign stirs ← 0',
-    'while heat < Boiling Point · 20 < 100 → true',
-    'assign heat ← heat + Flame Step · 20 + 40 → 60',
+    'while heat < Boiling Point · 20 °C < 100 °C → true',
+    'assign heat ← heat + Flame Step · 20 °C + 40 °C → 60 °C',
     'assign stirs ← stirs + 1 · 0 + 1 → 1',
-    'while heat < Boiling Point · 60 < 100 → true',
-    'assign heat ← heat + Flame Step · 60 + 40 → 100',
+    'while heat < Boiling Point · 60 °C < 100 °C → true',
+    'assign heat ← heat + Flame Step · 60 °C + 40 °C → 100 °C',
     'assign stirs ← stirs + 1 · 1 + 1 → 2',
-    'while heat < Boiling Point · 100 < 100 → false',
+    'while heat < Boiling Point · 100 °C < 100 °C → false',
     'end · Done after 2 stirs · heat 100 °C',
   ]);
   const visit7 = t.steps[6]!; // F9: trace[6] is P4 with heat 60, stirs 1
@@ -72,7 +71,15 @@ test('[U-flow-5] trace steps: readable notes, branch and via, vars after each st
   assert.equal(t.steps.at(-1)!.via, undefined);
   t.steps.forEach((s, i) => assert.equal(s.index, i));
   assert.deepEqual(t.vars, { heat: 100, stirs: 2 });
-  assert.equal(runPathway(g, 'q1', 'physicist').steps[3]!.note, 'if t < Room · 293 < 295 → true');
+  assert.equal(runPathway(g, 'q1', 'physicist').steps[3]!.note, 'if t < Room · 293 K < 295 K → true');
+});
+
+test('[U-flow-10] units: scale words show only on the value they name (Child notes)', () => {
+  const notes = runPathway(seedGraph(), 'p1', 'child').steps.map((s) => s.note);
+  assert.equal(notes[3], 'while heat < Boiling Point · 2 · warm < 5 · bubbly → true');
+  assert.equal(notes[6], 'while heat < Boiling Point · 3 < 5 · bubbly → true', '3 has no word on the hand-feel scale');
+  assert.equal(notes[10], 'assign heat ← heat + Flame Step · 4 + 1 · a bit → 5 · bubbly');
+  assert.equal(runPathway(seedGraph(), 'q1', 'child').steps[2]!.note, 'if t > Safe To Touch · 2 · warm > 1 · cool → true');
 });
 
 test('[U-flow-6] stepPathway yields one step per visit and returns the trace', () => {
@@ -120,6 +127,10 @@ test('[U-flow-8] the max-step guard yields max-steps with the spec sentence, nev
   assert.equal(t.result, null);
   assert.equal(t.error, 'Stopped after 100 loops: the condition never became false (heat stayed 20).');
   assert.equal(runPathway(loopGraph(), 's', 'base').steps.length, 500, 'default guard is 500 steps');
+  const withUnits = loopGraph();
+  withUnits.addNode({ id: 'temp', label: 'Temp', value: 20, units: { '*': '°C' } });
+  withUnits.updateNode('r', { pathway: { op: 'read', target: 'heat', source: 'temp' } });
+  assert.equal(runPathway(withUnits, 's', 'base', { maxSteps: 202 }).error, 'Stopped after 100 loops: the condition never became false (heat stayed 20 °C).');
 });
 
 test('[U-flow-9] user errors end the trace with status error and the spec copy, never throw', () => {

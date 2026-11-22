@@ -3,7 +3,7 @@
 export * from './types.ts';
 export { CoreError } from './errors.ts';
 export { createGraph, emptyDoc } from './graph.ts';
-export { resolveValue, facetsOf, disagrees, isRelationVisible, visibleRelations } from './perspectives.ts';
+export { resolveValue, facetsOf, disagrees, isRelationVisible, visibleRelations, formatValue } from './perspectives.ts';
 export { forceLayout, layoutFor } from './layout.ts';
 export { declaredPath, shortestPath, compareRoutes, learnShortcut } from './routing.ts';
 export { search, spreadActivation, retrieve } from './retrieval.ts';

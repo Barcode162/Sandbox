@@ -9,7 +9,7 @@
 // exists"), so the autosave of that memory must still load.
 import {
   canonMeta, canonNode, canonPerspective, canonRelation, hasOwn, isValue, isVariableName, quoteLabel,
-  FLOW_BRANCHES, MAX_FILE_CONTENT, MAX_VALUE_CHARS, NODE_KINDS, PATHWAY_OPS, RELATION_TYPES,
+  FLOW_BRANCHES, MAX_FILE_CONTENT, MAX_UNIT_CHARS, MAX_VALUE_CHARS, NODE_KINDS, PATHWAY_OPS, RELATION_TYPES,
 } from './internal.ts';
 import { parseExpr } from './expr.ts';
 import { CoreError } from './errors.ts';
@@ -28,7 +28,7 @@ const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFin
 const typeName = (v: unknown): string => (v === null ? 'empty (null)' : Array.isArray(v) ? 'a list' : typeof v === 'object' ? 'an object' : typeof v === 'string' ? 'text' : `a ${typeof v}`);
 
 const TOP_KEYS = ['schema', 'version', 'meta', 'perspectives', 'nodes', 'relations'];
-const NODE_KEYS = ['id', 'label', 'kind', 'value', 'facets', 'tags', 'notes', 'file', 'pathway', 'created', 'updated'];
+const NODE_KEYS = ['id', 'label', 'kind', 'value', 'facets', 'units', 'tags', 'notes', 'file', 'pathway', 'created', 'updated'];
 const REL_KEYS = ['id', 'from', 'to', 'type', 'weight', 'directed', 'branch', 'label', 'perspectives', 'created'];
 const PERSP_KEYS = ['id', 'label', 'description', 'accent', 'positions'];
 
@@ -94,6 +94,14 @@ export function validateDoc(input: unknown): ImportResult {
     else for (const [pid, v] of Object.entries(n.facets)) {
       if (!perspectiveIds.has(pid)) err(`${at}.facets.${pid}`, `${name} has a value for the perspective "${pid}", which doesn't exist in this memory.`);
       checkValue(v, `${at}.facets.${pid}`, `The "${pid}" value of ${name}`, err);
+    }
+    if (n.units !== undefined) {
+      if (!isObj(n.units)) err(`${at}.units`, `${name} has "units" that aren't an object of perspective id → unit text (use "*" for every lens).`);
+      else for (const [pid, u] of Object.entries(n.units)) {
+        if (pid !== '*' && !perspectiveIds.has(pid)) err(`${at}.units.${pid}`, `${name} has a unit for the perspective "${pid}", which doesn't exist in this memory.`);
+        if (!isText(u) || !u.trim()) err(`${at}.units.${pid}`, `${name} has a "${pid}" unit that isn't text. A unit is short text like "°C".`);
+        else if (u.length > MAX_UNIT_CHARS) err(`${at}.units.${pid}`, `${name} has a "${pid}" unit of ${u.length} characters. Units hold up to ${MAX_UNIT_CHARS} characters.`);
+      }
     }
     if (!Array.isArray(n.tags) || n.tags.some((t) => !isText(t))) err(`${at}.tags`, `${name} needs "tags" as a list of words (it can be empty).`);
     if (n.notes !== undefined && !isText(n.notes)) err(`${at}.notes`, `${name} has notes that aren't text.`);

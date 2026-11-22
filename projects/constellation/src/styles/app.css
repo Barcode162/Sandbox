@@ -162,11 +162,12 @@ body.show-tools .lenses, body.show-tools .tools { opacity: 1; transform: none; t
 .row { display: flex; gap: var(--s2); align-items: center; }
 .row.wrap { flex-wrap: wrap; }
 .row.end { justify-content: flex-end; }
-.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s3); }
+.field input, .field select { width: 100%; }
 .seg { display: inline-flex; border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); overflow: hidden; }
 .seg button { height: 28px; padding: 0 10px; border: 0; background: transparent; color: var(--ink-dim); cursor: pointer; font: 500 var(--fs-12) / 1 var(--font-mono); }
 .seg button + button { border-left: 1px solid var(--hairline-strong); }
-.seg button[aria-pressed='true'] { background: rgba(232, 236, 245, 0.12); color: var(--ink); }
+.seg button[aria-pressed='true'], .seg button.on { background: rgba(232, 236, 245, 0.12); color: var(--ink); }
 .seg button:hover { color: var(--ink); }
 .seg.kind button { font-family: var(--font-ui); height: var(--control-h); padding: 0 var(--s3); font-size: var(--fs-13); }
 

@@ -9,8 +9,9 @@
 //   "reads" (pathway → the node it reads) · pathway arrows → flow with branch next/true/false.
 // Every relation except flow is undirected: §5 says "Relations are traversable both ways for
 // routing". `from`/`to` keep the spec's arrow direction for drawing.
-// Numbers that conditions compare are stored as numbers (plan.md quality note); the unit lives
-// in the `unit` variable, whose facets are K / °C / hand-feel.
+// Numbers that conditions compare are stored as numbers (plan.md quality note); how they read
+// lives in `units` (display only): K for the Physicist, °C for the Cook, and for the Child the
+// hand-feel word §5 gives each value ("2 · warm" → value 2, unit "· warm").
 import { forceLayout } from '../../../src/core/layout.ts';
 import { canonMeta, canonNode, canonPerspective, canonRelation, hashString, mulberry32 } from '../../../src/core/internal.ts';
 import type { MemoryDoc, MemoryNode, NodeKind, PathwayStep, Perspective, Relation, RelationType, Value, Vec3 } from '../../../src/core/types.ts';
@@ -57,11 +58,12 @@ function step(id: string, label: string, cluster: Cluster, pathway: PathwayStep)
 
 // ── Heat cluster (16) ────────────────────────────────────────────────────────────────────
 // Base value = the Cook value (the default lens); every lens has its own facet.
-node('temperature', 'Temperature', 'variable', 'heat', 20, [293, 20, 2]);
-node('boiling-point', 'Boiling Point', 'variable', 'heat', 100, [373, 100, 5]);
-node('flame-step', 'Flame Step', 'variable', 'heat', 40, [20, 40, 1]);
-node('safe-to-touch', 'Safe To Touch', 'variable', 'heat', 45, [318, 45, 1]);
-node('room', 'Room', 'variable', 'heat', 18, [295, 18, 1]);
+const units = (child: string) => ({ units: { physicist: 'K', cook: '°C', child } });
+node('temperature', 'Temperature', 'variable', 'heat', 20, [293, 20, 2], units('· warm'));
+node('boiling-point', 'Boiling Point', 'variable', 'heat', 100, [373, 100, 5], units('· bubbly'));
+node('flame-step', 'Flame Step', 'variable', 'heat', 40, [20, 40, 1], units('· a bit'));
+node('safe-to-touch', 'Safe To Touch', 'variable', 'heat', 45, [318, 45, 1], units('· cool'));
+node('room', 'Room', 'variable', 'heat', 18, [295, 18, 1], units('· cool'));
 node('heat', 'Heat', 'concept', 'heat', 'how high the flame is', ['energy moving from hot to cold', 'how high the flame is', 'the thing that says ouch']);
 node('steam', 'Steam', 'concept', 'heat', 'the soup is ready', ['water as gas, above 373 K', 'the soup is ready', 'the cloud from the pot']);
 node('soup', 'Soup', 'concept', 'heat', "Tuesday's leek soup", ['mostly water, 1.0 kg', "Tuesday's leek soup", 'dinner']);
@@ -125,7 +127,7 @@ step('p3', 'assign stirs ← 0', 'simmer', { op: 'assign', target: 'stirs', expr
 step('p4', 'while heat is too low', 'simmer', { op: 'while', expr: 'heat < @"Boiling Point"' });
 step('p5', 'assign heat ← heat + Flame Step', 'simmer', { op: 'assign', target: 'heat', expr: 'heat + @"Flame Step"' });
 step('p6', 'assign stirs ← stirs + 1', 'simmer', { op: 'assign', target: 'stirs', expr: 'stirs + 1' });
-step('p7', 'end: done after n stirs', 'simmer', { op: 'end', expr: '"Done after " + stirs + " stirs · heat " + heat + " " + @unit' });
+step('p7', 'end: done after n stirs', 'simmer', { op: 'end', expr: '"Done after " + stirs + " stirs · heat " + heat' });
 step('q1', 'What should I do with it?', 'serve', { op: 'start' });
 step('q2', 'read t ← Temperature', 'serve', { op: 'read', target: 't', source: 'temperature' });
 step('q3', 'if t > Safe To Touch', 'serve', { op: 'if', expr: 't > @"Safe To Touch"' });

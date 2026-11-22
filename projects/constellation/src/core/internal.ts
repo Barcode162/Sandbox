@@ -92,8 +92,18 @@ export function canonFacets(f: Partial<Record<string, Value>>): Partial<Record<s
   return out;
 }
 
+export function canonUnits(u: Partial<Record<string, string>>): Partial<Record<string, string>> {
+  const out: Partial<Record<string, string>> = {};
+  for (const [k, v] of Object.entries(u)) if (v !== undefined) out[k] = v;
+  return out;
+}
+
+export const MAX_UNIT_CHARS = 40;
+
 export function canonNode(n: MemoryNode): MemoryNode {
-  const out: Record<string, unknown> = { id: n.id, label: n.label, kind: n.kind, value: n.value, facets: canonFacets(n.facets), tags: [...n.tags] };
+  const out: Record<string, unknown> = { id: n.id, label: n.label, kind: n.kind, value: n.value, facets: canonFacets(n.facets) };
+  if (n.units !== undefined) out.units = canonUnits(n.units);
+  out.tags = [...n.tags];
   if (n.notes !== undefined) out.notes = n.notes;
   if (n.file !== undefined) out.file = canonFile(n.file);
   if (n.pathway !== undefined) out.pathway = canonStep(n.pathway);
@@ -148,3 +158,24 @@ export const NODE_KINDS = ['concept', 'variable', 'file', 'note', 'pathway'] as 
 export const RELATION_TYPES = ['association', 'chain', 'part-of', 'causes', 'shortcut', 'flow'] as const;
 export const PATHWAY_OPS = ['start', 'assign', 'if', 'while', 'read', 'end'] as const;
 export const FLOW_BRANCHES = ['next', 'true', 'false'] as const;
+
+/** units[perspective] ?? units['*']. */
+export function unitOf(node: MemoryNode, perspective: string): string | undefined {
+  const u = node.units;
+  if (!u) return undefined;
+  return (hasOwn(u, perspective) ? u[perspective] : undefined) ?? (hasOwn(u, '*') ? u['*'] : undefined);
+}
+
+/**
+ * A unit that starts with "·" names one point on a scale ("· warm", "· bubbly"), not a suffix
+ * that fits any number. Such words are only shown next to the value they describe.
+ */
+export function isScaleWord(unit: string | undefined): boolean {
+  return unit !== undefined && unit.trimStart().startsWith('·');
+}
+
+/** "20 °C", "2 · warm", "Kettle". Units attach to numbers only. */
+export function withUnit(value: Value, unit: string | undefined): string {
+  const text = value === null ? 'empty' : typeof value === 'number' ? formatNumber(value) : String(value);
+  return typeof value === 'number' && unit ? `${text} ${unit.trim()}` : text;
+}

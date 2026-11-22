@@ -39,7 +39,7 @@ test('[U-persistence-3] the seed file is already in export form: export(import(s
 
 test('[U-persistence-4] export → import round-trips deep-equal, including edits', () => {
   const g = seedGraph();
-  const tea = g.addNode({ label: 'Tea', facets: { cook: 'hot' }, kind: 'file', file: { name: 'tea.txt', path: '/k/tea.txt', content: 'Steep 4 min.' } });
+  const tea = g.addNode({ label: 'Tea', facets: { cook: 'hot' }, units: { '*': '°C', child: '· warm' }, kind: 'file', file: { name: 'tea.txt', path: '/k/tea.txt', content: 'Steep 4 min.' } });
   g.addRelation({ from: tea.id, to: 'temperature', label: 'relates' });
   learnShortcut(g, shortestPath(g, 'road-a', 'road-z', { perspective: 'cook' })!);
   const doc = exportDoc(g);
@@ -47,6 +47,8 @@ test('[U-persistence-4] export → import round-trips deep-equal, including edit
   assert.ok(res.ok);
   assert.deepEqual(res.doc, doc);
   assert.deepEqual(exportDoc(createGraph(res.doc)), doc);
+  assert.deepEqual(res.doc.nodes.find((n) => n.label === 'Tea')!.units, { '*': '°C', child: '· warm' });
+  assert.deepEqual(res.doc.nodes.find((n) => n.id === 'temperature')!.units, { physicist: 'K', cook: '°C', child: '· warm' });
 });
 
 /** Each case: a mutation of the seed, the issue path, and a fragment of the sentence. */
@@ -70,6 +72,9 @@ const BROKEN: Array<[string, (d: any) => unknown, string, RegExp]> = [
   ['default lens missing', (d) => { d.meta.defaultPerspective = 'chef'; }, 'meta.defaultPerspective', /opens in the perspective "chef", which doesn't exist/],
   ['featured pathway is not a start', (d) => { d.meta.featured.pathway = 'p4'; }, 'meta.featured.pathway', /isn't the start of a pathway/],
   ['file content too big', (d) => { d.nodes[16].file.content = 'x'.repeat(70 * 1024); }, 'nodes[16].file.content', /70 KB of file text; the limit is 64 KB/],
+  ['unit for unknown lens', (d) => { d.nodes[0].units.chef = '°F'; }, 'nodes[0].units.chef', /has a unit for the perspective "chef", which doesn't exist/],
+  ['unit not text', (d) => { d.nodes[0].units.cook = 5; }, 'nodes[0].units.cook', /"cook" unit that isn't text\. A unit is short text like "°C"\./],
+  ['units not an object', (d) => { d.nodes[1].units = ['K']; }, 'nodes[1].units', /"units" that aren't an object of perspective id → unit text/],
   ['value too long', (d) => { d.nodes[9].value = 'x'.repeat(501); }, 'nodes[9].value', /is 501 characters long\. Values hold up to 500 characters\. Put longer text in a File\./],
 ];
 

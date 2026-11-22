@@ -6,9 +6,17 @@
 // Trace notes read like the drawer's trace list: "<the step> · <the step with values> → <outcome>",
 // e.g. `while heat < Boiling Point · 60 < 100 → true`. Failures never throw: the run ends with
 // status 'error' and a sentence that names the step and the missing thing (experience.md §10).
+//
+// Units (MemoryNode.units, display only). A variable carries the unit of the node it came from:
+// `read` takes the source's unit; `assign` takes the unit of the first operand that has one.
+// Numbers then print with that unit ("60 °C < 100 °C"). A unit starting with "·" is a scale word
+// ("· warm", "· bubbly") that names one value, so it is shown only when the number equals the
+// value of a node this pathway touches that carries the word; otherwise the bare number shows.
+// An `end` whose expression builds text by `+` renders its variables and refs with their units,
+// and that text is Trace.result: "Done after 2 stirs · heat 100 °C".
 import { CoreError } from './errors.ts';
 import { evaluate, isTruthy, parseExpr, printExpr, references, variablesOf } from './expr.ts';
-import { formatNumber, hasOwn, isVariableName, showValue } from './internal.ts';
+import { formatNumber, hasOwn, isScaleWord, isVariableName, showValue, unitOf, withUnit } from './internal.ts';
 import { isRelationVisible, resolveValue } from './perspectives.ts';
 import type { Expr, FlowBranch, MemoryGraph, MemoryNode, NodeId, PerspectiveId, Relation, RunOptions, Scope, Trace, TraceStep, Value } from './types.ts';
 
@@ -80,23 +88,75 @@ export function* stepPathway(graph: MemoryGraph, start: NodeId, perspective: Per
       return resolveValue(node, perspective);
     },
   };
-  /** The expression with every variable and @ref replaced by its current value. */
+  // ── units ──
+  const unitsOf = new Map<string, { unit: string; source: MemoryNode }>();
+  let scaleNodes: MemoryNode[] | null = null;
+  /** Nodes this pathway reads or refers to that carry a scale word under this lens. */
+  const scaleWords = (): MemoryNode[] => {
+    if (scaleNodes) return scaleNodes;
+    const found = new Map<NodeId, MemoryNode>();
+    for (const id of pathwayNodes(graph, start)) {
+      const s = graph.getNode(id)?.pathway;
+      const candidates: (MemoryNode | undefined)[] = [];
+      if (s?.source !== undefined) candidates.push(graph.getNode(s.source));
+      if (s?.expr !== undefined) {
+        try { for (const l of references(parse(s.expr))) candidates.push(graph.findByLabel(l)); } catch { /* reported when run */ }
+      }
+      for (const c of candidates) if (c && isScaleWord(unitOf(c, perspective))) found.set(c.id, c);
+    }
+    return (scaleNodes = [...found.values()]);
+  };
+  const showRef = (n: MemoryNode): string => {
+    const v = resolveValue(n, perspective);
+    return typeof v === 'number' ? withUnit(v, unitOf(n, perspective)) : showValue(v);
+  };
+  const showVar = (name: string): string | undefined => {
+    if (!hasOwn(vars, name)) return undefined;
+    const v = vars[name] as Value;
+    const info = unitsOf.get(name);
+    if (typeof v !== 'number' || !info) return showValue(v);
+    if (!isScaleWord(info.unit)) return withUnit(v, info.unit);
+    if (resolveValue(info.source, perspective) === v) return withUnit(v, info.unit);
+    const match = scaleWords().find((n) => resolveValue(n, perspective) === v);
+    return match ? withUnit(v, unitOf(match, perspective)) : formatNumber(v);
+  };
+  /** The expression with every variable and @ref replaced by its current value (with units). */
   const withValues = (e: Expr): string =>
     printExpr(e, (leaf) => {
-      if (leaf.kind === 'var') return hasOwn(vars, leaf.name) ? showValue(vars[leaf.name] as Value) : undefined;
+      if (leaf.kind === 'var') return showVar(leaf.name);
       if (leaf.kind === 'ref') {
-        const node = graph.findByLabel(leaf.label);
-        return node ? showValue(resolveValue(node, perspective)) : undefined;
+        const n = graph.findByLabel(leaf.label);
+        return n ? showRef(n) : undefined;
       }
       return undefined;
     });
+  /** Unit an assignment inherits: the first operand (in source order) that has one. */
+  const inheritUnit = (e: Expr): { unit: string; source: MemoryNode } | undefined => {
+    if (e.kind === 'var') return unitsOf.get(e.name);
+    if (e.kind === 'ref') {
+      const n = graph.findByLabel(e.label);
+      const unit = n ? unitOf(n, perspective) : undefined;
+      return n && unit !== undefined ? { unit, source: n } : undefined;
+    }
+    if (e.kind === 'unary') return inheritUnit(e.arg);
+    if (e.kind === 'binary') return inheritUnit(e.left) ?? inheritUnit(e.right);
+    return undefined;
+  };
+  /** Text built with `+`, with each variable and ref shown with its unit. */
+  const renderText = (e: Expr): string => {
+    if (e.kind === 'binary' && e.op === '+' && typeof evaluate(e, scope) === 'string') return renderText(e.left) + renderText(e.right);
+    if (e.kind === 'var') return showVar(e.name) ?? '';
+    if (e.kind === 'ref') { const n = graph.findByLabel(e.label); if (n) return showRef(n).replace(/^"|"$/g, ''); }
+    const v = evaluate(e, scope);
+    return typeof v === 'number' ? formatNumber(v) : String(v);
+  };
 
   // Per while node: visits, loops taken, variable values at its first check (for the guard message).
   const loops = new Map<NodeId, { loops: number; firstVars: Record<string, Value> }>();
   let node: MemoryNode = first;
 
   for (;;) {
-    if (steps.length >= maxSteps) return trace('max-steps', null, guardMessage(graph, loops, vars, maxSteps));
+    if (steps.length >= maxSteps) return trace('max-steps', null, guardMessage(graph, loops, vars, maxSteps, showVar));
     const step = node.pathway;
     const index = steps.length;
     const label = node.label;
@@ -146,7 +206,10 @@ export function* stepPathway(graph: MemoryGraph, start: NodeId, perspective: Per
           if (!isVariableName(step.target)) throw new Stop(`Stopped at "${label}": it doesn't name a variable to read into.`);
           const v = resolveValue(source, perspective);
           vars[step.target] = v;
-          note = `read ${step.target} ← ${source.label} · ${showValue(v)}`;
+          const unit = unitOf(source, perspective);
+          if (typeof v === 'number' && unit !== undefined) unitsOf.set(step.target, { unit, source });
+          else unitsOf.delete(step.target);
+          note = `read ${step.target} ← ${source.label} · ${showVar(step.target)}`;
           break;
         }
         case 'assign': {
@@ -154,8 +217,12 @@ export function* stepPathway(graph: MemoryGraph, start: NodeId, perspective: Per
           const { expr, value } = run(step.expr, 'assign');
           const plain = printExpr(expr);
           const filled = withValues(expr);
+          const unit = typeof value === 'number' ? inheritUnit(expr) : undefined;
           vars[step.target] = value;
-          note = filled === showValue(value) ? `assign ${step.target} ← ${plain}` : `assign ${step.target} ← ${plain} · ${filled} → ${showValue(value)}`;
+          if (unit) unitsOf.set(step.target, unit);
+          else unitsOf.delete(step.target);
+          const literal = expr.kind === 'num' || expr.kind === 'str' || expr.kind === 'bool' || expr.kind === 'null';
+          note = literal ? `assign ${step.target} ← ${plain}` : `assign ${step.target} ← ${plain} · ${filled} → ${showVar(step.target)}`;
           break;
         }
         case 'if':
@@ -173,7 +240,10 @@ export function* stepPathway(graph: MemoryGraph, start: NodeId, perspective: Per
           break;
         }
         case 'end': {
-          if (step.expr !== undefined) result = run(step.expr, 'end').value;
+          if (step.expr !== undefined) {
+            const { expr, value } = run(step.expr, 'end');
+            result = typeof value === 'string' ? renderText(expr) : value;
+          }
           note = `end · ${typeof result === 'string' ? result : showValue(result)}`;
           break;
         }
@@ -213,7 +283,13 @@ export function* stepPathway(graph: MemoryGraph, start: NodeId, perspective: Per
 }
 
 /** "Stopped after 100 loops: the condition never became false (heat stayed 20)." */
-function guardMessage(graph: MemoryGraph, loops: Map<NodeId, { loops: number; firstVars: Record<string, Value> }>, vars: Record<string, Value>, maxSteps: number): string {
+function guardMessage(
+  graph: MemoryGraph,
+  loops: Map<NodeId, { loops: number; firstVars: Record<string, Value> }>,
+  vars: Record<string, Value>,
+  maxSteps: number,
+  show: (name: string) => string | undefined,
+): string {
   let hot: [NodeId, { loops: number; firstVars: Record<string, Value> }] | undefined;
   for (const entry of loops) if (!hot || entry[1].loops > hot[1].loops) hot = entry;
   if (!hot || hot[1].loops === 0) return `Stopped after ${maxSteps} steps: the pathway never reached an end.`;
@@ -224,7 +300,7 @@ function guardMessage(graph: MemoryGraph, loops: Map<NodeId, { loops: number; fi
     try {
       stuck = variablesOf(parseExpr(src))
         .filter((v) => hasOwn(vars, v) && hasOwn(firstVars, v) && vars[v] === firstVars[v])
-        .map((v) => `${v} stayed ${typeof vars[v] === 'number' ? formatNumber(vars[v] as number) : showValue(vars[v] as Value)}`);
+        .map((v) => `${v} stayed ${show(v)}`);
     } catch {
       stuck = [];
     }
