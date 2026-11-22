@@ -1,0 +1,33 @@
+{
+  "id": "M-0002",
+  "title": "Constellation: 3D relational memory space",
+  "slug": "constellation",
+  "tier": 2,
+  "domain": "interactive-web",
+  "output": "projects/constellation",
+  "phase": "design",
+  "created": "2026-11-22T19:28:56Z",
+  "rounds": {
+    "plan": 1,
+    "ship": 1
+  },
+  "gates": {},
+  "headcount": {
+    "experience-designer": 1,
+    "architect": 1
+  },
+  "levers": [
+    "polish"
+  ],
+  "history": [
+    {
+      "phase": "intake",
+      "at": "2026-11-22T19:28:56Z"
+    },
+    {
+      "phase": "design",
+      "at": "2026-11-22T19:29:38Z"
+    }
+  ],
+  "updated": "2026-11-22T19:29:40Z"
+}
