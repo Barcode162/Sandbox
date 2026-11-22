@@ -1,3 +1,4 @@
 {"gate": "plan", "round": 1, "director": "director-engineering", "verdict": "CONDITIONAL", "score": 8.0, "report": "board/plan-director-engineering-r1.md", "note": "", "at": "2026-11-20T21:33:36Z"}
 {"gate": "ship", "round": 1, "director": "director-vision", "verdict": "CONDITIONAL", "score": 8.1, "report": "board/ship-director-vision-r1.md", "note": "", "at": "2026-11-22T03:46:52Z"}
 {"gate": "ship", "round": 1, "director": "director-engineering", "verdict": "APPROVE", "score": 8.4, "report": "board/ship-director-engineering-r1.md", "note": "", "at": "2026-11-22T03:46:58Z"}
+{"gate": "ship", "round": 1, "director": "director-vision", "verdict": "APPROVE", "score": 8.2, "report": "board/ship-director-vision-r1.md", "note": "", "at": "2026-11-22T19:23:44Z"}

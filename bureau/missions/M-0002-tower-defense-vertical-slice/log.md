@@ -154,3 +154,9 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-22T19:20:59Z` **ceo** — Ship votes r1: engineering APPROVE 8.4 (F-034, F-035 S3); vision CONDITIONAL 8.1 (2 conditions filed as F-036, F-037). CEO fixed all four as glue; verify:strict GREEN 40.2 s. Resuming both directors to verify.
 - `2026-11-22T19:22:32Z` **director-engineering** — F-034 verified: ce0be24 game.ts:297,719,721: morph born, drawMorphBase and drawMorph use worldNow, which advances only while worldRuns (:635-636), the same gate as the tower layer clock (:651). Pause freezes figure and coaster together. Portrait and sinks stay on wall time, as stated.
 - `2026-11-22T19:22:32Z` **director-engineering** — F-035 verified: Fresh scratch copy: skipsLeft -= 2 gives 1 fail / 183 pass (towers.test 'F-035: Bullfrog Barrage skips twice'). Golden pin scripts.test.ts:23-25 fails on a Tern interval 0.95 to 0.96 mutation (2 fail). verify --strict GREEN from clean: 44.2 s, 184 tests.
+- `2026-11-22T19:23:33Z` **director-vision** — F-036 verified: vitest.config.ts fileParallelism:false; 10/10 npx vitest run green (184/184, p99 0.83-1.25 ms); verify --strict GREEN 40.0 s
+- `2026-11-22T19:23:33Z` **director-vision** — F-037 verified: own victory stage capture 1280x720: Sheets 1,092 fully visible, cranes pass under HUD band; gate2 sheet 1500-2250ms agrees; zero console errors
+- `2026-11-22T19:23:44Z` **director-vision** — ship gate r1: APPROVE (8.2)
+- `2026-11-22T19:23:49Z` **ceo** — ship gate PASSED (round 1)
+- `2026-11-22T19:23:49Z` **ceo** — Phase ship-review → **delivery**
+- `2026-11-22T19:23:55Z` **ceo** — Gate 2 PASS round 1: vision APPROVE 8.2, engineering APPROVE 8.4; all 37 findings verified (F-003 by CEO ruling). Phase → delivery.

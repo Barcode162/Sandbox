@@ -5,7 +5,7 @@
   "tier": 3,
   "domain": "game",
   "output": "projects/tower-defense",
-  "phase": "ship-review",
+  "phase": "delivery",
   "created": "2026-11-20T21:00:43Z",
   "rounds": {
     "plan": 1,
@@ -16,6 +16,11 @@
       "passed": true,
       "round": 1,
       "at": "2026-11-20T21:33:51Z"
+    },
+    "ship": {
+      "passed": true,
+      "round": 1,
+      "at": "2026-11-22T19:23:49Z"
     }
   },
   "headcount": {
@@ -59,9 +64,13 @@
     {
       "phase": "ship-review",
       "at": "2026-11-22T03:43:55Z"
+    },
+    {
+      "phase": "delivery",
+      "at": "2026-11-22T19:23:49Z"
     }
   ],
-  "updated": "2026-11-22T03:43:55Z",
+  "updated": "2026-11-22T19:23:49Z",
   "budget_overrides": [
     {
       "n": 1,
