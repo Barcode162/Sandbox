@@ -39,6 +39,8 @@ Contrast, logical keyboard order, visible focus, landmarks, labelled controls, a
 - a bundle-size check;
 - console-error health checks.
 
+**Spatial and 3D scenes (from M-0002).** Judge layout in projected screen space, never in world units: two lights 15 u apart in 3D can share a pixel. Ship a probe script that loads the default view of each state and prints the critic's targets as numbers (minimum on-screen gap, labels and chips over stars, clearance between groups, colour strength). The fixer converges against the numbers before a critic is spent. When a declutter rule tightens ("nothing over a core"), add an e2e assertion on *who stays named* (hubs, chip owners, the thing just stored) as well as "nothing overlaps". Every assertion helper fails when its input is missing, so it can't pass hollow.
+
 ## Staffing
 frontend, design-system, motion, accessibility, responsive-layout, data-viz, copywriting, and backend / api-design if there is a server. Use the `bakeoff` lever (three direction cards) on visual direction for anything brand-facing or where looks are the point. A single page or site is tier 2 + `bakeoff,polish`, whatever its ambition (L-0001). Spec it with frame tables (`bureau/exemplars/frame-table.md`).
 

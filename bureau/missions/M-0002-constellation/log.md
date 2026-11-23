@@ -140,3 +140,12 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-23T03:00:36Z` **ceo** — F-032 resolved: renderer: stars whose ghost chips show get label priority 86 (> chips 85) and a cores fallback. E2 asserts temperature, boiling-point, room in labelRects and no overlay overlaps. evidence/screens/F5-morph-settled-1440.jpg
 - `2026-11-23T03:00:36Z` **ceo** — F-033 resolved: scene.ts marks the ≤5 newest things stored after the memory began as recent (contracts SceneNode.recent); renderer names them first. E5 waits for Tea in labelRects after reload. evidence/screens/F12-reload-1440.jpg
 - `2026-11-23T03:00:36Z` **ceo** — F-034 resolved: overlay: forced items seek a clear spot (cores + text) before falling back; badge anchors right, above, below, left. E4 asserts coresUnder(badge) = [] at F9 and F10 (helpers fail if no badge or no footprints exposed). evidence/screens/F9-pulse-mid-loop-1440.jpg, F10-pathway-result-1440.jpg
+- `2026-11-23T03:04:14Z` **director-vision** — F-032 verified: Real-time walk at 6263e1f: F5 t=1400 Physicist labelRects include temperature, boiling-point, room; Temperature/Boiling Point/Room named beside their chips (/tmp/claude-0/-home-user-Sandbox/33578c24-f78d-5138-8040-875dbed69def/scratchpad/shots-r2/W05-F5-1400.jpg). Before: unnamed hub (../shots/W05-F5-1400.jpg).
+- `2026-11-23T03:04:15Z` **director-vision** — F-033 verified: After store+reload, Tea labelled at default overview right of its light, Temperature still named (/tmp/claude-0/-home-user-Sandbox/33578c24-f78d-5138-8040-875dbed69def/scratchpad/shots-r2/W13-reload.jpg); evidence/screens/F12-reload-1440.jpg. Before: Tea unlabelled (../shots/W13-reload.jpg). Side effect: Stove unlabelled at reload (S3, accepted).
+- `2026-11-23T03:04:15Z` **director-vision** — F-034 verified: Badge DOM rect vs state().coreCircles: Cook x2 clear 6.2 px, Physicist x4 clear 2.3 px (nearest p6); badge now below-right of P4 (/tmp/claude-0/-home-user-Sandbox/33578c24-f78d-5138-8040-875dbed69def/scratchpad/shots-r2/W10-F10.jpg). npm run verify PASSED (17 e2e).
+- `2026-11-23T03:04:33Z` **director-vision** — ship gate r2: APPROVE (8.3)
+- `2026-11-23T03:04:39Z` **ceo** — Phase remediation → **ship-review**
+- `2026-11-23T03:04:39Z` **ceo** — ship gate PASSED (round 2)
+- `2026-11-23T03:04:39Z` **ceo** — Phase ship-review → **delivery**
+- `2026-11-23T03:04:47Z` **ceo** — Phase delivery → **retro**
+- `2026-11-23T03:05:29Z` **ceo** — Phase retro → **closed**

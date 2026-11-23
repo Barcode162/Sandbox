@@ -1,37 +1,41 @@
-# Board review — ship — director-vision — round 1 — M-0002
+# Board review — ship — director-vision — rounds 1–2 — M-0002
 
-VERDICT: CONDITIONAL
-SCORE: 8.1 / 10
+VERDICT: APPROVE (round 2; round 1 was CONDITIONAL 8.1)
+SCORE: 8.3 / 10
 
-## Rubric
+## Rubric (round 2)
 | # | Dimension | Score | Why |
 |---|---|---|---|
-| 1 | Fidelity | 8.5 | All four ideas are real, and I reproduced the exact verdicts myself: route 25→3, then learned to 1 hop; Simmer gives 2 stirs / 100 °C under Cook and 4 stirs / 373 K under Physicist; Tea survives a reload. F5's hubs have no names. |
-| 2 | Ambition & delight | 8.0 | The route race, the chord across the ring, the condition chip at the point of decision, and "Welcome back… Show Tea" all land. F1 is handsome but reads more as a diagram than a breathtaking sky. |
-| 3 | Craft & polish | 7.5 | 31/31 findings closed. Residuals: F5 hubs unlabelled, the ×4 badge sits on P3's ring (`W10`), Tea unlabelled after reload, and the Store name placeholder is near-invisible (`W12a`). |
+| 1 | Fidelity | 8.5 | All four ideas work, and I reproduced the exact verdicts myself: route 25→3, then learned to 1 hop; Simmer gives 2 stirs / 100 °C under Cook and 4 stirs / 373 K under Physicist; Tea survives a reload. |
+| 2 | Ambition & delight | 8.0 | The route race, the chord across the ring, the condition chip at the point of decision, and "Welcome back… Show Tea". F1 is handsome but still reads more as a diagram than a breathtaking sky. |
+| 3 | Craft & polish | 8.0 | 34/34 findings are closed. Remaining nits: Stove goes unlabelled after reload, and the Store name placeholder is near-invisible. |
 | 4 | Correctness & robustness | 8.5 | 85 unit tests and the hostile probes are closed. Live state matched the spec: lines 100/102/101, activation 2/4/12/11. |
-| 5 | Engineering quality | 8.0 | The code-reviewer passed it: a safe hand-written parser, one Dijkstra, a clean dispose, frozen contracts. |
-| 6 | Performance | 8.0 | Seed at 60 fps, about 1 ms per frame. At 500 nodes on software GL: median 16.7 ms, p95 33 ms. The search mark is 2.4 ms. |
-| 7 | Accessibility & comfort | 7.5 | axe is green and there is a full keyboard map. The results list mirrors the activation depths. Tab never enters the canvas. |
-| 8 | Evidence | 8.5 | Every frame-table moment has an e2e screenshot and the critic's measured crops. I re-rendered them independently. |
+| 5 | Engineering quality | 8.0 | Safe hand-written parser, one Dijkstra, a clean dispose, frozen contracts (code-reviewer pass). |
+| 6 | Performance | 8.0 | Seed at 60 fps, under 1 ms per frame. At 500 nodes on software GL: median 16.7 ms, p95 33 ms. The search mark is 2.6 ms. |
+| 7 | Accessibility & comfort | 7.5 | axe is green, there is a full keyboard map, and the results list mirrors activation depths. Tab never enters the canvas. |
+| 8 | Evidence | 8.5 | Every frame has an e2e frame plus the critic's crops. I re-rendered each one independently. |
 
-## What I verified myself
-I built the product, served it on port 4182, and ran my own real-time Playwright walk with no paused clock (scratchpad `walk.mjs`). The console showed 0 errors. Screens are in `/tmp/claude-0/-home-user-Sandbox/33578c24-f78d-5138-8040-875dbed69def/scratchpad/shots/`.
-- **F1** (`W01`): true black, Heat at the centre, the flowcharts flanking it, the ring as a horizon. Pass.
-- **F4/F5** (`W04`, `W05`, `W05b`): the morph is clean with no pop, and the halos turn ice. The chips read 293 K / 20 °C / 2 · warm. **The star they orbit has no name until about 4 s**, so a stranger cannot tell whose truths these are.
-- **F6–F8** (`W06`–`W08`): the short trail visibly wins the race and the verdict is exact. Learn draws an A–Z chord across the empty ring. This is the best moment in the product.
-- **F9/F10** (`W09`, `W10`): the comet sits at P4 with its condition chip. The result card and the comparison sentence are exact.
-- **F11** (`W11`): the depth ripple reads; counts 2/4/12/11.
-- **F12** (`W12`–`W14`): Tea is born clear of Temperature. After reload the toast offers "Show Tea" and searching "tea" finds it, but Tea is unlabelled in the overview.
-- I also ran `?stress=500` and checked the 375 frame (`evidence/screens/F1-idle-375.jpg`).
+## What I verified myself (round 1)
+I ran a real-time Playwright walk of the built product with no paused clock (scratchpad `walk.mjs`). The console showed 0 errors. Screens are in `/tmp/claude-0/-home-user-Sandbox/33578c24-f78d-5138-8040-875dbed69def/scratchpad/shots/`.
+- **F1:** true black; reads Heat → flowcharts → ring. Pass.
+- **F4/F5:** clean morph, ice halos, chips showing 293 K / 20 °C / 2 · warm. **The hub had no name** (Definition of exceptional #2).
+- **F6–F8:** the short trail visibly wins, the verdicts are exact, and Learn draws a chord across the ring. This is the best moment in the product.
+- **F9/F10:** the comet and condition chip sit at P4 and the result sentence is exact. The ×4 badge sat on P3's ring.
+- **F11:** the depth ripple reads; counts 2/4/12/11.
+- **F12:** Tea is born clear of Temperature, survives a reload, and search finds it. **It was unlabelled after reload** (#6).
+- I also checked `?stress=500` and the 375 frame.
 
-## Weighing the known S3s
-- **The F5 nameless hub becomes a condition.** It falls on Definition-of-exceptional #2: the values are readable but cannot be attributed to a star, and this is the thesis frame.
-- **Tea unlabelled after reload becomes a condition.** It falls on #6: the thing you stored should name itself in the sky.
-- **F12 Ice and Stove:** both were labelled in my run. I accept this as S3.
+## Round 1 conditions
+1. At F5, Temperature, Boiling Point and Room are named while the ghosts are expanded, with an e2e assertion. (F-032)
+2. Tea is labelled at the overview after reload, with an e2e assertion. (F-033)
+3. The loop badge touches no core or ring at F9 and F10, with an e2e assertion. (F-034)
+4. `npm run verify` is green, with fresh frames.
 
-## Conditions
-1. F5 (Physicist, t = 1400 ms, 1440): Temperature, Boiling Point and Room show their name labels while the ghosts are expanded. An e2e test asserts that the Temperature label is shown and that there are 0 text overlaps.
-2. After reload, the node the Owner stored (Tea) is labelled at the default overview. An e2e test in [E5] asserts it.
-3. F9/F10: the loop badge sits beside P4 and touches no node core or ring. An e2e test checks the badge rect against the projected cores.
-4. `npm run verify` is green, with new F5, F10 and reload frames in `evidence/screens/`.
+## Round 2
+I rebuilt at 6263e1f and re-ran the same real-time walk (`shots-r2/`).
+- **C1:** met. At F5 t = 1400 ms, `labelRects` contains temperature, boiling-point and room, and all three are named beside their chips (`W05-F5-1400.jpg`).
+- **C2:** met. After reload, Tea is named next to its light (`W13-reload.jpg`). Stove gives up its label instead; I accept that as S3.
+- **C3:** met. Measured against `coreCircles`, the badge clears every star footprint by 6.2 px under Cook (×2) and 2.3 px under Physicist (×4) (`W10-F10.jpg`).
+- **C4:** met. `npm run verify` printed VERIFY PASSED (17 e2e).
+
+F-032 to F-034 are verified. **APPROVE at 8.3.** No dimension is below 7, and I would put my name on it in front of the Owner.

@@ -22,3 +22,11 @@ Entries are appended below by the CLI. Don't edit their headers by hand.
 - **Change:** Agent budgets per tier enforced by convene (T1 2, T2 8, T3 14, T4 30, T5 6) with an Owner-only override; quality levers (bakeoff, polish, hardening, audit, spike) decoupled from tier, each adding a mechanical gate requirement; word caps on plan docs (gate) and board reports (vote); bake-offs as 450-word direction cards; frame-table exemplar; contracts in code; 2-6 vertical slices with at most 4 per wave; resume-before-convene; tier 2 and 3 boards and reviews slimmed (inspector-general via the audit lever or tier 4+; the finder verifies fixes); mechanical roles on sonnet; CEO-written retros at tier 2 and 3; Charter Article XIII Economy; amended Articles III, IV, VI.3 and VIII.6
 - **Files:** CLAUDE.md, bureau/CHARTER.md, bureau/config.json, bureau/README.md, bureau/bin/bureau, bureau/tests/test_bureau.py, bureau/exemplars/frame-table.md, bureau/templates/*, .claude/skills/bureau/SKILL.md, .claude/skills/bureau-retro/SKILL.md, .claude/agents/*
 - **Approved by:** owner
+
+## U-0003 · v2.0.1 · playbook · 2026-11-23
+
+- **Title:** interactive-web: spatial/3D verification (screen-space probe, named-set asserts)
+- **Trigger:** M-0002 F-030, F-031, F-032; lessons from retro
+- **Change:** Verification specifics gains a spatial/3D paragraph: judge layout in projected screen space, ship a probe that prints critic targets, assert who stays named, and make helpers fail when their input is missing
+- **Files:** bureau/playbooks/interactive-web.md
+- **Approved by:** ceo

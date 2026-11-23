@@ -28,3 +28,19 @@ Freeze contracts as code (types file + stubs) and build in few vertical slices. 
 ## L-0005 · 2026-11-20 · M-0001 · tags: ceo, economy, dispatch
 
 Resume agents with SendMessage for their next pass (designer cards to spec, engineer build to fixes, director plan to ship) instead of convening fresh ones, and keep waves at 4 or fewer; 8 parallel Opus agents hit the rate limit within 8 minutes.
+
+## L-0006 · 2026-11-23 · M-0002 · tags: interactive-web, 3d, layout
+
+Judge 3D layout in projected screen space, not world units: 15 u apart in 3D can share a pixel. Measure it with a probe that prints the critic's targets per state, and converge before spending a reviewer.
+
+## L-0007 · 2026-11-23 · M-0002 · tags: interactive-web, labels, testing
+
+When a declutter rule gets stricter, assert who must stay named (hubs, chip owners, the thing just stored), not only that nothing overlaps; tightening 'nothing over cores' unnamed the hub twice (F-031, F-032).
+
+## L-0008 · 2026-11-23 · M-0002 · tags: process, resume
+
+A session can end mid-mission and take every agent's context with it: commit at each phase change, and when builders are gone, the CEO doing remediation saves budget for independent verification and the vote.
+
+## L-0009 · 2026-11-23 · M-0002 · tags: testing
+
+Assertion helpers must fail when their inputs are missing (no badge, no rects exposed), or a new e2e check passes hollow.

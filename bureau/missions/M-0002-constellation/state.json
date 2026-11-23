@@ -5,7 +5,7 @@
   "tier": 2,
   "domain": "interactive-web",
   "output": "projects/constellation",
-  "phase": "remediation",
+  "phase": "closed",
   "created": "2026-11-22T19:28:56Z",
   "rounds": {
     "plan": 1,
@@ -16,6 +16,11 @@
       "passed": true,
       "round": 1,
       "at": "2026-11-22T19:39:09Z"
+    },
+    "ship": {
+      "passed": true,
+      "round": 2,
+      "at": "2026-11-23T03:04:39Z"
     }
   },
   "headcount": {
@@ -61,7 +66,24 @@
     {
       "phase": "remediation",
       "at": "2026-11-23T02:55:33Z"
+    },
+    {
+      "phase": "ship-review",
+      "at": "2026-11-23T03:04:39Z"
+    },
+    {
+      "phase": "delivery",
+      "at": "2026-11-23T03:04:39Z"
+    },
+    {
+      "phase": "retro",
+      "at": "2026-11-23T03:04:47Z"
+    },
+    {
+      "phase": "closed",
+      "at": "2026-11-23T03:05:29Z"
     }
   ],
-  "updated": "2026-11-23T02:55:33Z"
+  "updated": "2026-11-23T03:05:29Z",
+  "closed": "2026-11-23T03:05:29Z"
 }
