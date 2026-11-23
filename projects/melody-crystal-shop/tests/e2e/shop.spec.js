@@ -68,7 +68,7 @@ test('product: quantity, add to bag, drawer and badge', async ({ page }) => {
   const g = guard(page);
   await page.goto('/product.html?c=amethyst');
   await page.check('input[name=format][value=jar]');
-  await expect(page.locator('.gallery .badge')).toHaveText('Jar of big crystals');
+  await expect(page.locator('.wyg')).toContainText('500 ml glass jar');
   await page.getByRole('button', { name: 'Increase quantity' }).click();
   await page.getByRole('button', { name: 'Increase quantity' }).click();
   await expect(page.locator('[data-add]')).toHaveText('Add to bag · $285');
@@ -165,4 +165,39 @@ test('F-006: checkout updates when the bag changes in another tab', async ({ pag
   await other.locator('[data-add]').click();
   await expect(page.locator('[data-place]')).toHaveText('Place order · $162.00');
   await expect(page.locator('#order-summary .line')).toHaveCount(2);
+});
+
+test('polish r1: gallery fits the gutters, one-photo stones fill the column, price never goes negative', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto('/product.html?c=amethyst');
+  const g = await page.locator('.gallery').boundingBox();
+  expect(Math.round(g.x)).toBe(20);
+  expect(Math.round(375 - (g.x + g.width))).toBe(20);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/product.html?c=black-tourmaline');
+  expect((await page.locator('.gallery .main').boundingBox()).width).toBeGreaterThan(400);
+  await page.goto('/product.html?c=citrine');
+  const seen = await page.evaluate(async () => {
+    const el = document.querySelector('[data-price]'); const out = new Set();
+    const mo = new MutationObserver(() => out.add(el.textContent)); mo.observe(el, { childList: true, characterData: true, subtree: true });
+    for (const v of ['jar', 'bag', 'jar', 'big', 'bag']) { const r = document.querySelector(`input[name=format][value=${v}]`); r.checked = true; r.dispatchEvent(new Event('change', { bubbles: true })); await new Promise((f) => setTimeout(f, 40)); }
+    await new Promise((f) => setTimeout(f, 400)); mo.disconnect(); return [...out];
+  });
+  expect(seen.filter((t) => t.includes('−'))).toEqual([]);
+  await expect(page.locator('[data-price]')).toHaveText('$22');
+});
+
+test('polish r1: confirmation opens at the top on mobile and survives a resize', async ({ page }) => {
+  const errs = []; page.on('pageerror', (e) => errs.push(e.message));
+  await page.setViewportSize({ width: 375, height: 812 });
+  await seedBag(page, [{ slug: 'citrine', format: 'bag', qty: 1 }]);
+  await page.goto('/checkout.html');
+  await page.fill('#name', 'Ava Stone'); await page.fill('#email', 'ava@example.com');
+  await page.check('input[name=ful][value=pickup]'); await page.check('input[name=pay][value=person]');
+  await page.locator('[data-place]').click();
+  await expect(page.getByRole('heading', { name: 'Thank you, Ava!' })).toBeInViewport();
+  expect(await page.evaluate(() => scrollY)).toBe(0);
+  await page.setViewportSize({ width: 1200, height: 900 });
+  await page.setViewportSize({ width: 375, height: 812 });
+  expect(errs).toEqual([]);
 });

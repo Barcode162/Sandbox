@@ -26,3 +26,37 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-23T23:21:33Z` **ceo** — F-007 resolved: product.js eyebrow/tags and ui.js card tags escaped; tag hrefs encodeURIComponent
 - `2026-11-23T23:21:33Z` **ceo** — F-008 resolved: payment.js MC regex ^(5[1-5]|222[1-9]|22[3-9]\d|2[3-6]\d\d|27[01]\d|2720); expiry > now+20y = format; debit subtitle matches accepted brands; unit test 'review fixes'
 - `2026-11-23T23:21:33Z` **ceo** — Phase review → **remediation**
+- `2026-11-23T23:24:26Z` **polish-critic** — F-009 [S1] filed: Jar/bag 'format scenes' read as clip-art and cheapen the peak moment
+- `2026-11-23T23:24:26Z` **polish-critic** — F-010 [S1] filed: Mobile product page: gallery overflows the right gutter (20px left, 3px right)
+- `2026-11-23T23:24:26Z` **polish-critic** — F-011 [S1] filed: Confirmation opens mid-scroll on mobile: 'Thank you, Ava!' and order number are off-screen
+- `2026-11-23T23:24:26Z` **polish-critic** — F-012 [S2] filed: The 12 photos don't read as one set: black, grey, olive and beige backgrounds alternate
+- `2026-11-23T23:24:26Z` **polish-critic** — F-013 [S2] filed: Hero trio tilt and hover lift are dead: .rise animation fill overrides rotate()
+- `2026-11-23T23:24:26Z` **polish-critic** — F-014 [S2] filed: Mobile first screen shows no crystal photography (trio starts at y=735 of 812)
+- `2026-11-23T23:24:26Z` **polish-critic** — F-015 [S2] filed: Desktop H1 stacks into a 5-line tower
+- `2026-11-23T23:24:26Z` **polish-critic** — F-016 [S2] filed: Paired checkout fields drop out of alignment when error messages differ in height
+- `2026-11-23T23:24:26Z` **polish-critic** — F-017 [S2] filed: Order summary is not sticky: right column goes empty while filling the form
+- `2026-11-23T23:24:26Z` **polish-critic** — F-018 [S2] filed: Price count-up shows a negative/garbage frame (−$2) and flickers on rapid switching
+- `2026-11-23T23:24:26Z` **polish-critic** — F-019 [S2] filed: Confirmation totals break into three mismatched columns
+- `2026-11-23T23:24:26Z` **polish-critic** — F-020 [S2] filed: Console TypeError after confirmation when viewport crosses 1024px
+- `2026-11-23T23:24:26Z` **polish-critic** — F-021 [S2] filed: Restored filter (#shop?i=sleep) leaves the active chip scrolled out of view
+- `2026-11-23T23:24:26Z` **polish-critic** — F-022 [S2] filed: Format tiles: selected check almost invisible and titles wrap unevenly at 1440
+- `2026-11-23T23:24:26Z` **polish-critic** — F-023 [S3] filed: Gallery thumb labels 'Photo / Photo 2 / Photo 3' are generic and the pills cut the frame
+- `2026-11-23T23:24:26Z` **polish-critic** — F-024 [S3] filed: Small alignment slips: how-it-works cards vs step columns, line-item card edge, gift tile subtitle
+- `2026-11-23T23:24:27Z` **polish-critic** — F-025 [S3] filed: Double hairline under the header after anchor jumps
+- `2026-11-23T23:36:20Z` **ceo** — F-009 resolved: Gallery is real photos only for every format; bag/jar redrawn (6 irregular photo-cropped pebbles, no stamped highlight, no label) as a 96px 'What you get' inset under the tiles with format copy; product.js paintWyg
+- `2026-11-23T23:36:20Z` **ceo** — F-010 resolved: .pdp>*{min-width:0}; thumbs overflow-x:auto; e2e 'polish r1: gallery fits the gutters' asserts 20/20 px at 375
+- `2026-11-23T23:36:20Z` **ceo** — F-011 resolved: scrollTo({top:0,behavior:'instant'}) + focus({preventScroll:true}); e2e asserts scrollY 0 and heading in viewport at 375
+- `2026-11-23T23:36:20Z` **ceo** — F-012 resolved: Per-crystal zoom (1.1–1.9) + focus crops via photoStyle(); stones now fill >85% of every card (shots r2-grid); background re-sourcing deferred: Commons rate-limits this host
+- `2026-11-23T23:36:20Z` **ceo** — F-013 resolved: rise keyframes carry rotate(var(--rot)), fill-mode backwards so hover lift works; t1 widened to 62% so Rose Quartz overlaps Amethyst
+- `2026-11-23T23:36:20Z` **ceo** — F-014 resolved: <600px: hero-copy display:contents, trio becomes a 116px 3-up strip between promise and buttons; photos visible at y≈385 of 812 (shot r2-home-375)
+- `2026-11-23T23:36:20Z` **ceo** — F-015 resolved: hero grid 6/6, h1 clamp(2.75rem,4.6vw,4.25rem) max 14ch → 3 lines at 1440 (shot r2-home)
+- `2026-11-23T23:36:20Z` **ceo** — F-016 resolved: .row-2/.row-3 align-items:start
+- `2026-11-23T23:36:20Z` **ceo** — F-017 resolved: sticky moved to .summary-col with align-self:start
+- `2026-11-23T23:36:20Z` **ceo** — F-018 resolved: countTo clamps k to [0,1], timestamps from first rAF, cancels previous rAF; e2e MutationObserver sees no '−' during rapid switching
+- `2026-11-23T23:36:20Z` **ceo** — F-019 resolved: recap facts get .recap-facts grid; sum-rows stack like the summary, waived fee struck through; 'about' only when remainder cents exist
+- `2026-11-23T23:36:20Z` **ceo** — F-020 resolved: AbortController tears down mq/bag listeners on confirmation; e2e resizes 375→1200→375 after order with no pageerror
+- `2026-11-23T23:36:20Z` **ceo** — F-021 resolved: restored filter centres the pressed chip in the row; 32px mask fade at the row's right edge under 900px
+- `2026-11-23T23:36:20Z` **ceo** — F-022 resolved: check is a 20px filled clay circle; sizes use word-joiners + nbsp so '2–3 cm' never splits
+- `2026-11-23T23:36:20Z` **ceo** — F-023 resolved: photo thumbs have no labels (aria 'Show photo N of M'); format thumbs removed from gallery
+- `2026-11-23T23:36:20Z` **ceo** — F-024 resolved: formats strip gap = steps gap (32); static line items have no tint/radius/negative margin; choice tiles align-content:start
+- `2026-11-23T23:36:20Z` **ceo** — F-025 resolved: scroll-padding-top = header height

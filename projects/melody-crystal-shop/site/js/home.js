@@ -79,7 +79,11 @@ chipsEl.addEventListener('click', (e) => {
 
 const initial = intentFromHash();
 applyFilter(initial, { animate: false });
-if (initial) document.getElementById('shop').scrollIntoView();
+if (initial) {
+  document.getElementById('shop').scrollIntoView();
+  const chip = chipsEl.querySelector('[aria-pressed="true"]');
+  chipsEl.scrollLeft = chip.offsetLeft - chipsEl.clientWidth / 2 + chip.offsetWidth / 2;
+}
 addEventListener('hashchange', () => {
   const i = intentFromHash();
   if (i || location.hash === '#shop') applyFilter(i);

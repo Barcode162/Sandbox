@@ -13,7 +13,7 @@ export const FORMATS = [
     id: 'bag',
     name: 'Tumbled bag',
     short: 'Bag',
-    size: '8–10 stones · 2–3 cm',
+    size: '8\u2060–\u206010 stones · 2\u2060–\u20603\u00a0cm',
     pieces: 9,
     perLabel: 'per stone',
     blurb: 'Polished pocket stones in a cotton drawstring pouch.',
@@ -22,7 +22,7 @@ export const FORMATS = [
     id: 'big',
     name: 'Big crystal',
     short: 'Big',
-    size: 'One piece · 6–9 cm',
+    size: 'One piece · 6\u2060–\u20609\u00a0cm',
     pieces: 1,
     perLabel: 'one statement piece',
     blurb: 'A single hand-picked showpiece for a shelf or desk.',
@@ -31,7 +31,7 @@ export const FORMATS = [
     id: 'jar',
     name: 'Jar of big crystals',
     short: 'Jar',
-    size: 'About 6 pieces · 3–5 cm · 500 ml glass jar',
+    size: 'About 6 pieces · 3\u2060–\u20605\u00a0cm · 500\u00a0ml jar',
     pieces: 6,
     perLabel: 'per piece · a full display',
     blurb: 'A glass jar filled with chunky pieces. Made to be seen.',
@@ -55,6 +55,7 @@ export const CRYSTALS = [
     prices: { bag: 1200, big: 2800, jar: 6500 },
     photos: ['clear-quartz', 'clear-quartz-2'],
     focus: '50% 50%',
+    zoom: 1.1,
     alt: 'A cluster of clear quartz points on a black background',
   },
   {
@@ -68,7 +69,8 @@ export const CRYSTALS = [
     care: 'Keep out of strong sunlight; its purple can fade. Rinse with water.',
     prices: { bag: 1600, big: 4200, jar: 9500 },
     photos: ['amethyst', 'amethyst-2', 'amethyst-3'],
-    focus: '50% 50%',
+    focus: '50% 45%',
+    zoom: 1.3,
     alt: 'A cluster of deep purple amethyst crystals',
   },
   {
@@ -82,7 +84,8 @@ export const CRYSTALS = [
     care: 'Keep out of strong sunlight. Rinse with water.',
     prices: { bag: 1400, big: 3600, jar: 8500 },
     photos: ['rose-quartz', 'rose-quartz-2'],
-    focus: '50% 50%',
+    focus: '50% 40%',
+    zoom: 1.35,
     alt: 'A rough chunk of soft pink rose quartz',
   },
   {
@@ -96,7 +99,8 @@ export const CRYSTALS = [
     care: 'Rinse with water and keep out of harsh sunlight.',
     prices: { bag: 2200, big: 6800, jar: 15000 },
     photos: ['citrine', 'citrine-2'],
-    focus: '50% 50%',
+    focus: '40% 50%',
+    zoom: 1.15,
     alt: 'Golden citrine crystal points on a dark background',
   },
   {
@@ -111,6 +115,7 @@ export const CRYSTALS = [
     prices: { bag: 1600, big: 4000, jar: 9500 },
     photos: ['smoky-quartz', 'smoky-quartz-2'],
     focus: '50% 50%',
+    zoom: 1.35,
     alt: 'A star-shaped cluster of brown smoky quartz crystals',
   },
   {
@@ -124,7 +129,8 @@ export const CRYSTALS = [
     care: 'Brush off dust with a dry cloth; it can be brittle along its lines.',
     prices: { bag: 1500, big: 3800, jar: 9000 },
     photos: ['black-tourmaline'],
-    focus: '50% 50%',
+    focus: '58% 50%',
+    zoom: 1.9,
     alt: 'A black tourmaline crystal set in grey rock',
   },
   {
@@ -138,7 +144,8 @@ export const CRYSTALS = [
     care: 'Keep selenite dry. Water softens it. Dust with a soft brush.',
     prices: { bag: 1200, big: 3000, jar: 7000 },
     photos: ['selenite'],
-    focus: '50% 50%',
+    focus: '40% 45%',
+    zoom: 1.25,
     alt: 'A clear, glassy blade of selenite on its rock',
   },
   {
@@ -153,6 +160,7 @@ export const CRYSTALS = [
     prices: { bag: 1400, big: 3400, jar: 8000 },
     photos: ['tigers-eye', 'tigers-eye-2'],
     focus: '50% 50%',
+    zoom: 1.2,
     alt: 'A polished tiger’s eye stone with golden-brown bands',
   },
   {
@@ -166,7 +174,8 @@ export const CRYSTALS = [
     care: 'Wipe with a damp cloth. Tilt it in the light to see the flash.',
     prices: { bag: 2000, big: 5800, jar: 13500 },
     photos: ['labradorite', 'labradorite-2'],
-    focus: '50% 50%',
+    focus: '45% 50%',
+    zoom: 1.15,
     alt: 'Polished labradorite flashing blue and gold',
   },
   {
@@ -181,6 +190,7 @@ export const CRYSTALS = [
     prices: { bag: 1500, big: 3600, jar: 8500 },
     photos: ['carnelian', 'carnelian-2'],
     focus: '50% 50%',
+    zoom: 1.1,
     alt: 'Glowing orange carnelian on a black background',
   },
   {
@@ -195,6 +205,7 @@ export const CRYSTALS = [
     prices: { bag: 2200, big: 7500, jar: 16000 },
     photos: ['lapis-lazuli', 'lapis-lazuli-2'],
     focus: '50% 50%',
+    zoom: 1.15,
     alt: 'Deep blue lapis lazuli flecked with gold',
   },
   {
@@ -209,6 +220,7 @@ export const CRYSTALS = [
     prices: { bag: 1800, big: 4800, jar: 11000 },
     photos: ['fluorite', 'fluorite-2'],
     focus: '50% 50%',
+    zoom: 1.2,
     alt: 'Purple fluorite crystals on pale rock',
   },
 ];
@@ -220,6 +232,11 @@ export function bySlug(slug) {
 /** Image paths for a photo id at a width (480 for cards, 1200 for the product gallery). */
 export function img(id, size = 480) {
   return `img/crystals/${id}-${size}.jpg`;
+}
+
+/** Crop style for a crystal's photo: where to centre it, and how far to zoom in. */
+export function photoStyle(c) {
+  return `object-position:${c.focus};--zoom:${c.zoom ?? 1}`;
 }
 
 export function fromPrice(c) {

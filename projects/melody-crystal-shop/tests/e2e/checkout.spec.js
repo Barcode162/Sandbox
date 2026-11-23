@@ -100,7 +100,7 @@ for (const [ful, pay, plan] of COMBOS) {
     await expect(page.locator('.order-no')).toHaveText(/^Order MC-[2-9A-HJ-NP-Z]{6}$/);
     await expect(page.locator('.confirm')).toContainText('nothing was charged');
     if (pay === 'credit') await expect(page.locator('.recap')).toContainText('Credit card · Visa ending 4242');
-    if (plan === 'over-time' && pay !== 'person') await expect(page.locator('.recap')).toContainText('4 payments of about $34.75 · $34.75 today');
+    if (plan === 'over-time' && pay !== 'person') await expect(page.locator('.recap')).toContainText('4 payments of $34.75 · $34.75 today');
     expect(await page.evaluate(() => localStorage.getItem('mc.bag.v1'))).toBe('[]');
     // Card details never persist anywhere in the browser.
     const stored = await page.evaluate(() => JSON.stringify({ ...localStorage }) + JSON.stringify({ ...sessionStorage }));

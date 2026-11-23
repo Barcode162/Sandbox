@@ -1,6 +1,6 @@
 // ui.js — the shared chrome: header, theme, menu, bag drawer, toast, icons, photo fallbacks.
 import * as bag from './bag.js';
-import { img, FORMATS, fromPrice } from '../data/crystals.js';
+import { img, FORMATS, fromPrice, photoStyle } from '../data/crystals.js';
 import { fmt } from './money.js';
 
 export const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -66,59 +66,58 @@ export function formatArt(formatId, colour) {
 
 let sceneId = 0;
 /**
- * A product "scene" for the bag and jar formats, built from the stone's real photo:
- * the photo fills the stones inside a linen pouch or a glass jar. 4:5, like every frame.
+ * A small "what you get" picture for the bag and jar formats, built from the stone's real photo:
+ * each stone is a crop of the photo, inside a linen pouch or a glass jar.
  */
-export function formatScene(formatId, photoUrl, colour = '#b08a4a', { label = true } = {}) {
+export function formatScene(formatId, photoUrl, colour = '#b08a4a') {
   const u = `fs${++sceneId}`;
-  // Three crops of the photo, each filling a stone's own box, so every stone shows real crystal.
-  const pat = [[0, 0, 1], [-0.35, -0.25, 1.7], [-0.15, -0.55, 1.5]].map(([x, y, s], i) =>
+  const crops = [[0, 0, 1], [-0.35, -0.25, 1.7], [-0.15, -0.55, 1.5], [-0.5, -0.1, 1.9]];
+  const pat = crops.map(([x, y, s], i) =>
     `<pattern id="${u}p${i}" patternUnits="objectBoundingBox" patternContentUnits="objectBoundingBox" width="1" height="1"><image href="${photoUrl}" x="${x}" y="${y}" width="${s}" height="${s}" preserveAspectRatio="xMidYMid slice"/></pattern>`).join('');
+  const shade = `<radialGradient id="${u}s" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#fff" stop-opacity=".18"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></radialGradient>`;
   let n = 0;
-  const shade = `<radialGradient id="${u}s" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></radialGradient>`;
-  const stone = (cx, cy, rx, ry, rot) => `<g transform="rotate(${rot} ${cx} ${cy})"><ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="url(#${u}p${n++ % 3})"/><ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="url(#${u}s)" stroke="#2a242040" stroke-width=".8"/><ellipse cx="${cx - rx * .35}" cy="${cy - ry * .4}" rx="${rx * .28}" ry="${ry * .16}" fill="#fff" opacity=".55"/></g>`;
+  // Irregular pebble outline instead of a perfect ellipse.
+  const stone = (cx, cy, r, sq, rot) => {
+    const pts = Array.from({ length: 9 }, (_, i) => {
+      const a = (i / 9) * Math.PI * 2;
+      const k = 1 + 0.09 * Math.sin(i * 2.3 + cx);
+      return `${(cx + Math.cos(a) * r * k).toFixed(1)},${(cy + Math.sin(a) * r * sq * k).toFixed(1)}`;
+    });
+    const d = `M${pts.join('L')}Z`;
+    return `<g transform="rotate(${rot} ${cx} ${cy})" stroke-linejoin="round"><path d="${d}" fill="url(#${u}p${n++ % 4})" stroke="#2a242055" stroke-width="1"/><path d="${d}" fill="url(#${u}s)"/></g>`;
+  };
   if (formatId === 'bag') {
-    return `<svg viewBox="0 0 200 250" aria-hidden="true"><defs>${pat}${shade}
-      <linearGradient id="${u}l" x1="0" x2="1"><stop offset="0" stop-color="#d9c7a8"/><stop offset=".45" stop-color="#efe3cc"/><stop offset="1" stop-color="#c6b08c"/></linearGradient>
-      <pattern id="${u}w" width="4" height="4" patternUnits="userSpaceOnUse"><path d="M0 2h4M2 0v4" stroke="#8b7356" stroke-opacity=".12" stroke-width=".6"/></pattern></defs>
-      <ellipse cx="100" cy="226" rx="78" ry="9" fill="#2a2420" opacity=".14"/>
-      <path d="M52 92c-14 30-22 72-14 104 5 20 26 28 62 28s57-8 62-28c8-32 0-74-14-104z" fill="url(#${u}l)" stroke="#8b7356" stroke-width="1.5"/>
-      <path d="M52 92c-14 30-22 72-14 104 5 20 26 28 62 28s57-8 62-28c8-32 0-74-14-104z" fill="url(#${u}w)"/>
-      <path d="M70 120c-4 30-4 62 2 92M128 122c5 28 6 60 1 90" stroke="#8b7356" stroke-opacity=".25" fill="none" stroke-width="1.2"/>
-      <g>${stone(72, 92, 20, 14, -12)}${stone(128, 92, 19, 13, 14)}${stone(100, 86, 22, 15, 4)}${stone(86, 76, 16, 11, -20)}${stone(116, 74, 15, 11, 18)}</g>
-      <path d="M50 96c16 8 84 8 100 0" stroke="#8b7356" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-      <path d="M58 100c10 4 74 4 84 0" stroke="#9a4324" stroke-width="2.4" fill="none" stroke-dasharray="6 5" stroke-linecap="round"/>
-      <path d="M142 100c10 10 18 24 16 40M146 100c16 6 26 18 28 32" stroke="#9a4324" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-      <g>${stone(40, 214, 15, 10, -8)}${stone(164, 216, 13, 9, 20)}</g>
-      <rect x="76" y="150" width="48" height="30" rx="3" fill="#fbf7f1" stroke="#8b7356" stroke-width="1"/>
-      ${label ? '<text x="100" y="168" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-style="italic" font-size="11" fill="#2a2420">Melody’s</text>' : ''}</svg>`;
+    return `<svg viewBox="0 0 200 200" aria-hidden="true"><defs>${pat}${shade}
+      <linearGradient id="${u}l" x1="0" x2="1"><stop offset="0" stop-color="#d9c7a8"/><stop offset=".45" stop-color="#efe3cc"/><stop offset="1" stop-color="#c6b08c"/></linearGradient></defs>
+      <ellipse cx="100" cy="186" rx="70" ry="7" fill="#2a2420" opacity=".14"/>
+      <path d="M56 70c-13 26-20 60-13 88 5 16 23 24 57 24s52-8 57-24c7-28 0-62-13-88z" fill="url(#${u}l)" stroke="#8b7356" stroke-width="1.5"/>
+      <path d="M72 96c-4 26-4 54 2 80M128 98c5 24 6 52 1 78" stroke="#8b7356" stroke-opacity=".22" fill="none" stroke-width="1.2"/>
+      ${stone(76, 68, 19, .72, -12)}${stone(124, 69, 18, .72, 14)}${stone(100, 62, 21, .7, 4)}${stone(88, 50, 15, .75, -20)}${stone(114, 49, 14, .78, 18)}
+      <path d="M54 74c16 8 76 8 92 0" stroke="#8b7356" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+      <path d="M60 78c10 4 70 4 80 0" stroke="#9a4324" stroke-width="2.4" fill="none" stroke-dasharray="6 5" stroke-linecap="round"/>
+      <path d="M140 78c10 10 16 22 14 36M144 78c14 6 22 16 24 28" stroke="#9a4324" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>`;
   }
-  // Jar
-  const body = 'M48 64h104c8 10 14 22 14 38v104c0 14-10 24-24 24H58c-14 0-24-10-24-24V102c0-16 6-28 14-38z';
-  return `<svg viewBox="0 0 200 250" aria-hidden="true"><defs>${pat}${shade}
+  const body = 'M58 56h84c7 8 12 18 12 32v82c0 12-9 20-20 20H66c-11 0-20-8-20-20V88c0-14 5-24 12-32z';
+  return `<svg viewBox="0 0 200 200" aria-hidden="true"><defs>${pat}${shade}
     <clipPath id="${u}c"><path d="${body}"/></clipPath>
-    <linearGradient id="${u}g" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset=".18" stop-color="#fff" stop-opacity=".08"/><stop offset=".8" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".25"/></linearGradient>
+    <linearGradient id="${u}g" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset=".2" stop-color="#fff" stop-opacity=".06"/><stop offset=".85" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".22"/></linearGradient>
     <linearGradient id="${u}b" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#d1aa66"/><stop offset="1" stop-color="#8f6b31"/></linearGradient></defs>
-    <ellipse cx="100" cy="234" rx="76" ry="8" fill="#2a2420" opacity=".16"/>
-    <path d="${body}" fill="${colour}" fill-opacity=".12"/>
+    <ellipse cx="100" cy="194" rx="64" ry="6" fill="#2a2420" opacity=".16"/>
+    <path d="${body}" fill="${colour}" fill-opacity=".1"/>
     <g clip-path="url(#${u}c)">
-      ${stone(62, 208, 30, 22, -10)}${stone(118, 212, 34, 22, 8)}${stone(160, 200, 24, 20, -18)}
-      ${stone(80, 172, 30, 22, 16)}${stone(136, 168, 32, 24, -8)}${stone(48, 150, 22, 20, 0)}
-      ${stone(104, 136, 30, 22, -14)}${stone(156, 132, 24, 22, 12)}${stone(64, 112, 26, 18, 20)}${stone(124, 102, 26, 18, -6)}
+      ${stone(76, 168, 27, .78, -10)}${stone(128, 166, 29, .74, 12)}${stone(100, 130, 30, .76, -4)}
+      ${stone(64, 118, 22, .85, 20)}${stone(136, 116, 23, .8, -16)}${stone(98, 88, 24, .72, 8)}
     </g>
     <path d="${body}" fill="url(#${u}g)" stroke="#5e544b" stroke-opacity=".55" stroke-width="2"/>
-    <path d="M46 96c-3 30-3 80 0 110" stroke="#fff" stroke-opacity=".8" stroke-width="5" fill="none" stroke-linecap="round"/>
-    <path d="M58 82c-2 6-3 10-3 14" stroke="#fff" stroke-opacity=".7" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <rect x="44" y="38" width="112" height="28" rx="6" fill="url(#${u}b)" stroke="#6f5426" stroke-width="1.2"/>
-    <path d="M52 44v16M62 44v16M72 44v16M82 44v16M92 44v16M102 44v16M112 44v16M122 44v16M132 44v16M142 44v16" stroke="#6f5426" stroke-opacity=".35"/>
-    <rect x="70" y="140" width="60" height="34" rx="3" fill="#fbf7f1" fill-opacity=".94" stroke="#8b7356" stroke-width="1"/>
-    ${label ? '<text x="100" y="161" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-style="italic" font-size="12" fill="#2a2420">Melody’s</text>' : ''}</svg>`;
+    <path d="M56 86c-3 26-3 62 0 88" stroke="#fff" stroke-opacity=".75" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <rect x="54" y="34" width="92" height="24" rx="5" fill="url(#${u}b)" stroke="#6f5426" stroke-width="1.2"/>
+    <path d="M64 39v14M74 39v14M84 39v14M94 39v14M104 39v14M114 39v14M124 39v14M134 39v14" stroke="#6f5426" stroke-opacity=".35"/></svg>`;
 }
 
 /** A photo inside the shared mat-and-frame treatment, with a named fallback. */
 export function framedPhoto(c, { size = 480, photo = c.photos[0], eager = false, cls = '' } = {}) {
   return `<div class="frame ${cls}">
-    <img src="${img(photo, size)}" alt="${esc(c.alt)}" style="object-position:${c.focus}" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async" width="${size}" height="${Math.round(size * 1.25)}">
+    <img src="${img(photo, size)}" alt="${esc(c.alt)}" style="${photoStyle(c)}" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async" width="${size}" height="${Math.round(size * 1.25)}">
     <span class="fallback" aria-hidden="true">${ICON.gem}${esc(c.name)}</span>
   </div>`;
 }

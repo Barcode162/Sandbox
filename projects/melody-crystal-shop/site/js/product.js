@@ -25,12 +25,8 @@ function render(c) {
   document.title = `${c.name} · Melody’s Crystals`;
   document.querySelector('meta[name="description"]').setAttribute('content', `${c.name}: ${c.meaning} Tumbled bag, big crystal or a jar of big crystals, from ${fmt(Math.min(...Object.values(c.prices)), { whole: true })}.`);
 
-  // Gallery slides: every photo of the stone, then a drawn view of each format it comes in.
-  const slides = [
-    ...c.photos.map((p, i) => ({ kind: 'photo', photo: p, label: i === 0 ? 'Photo' : `Photo ${i + 1}` })),
-    ...FORMATS.filter((f) => f.id !== 'big').map((f) => ({ kind: 'format', format: f.id, label: f.short })),
-  ];
-  const formatSlide = { bag: slides.findIndex((s) => s.format === 'bag'), big: 0, jar: slides.findIndex((s) => s.format === 'jar') };
+  // Gallery: real photographs only. What each format looks like is shown beside the tiles.
+  const slides = c.photos.map((p) => ({ kind: 'photo', photo: p }));
 
   const related = CRYSTALS.filter((x) => x.slug !== c.slug)
     .map((x) => ({ x, score: x.tags.filter((t) => c.tags.includes(t)).length }))
@@ -42,14 +38,12 @@ function render(c) {
   main.innerHTML = `
   <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="index.html#shop">Shop</a></li><li aria-current="page">${esc(c.name)}</li></ol></nav>
   <div class="pdp">
-    <section class="gallery" aria-label="${esc(c.name)} pictures">
+    <section class="gallery${slides.length > 1 ? '' : ' is-single'}" aria-label="${esc(c.name)} pictures">
       <div class="main mat">
-        <span class="badge" hidden></span>
         <div class="slide-host">${framedPhoto(c, { size: 1200, eager: true })}</div>
       </div>
-      <ul class="thumbs">${slides.map((s, i) => `<li><button type="button" data-slide="${i}" aria-current="${i === 0}" aria-label="${s.label}: show ${s.kind === 'photo' ? `${esc(c.name)} photo` : `${FORMATS.find((f) => f.id === s.format).name.toLowerCase()} view`}">
-        ${s.kind === 'photo' ? `<img src="${img(s.photo, 480)}" alt="" style="object-position:${c.focus}" loading="lazy">` : `<span class="illus illus-frame">${formatScene(s.format, img(c.photos[0], 480), c.colour, { label: false })}</span>`}
-        <span class="tlabel" aria-hidden="true">${s.label}</span></button></li>`).join('')}</ul>
+      ${slides.length > 1 ? `<ul class="thumbs">${slides.map((s, i) => `<li><button type="button" data-slide="${i}" aria-current="${i === 0}" aria-label="Show photo ${i + 1} of ${slides.length}">
+        <img src="${img(s.photo, 480)}" alt="" style="object-position:${c.focus}" loading="lazy"></button></li>`).join('')}</ul>` : ''}
     </section>
 
     <section class="buybox" aria-labelledby="pdp-title">
@@ -74,6 +68,7 @@ function render(c) {
               <span class="tile-body"><span class="t-name">${esc(f.name)}${ICON.check.replace('<svg', '<svg class="check"')}</span><span class="t-size">${esc(f.size)}</span><span class="price">${fmt(c.prices[f.id], { whole: true })}</span></span></label>`).join('')}
           </div>
         </fieldset>
+        <div class="wyg" aria-live="polite"><div class="wyg-art" data-wyg-art></div><p><strong>What you get</strong><span data-wyg-text></span></p></div>
         <div class="qty-row" style="margin-top:20px">
           <span class="label" id="qty-label" style="font-weight:600">Quantity</span>
           <div class="stepper" role="group" aria-labelledby="qty-label">
@@ -118,10 +113,10 @@ function render(c) {
     <button class="btn btn-primary" type="button" data-mb-add>Add to bag</button>
   </div>`;
 
-  wire(c, slides, formatSlide);
+  wire(c, slides);
 }
 
-function wire(c, slides, formatSlide) {
+function wire(c, slides) {
   const form = main.querySelector('.buy-form');
   const priceEl = main.querySelector('[data-price]');
   const perEl = main.querySelector('[data-per]');
@@ -133,7 +128,24 @@ function wire(c, slides, formatSlide) {
   const mbSub = main.querySelector('[data-mb-sub]');
   let qty = 1;
   let shownPrice = null;
+  let countRaf = 0;
   let addedTimer = 0;
+  const WYG = {
+    bag: '8–10 polished stones, about 2–3 cm each, in a cotton drawstring pouch.',
+    big: 'One hand-picked piece, about 6–9 cm, chosen to match the photo’s colour.',
+    jar: 'About 6 chunky pieces, 3–5 cm each, in a 500 ml glass jar with a brass lid.',
+  };
+  const wygArt = main.querySelector('[data-wyg-art]');
+  const wygText = main.querySelector('[data-wyg-text]');
+  let wygFor = '';
+  function paintWyg(id) {
+    if (id === wygFor) return;
+    wygFor = id;
+    wygArt.innerHTML = id === 'big'
+      ? `<img src="${img(c.photos[0], 480)}" alt="" style="object-position:${c.focus}">`
+      : formatScene(id, img(c.photos[0], 480), c.colour);
+    wygText.textContent = WYG[id];
+  }
 
   const format = () => FORMATS.find((f) => f.id === form.format.value);
 
@@ -141,21 +153,24 @@ function wire(c, slides, formatSlide) {
     const from = shownPrice ?? to;
     shownPrice = to;
     if (from === to || reducedMotion()) { el.textContent = fmt(to, { whole: true }); return; }
-    const t0 = performance.now();
+    cancelAnimationFrame(countRaf);
+    let t0 = null;
     const step = (t) => {
-      const k = Math.min(1, (t - t0) / 220);
+      t0 ??= t;
+      const k = Math.min(1, Math.max(0, (t - t0) / 220));
       const e = 1 - (1 - k) ** 3;
       el.textContent = fmt(Math.round((from + (to - from) * e) / 100) * 100, { whole: true });
-      if (k < 1 && shownPrice === to) requestAnimationFrame(step);
-      else if (shownPrice === to) el.textContent = fmt(to, { whole: true });
+      if (k < 1) countRaf = requestAnimationFrame(step);
+      else el.textContent = fmt(to, { whole: true });
     };
-    requestAnimationFrame(step);
+    countRaf = requestAnimationFrame(step);
   }
 
   function update() {
     const f = format();
     const unit = c.prices[f.id];
     countTo(priceEl, unit);
+    paintWyg(f.id);
     const per = Math.round(unit / f.pieces);
     perEl.textContent = f.pieces > 1 ? `About ${fmt(per)} ${f.perLabel}` : 'One statement piece';
     qtyEl.textContent = String(qty);
@@ -168,28 +183,17 @@ function wire(c, slides, formatSlide) {
 
   // Gallery
   const host = main.querySelector('.slide-host');
-  const badge = main.querySelector('.gallery .badge');
   let current = 0;
   function show(i) {
     if (i === current || i < 0) return;
     current = i;
     const s = slides[i];
     main.querySelectorAll('.thumbs button').forEach((b) => b.setAttribute('aria-current', String(Number(b.dataset.slide) === i)));
-    const swap = () => {
-      if (s.kind === 'photo') {
-        host.innerHTML = framedPhoto(c, { size: 1200, photo: s.photo, eager: true });
-        badge.hidden = true;
-      } else {
-        const f = FORMATS.find((x) => x.id === s.format);
-        host.innerHTML = `<div class="frame"><div class="illus-frame" role="img" aria-label="Illustration: ${esc(c.name)} as a ${esc(f.name.toLowerCase())}">${formatScene(s.format, img(c.photos[0], 480), c.colour)}</div></div>`;
-        badge.textContent = f.name;
-        badge.hidden = false;
-      }
-    };
-    const el = host.querySelector('img, .illus-frame');
+    const swap = () => { host.innerHTML = framedPhoto(c, { size: 1200, photo: s.photo, eager: true }); };
+    const el = host.querySelector('img');
     if (el && !reducedMotion()) { el.style.transition = 'opacity 160ms'; el.style.opacity = '0'; setTimeout(swap, 160); } else swap();
   }
-  main.querySelector('.thumbs').addEventListener('click', (e) => {
+  main.querySelector('.thumbs')?.addEventListener('click', (e) => {
     const b = e.target.closest('[data-slide]');
     if (b) show(Number(b.dataset.slide));
   });
@@ -197,7 +201,6 @@ function wire(c, slides, formatSlide) {
   form.addEventListener('change', (e) => {
     if (e.target.name !== 'format') return;
     update();
-    show(formatSlide[form.format.value]);
   });
   dec.addEventListener('click', () => { qty = Math.max(1, qty - 1); update(); });
   inc.addEventListener('click', () => { qty = Math.min(bag.MAX_QTY, qty + 1); update(); });

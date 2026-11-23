@@ -115,6 +115,7 @@ function renderEmpty() {
 
 const lines = () => bag.lines();
 let state = { ful: '', pay: '', plan: 'full' };
+const teardown = new AbortController(); // listeners that must stop once the order is placed
 const touched = new Set();
 let submitted = false;
 
@@ -122,6 +123,7 @@ if (!lines().length) renderEmpty();
 else start();
 
 function start() {
+  const signal = teardown.signal;
   main.innerHTML = page();
   const form = main.querySelector('form');
   const $ = (s) => main.querySelector(s);
@@ -136,7 +138,7 @@ function start() {
     renderSummary();
   };
   toggle.addEventListener('click', () => setSummary(toggle.getAttribute('aria-expanded') !== 'true'));
-  mq.addEventListener('change', () => setSummary(toggle.getAttribute('aria-expanded') === 'true'));
+  mq.addEventListener('change', () => setSummary(toggle.getAttribute('aria-expanded') === 'true'), { signal });
   setSummary(false);
 
   // With pay-in-person, the first payment happens at the handover, not today.
@@ -360,19 +362,19 @@ function start() {
 
   syncChoices();
   document.addEventListener('bag:change', () => {
-    if (!lines().length) renderEmpty();
-    else renderMoney();
-  });
+    if (!lines().length) { teardown.abort(); renderEmpty(); } else renderMoney();
+  }, { signal });
 }
 
 function showConfirmation(o) {
+  teardown.abort();
   bag.clear();
   const first = o.name.split(/\s+/)[0];
   const payText = o.pay === 'person' ? 'Pay in person'
     : o.pay === 'gift' ? 'Gift card'
       : `${o.pay === 'debit' ? 'Debit' : 'Credit'} card${o.brand ? ` · ${BRAND_LABEL[o.brand]}` : ''} ending ${o.last4}`;
   const when = o.pay === 'person' ? (o.ful === 'delivery' ? 'at delivery' : 'at pickup') : 'today';
-  const planText = o.plan === 'over-time' ? `4 payments of about ${fmt(o.t.parts[1])} · ${fmt(o.t.dueToday)} ${when}` : `${o.pay === 'person' ? 'In full' : 'Paid in full'} · ${fmt(o.t.total)}${o.pay === 'person' ? ` ${when}` : ''}`;
+  const planText = o.plan === 'over-time' ? `4 payments of ${o.t.parts[0] === o.t.parts[1] ? '' : 'about '}${fmt(o.t.parts[1])} · ${fmt(o.t.dueToday)} ${when}` : `${o.pay === 'person' ? 'In full' : 'Paid in full'} · ${fmt(o.t.total)}${o.pay === 'person' ? ` ${when}` : ''}`;
   const fulText = `${FULFILMENT[o.ful].label}${o.address ? ` to ${o.address}` : o.ful === 'pickup' ? ' · I’ll message you to arrange a time' : ''}`;
   document.title = `Order ${o.no} · Melody’s Crystals`;
   main.innerHTML = `<section class="confirm" aria-labelledby="thanks" tabindex="-1">
@@ -381,7 +383,7 @@ function showConfirmation(o) {
     <p class="order-no">Order ${o.no}</p>
     <p class="muted" style="max-width:52ch">This was a preview, so nothing was charged. Melody will be in touch at <strong>${esc(o.email)}</strong>.</p>
     <div class="recap">
-      <dl>
+      <dl class="recap-facts">
         <div><dt>Getting it</dt><dd>${esc(fulText)}</dd></div>
         <div><dt>Paying</dt><dd>${esc(payText)}</dd></div>
         <div><dt>Plan</dt><dd>${esc(planText)}</dd></div>
@@ -389,13 +391,13 @@ function showConfirmation(o) {
       <ul class="line-items">${o.lines.map((l) => lineItem(l, { editable: false })).join('')}</ul>
       <dl class="sum-rows">
         <div><dt>Subtotal</dt><dd>${fmt(o.t.subtotal)}</dd></div>
-        <div><dt>${esc(FULFILMENT[o.ful].label)}</dt><dd>${o.t.fee ? fmt(o.t.fee) : '<span class="free">Free</span>'}</dd></div>
+        <div><dt>${esc(FULFILMENT[o.ful].label)}</dt><dd>${o.t.fee ? fmt(o.t.fee) : o.t.waived ? `<span class="free"><s>${fmt(o.t.baseFee)}</s>Free</span>` : '<span class="free">Free</span>'}</dd></div>
         <div class="total"><dt>Total</dt><dd>${fmt(o.t.total)}</dd></div>
       </dl>
     </div>
     <p class="signoff">With love, Melody</p>
     <a class="btn btn-primary btn-lg" href="index.html#shop">Back to the shop</a>
   </section>`;
-  scrollTo({ top: 0 });
-  main.querySelector('.confirm').focus();
+  scrollTo({ top: 0, behavior: 'instant' });
+  main.querySelector('.confirm').focus({ preventScroll: true });
 }
