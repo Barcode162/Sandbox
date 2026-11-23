@@ -136,3 +136,9 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-23T07:30:17Z` **polish-critic** — F-031 verified: evidence/critic/r3v/F1-1440.jpg (Boiling Point over Heat, Memory cut by Route) → evidence/critic/r4v/F1-1440.jpg and r4v/F12-1440.jpg: Temperature labelled, Boiling Point moved to clear sky on the left, no hub label over any core; Memory drops out as designed
 - `2026-11-23T07:30:22Z` **ceo** — Phase remediation → **ship-review**
 - `2026-11-23T07:30:23Z` **ceo** — Convened 1× director-vision — ship vote
+- `2026-11-23T07:34:09Z` **director-vision** — F-032 waived: S3 cosmetic; Physicist values stay readable (my walk 3-physicist.jpg); carry to M2 polish backlog
+- `2026-11-23T07:34:09Z` **director-vision** — F-033 waived: S3 cosmetic; icon crosses stats text only when zoomed (seen in my 7-pulse.jpg), no info lost; carry to M2 polish backlog
+- `2026-11-23T07:34:30Z` **director-vision** — ship gate r1: APPROVE (8.3)
+- `2026-11-23T07:34:37Z` **ceo** — ship gate PASSED (round 1)
+- `2026-11-23T07:34:37Z` **ceo** — Phase ship-review → **delivery**
+- `2026-11-23T07:34:57Z` **ceo** — Phase delivery → **closed**

@@ -5,7 +5,7 @@
   "tier": 2,
   "domain": "interactive-web",
   "output": "projects/constellation",
-  "phase": "ship-review",
+  "phase": "closed",
   "created": "2026-11-22T19:28:56Z",
   "rounds": {
     "plan": 1,
@@ -16,6 +16,11 @@
       "passed": true,
       "round": 1,
       "at": "2026-11-22T19:39:09Z"
+    },
+    "ship": {
+      "passed": true,
+      "round": 1,
+      "at": "2026-11-23T07:34:37Z"
     }
   },
   "headcount": {
@@ -57,7 +62,16 @@
     {
       "phase": "ship-review",
       "at": "2026-11-23T07:30:22Z"
+    },
+    {
+      "phase": "delivery",
+      "at": "2026-11-23T07:34:37Z"
+    },
+    {
+      "phase": "closed",
+      "at": "2026-11-23T07:34:57Z"
     }
   ],
-  "updated": "2026-11-23T07:30:23Z"
+  "updated": "2026-11-23T07:34:57Z",
+  "closed": "2026-11-23T07:34:57Z"
 }

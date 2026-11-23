@@ -28,3 +28,11 @@ Freeze contracts as code (types file + stubs) and build in few vertical slices. 
 ## L-0005 · 2026-11-20 · M-0001 · tags: ceo, economy, dispatch
 
 Resume agents with SendMessage for their next pass (designer cards to spec, engineer build to fixes, director plan to ship) instead of convening fresh ones, and keep waves at 4 or fewer; 8 parallel Opus agents hit the rate limit within 8 minutes.
+
+## L-0006 · 2026-11-23 · M-0002 · tags: ceo, economy, dispatch, remediation
+
+Resumed engineers grow to ~500k-token contexts by the second remediation round; for the last one or two small fixes, the CEO fixing directly (with the filing reviewer verifying) costs far less than another resume. Checkpoint-commit the tree before resuming after a usage-limit stop.
+
+## L-0007 · 2026-11-23 · M-0002 · tags: experience-designer, interactive-web, spec, seed
+
+When seed geometry carries the meaning (a ring the shortcut must visibly cross, a cluster that must stay legible), the spec should include one rendered probe of the layout, and every frame table needs one row that starts from a zoomed or selected state. M-0002 re-authored the seed twice and missed camera reframing (F-014) for lack of both.
