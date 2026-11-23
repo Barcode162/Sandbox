@@ -94,7 +94,8 @@ export class SceneBuilder {
         for (let k = 0; k < 8; k++) {
           const a = phase + (k * Math.PI) / 4;
           const r = dist * scale;
-          const q = { x: c.x + Math.cos(a) * Math.cos(tilt) * r, y: c.y + Math.sin(tilt + (k % 2 ? 0.35 : -0.35)) * r, z: c.z + Math.sin(a) * Math.cos(tilt) * r };
+          // Sectors lie in the plane facing the default camera, so the gap shows on screen.
+          const q = { x: c.x + Math.cos(a) * r, y: c.y + Math.sin(a) * r, z: c.z + tilt * r * 0.3 };
           let gap = Infinity;
           for (const [other, o] of pos) if (other !== near && other !== id) gap = Math.min(gap, Math.hypot(o.x - q.x, o.y - q.y, o.z - q.z));
           if (gap > bestGap) ((bestGap = gap), (best = q));

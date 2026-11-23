@@ -65,6 +65,7 @@ test.describe('1024×768', () => {
     await page.mouse.move(1000, 700);
     await shot('F7-route-complete-1024');
     // F11 at 1024 too (route drawer → search reframes, F-014/F-025).
+    await page.keyboard.press('Escape'); // clear the route first
     await page.locator('#search').fill('boil');
     await page.waitForTimeout(1100);
     await idle(page);
@@ -73,8 +74,8 @@ test.describe('1024×768', () => {
     await page.locator('#search').fill('');
     await page.locator('#search').blur();
     // The route framed the ring (F-014): clear it and go home before picking Temperature.
-    await page.keyboard.press('Escape');
-    await page.keyboard.press('Home');
+    await page.locator('body').focus();
+    await page.keyboard.press('Home'); // route already cleared above
     await page.waitForTimeout(900);
     await idle(page);
     const t = await nodePoint(page, 'Temperature');
