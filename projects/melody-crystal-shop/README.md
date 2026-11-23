@@ -22,7 +22,7 @@ Node 22+ is only needed for the dev server and tests. The site itself is plain H
 
 ```bash
 npm install
-npm run verify       # catalogue check + unit tests + 43 Playwright tests (flows, axe a11y, 375–1920 px)
+npm run verify       # catalogue check + 9 unit tests + 50 Playwright tests (flows, axe a11y, 375–1920 px)
 ```
 
 ## Pages
@@ -53,9 +53,11 @@ The checkout validates card details like a real one (card number checksum, brand
 
 ## Photos
 
-The 23 crystal photos come from Wikimedia Commons under CC BY, CC BY-SA or public-domain licences, resized (one cropped) for the web. Credits are in `site/data/credits.js` and shown on `credits.html`. CC BY-SA photos stay under that licence. Melody can swap in photos of her own stones by replacing the files in `site/img/crystals/` (`<id>-480.jpg` and `<id>-1200.jpg`) and updating `credits.js`.
+The 23 crystal photos come from Wikimedia Commons under CC BY, CC BY-SA or public-domain licences, resized for the web (one also trimmed to remove a ruler). Each card is cropped and zoomed in the browser using the `focus` and `zoom` values in `crystals.js`. Credits are in `site/data/credits.js` and shown on `credits.html`. CC BY-SA photos stay under that licence. Melody can swap in photos of her own stones by replacing the files in `site/img/crystals/` (`<id>-480.jpg` and `<id>-1200.jpg`) and updating `credits.js`.
 
-The bag and jar pictures on product pages are drawn in SVG and filled with the stone's own photo.
+The small “What you get” pictures for the bag and jar are drawn in SVG and filled with the stone's own photo.
+
+**Next step for photos:** a few source photos have mixed backgrounds (Black Tourmaline is mostly host rock). Melody's own photos of her stones, shot on one dark cloth, would make the set match perfectly.
 
 ## Wellness copy
 

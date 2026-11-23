@@ -44,3 +44,7 @@ A session can end mid-mission and take every agent's context with it: commit at 
 ## L-0009 · 2026-11-23 · M-0002 · tags: testing
 
 Assertion helpers must fail when their inputs are missing (no badge, no rects exposed), or a new e2e check passes hollow.
+
+## L-0010 · 2026-11-23 · M-0004 · tags: interactive-web, assets, ceo
+
+Wikimedia Commons rate-limits cloud IPs: batch metadata in one API call (titles=A|B|… up to 50) and download thumbnails only at standard widths (330/500/960/1280); non-standard sizes or small originals trigger 429s with 600 s waits. Never let a drawn stand-in replace real photography in a product's main frame; put it in a small inset.

@@ -5,13 +5,19 @@
   "tier": 2,
   "domain": "interactive-web",
   "output": "projects/melody-crystal-shop",
-  "phase": "ship-review",
+  "phase": "retro",
   "created": "2026-11-23T22:28:32Z",
   "rounds": {
     "plan": 1,
     "ship": 1
   },
-  "gates": {},
+  "gates": {
+    "ship": {
+      "passed": true,
+      "round": 1,
+      "at": "2026-11-23T23:46:57Z"
+    }
+  },
   "headcount": {
     "experience-designer": 1,
     "code-reviewer": 1,
@@ -37,7 +43,15 @@
     {
       "phase": "ship-review",
       "at": "2026-11-23T23:43:35Z"
+    },
+    {
+      "phase": "delivery",
+      "at": "2026-11-23T23:47:15Z"
+    },
+    {
+      "phase": "retro",
+      "at": "2026-11-23T23:47:16Z"
     }
   ],
-  "updated": "2026-11-23T23:43:35Z"
+  "updated": "2026-11-23T23:47:16Z"
 }
