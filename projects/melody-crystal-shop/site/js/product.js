@@ -54,7 +54,7 @@ function render(c) {
 
     <section class="buybox" aria-labelledby="pdp-title">
       <div>
-        <p class="eyebrow">${c.tags.join(' · ')}</p>
+        <p class="eyebrow">${esc(c.tags.join(' · '))}</p>
         <h1 id="pdp-title" style="margin-top:8px">${esc(c.name)}</h1>
         <p class="meaning-line">${esc(c.meaning)}</p>
       </div>
@@ -102,7 +102,7 @@ function render(c) {
     </div>
     <aside class="facts" aria-label="${esc(c.name)} at a glance">
       <dl>
-        <div><dt>Intentions</dt><dd><ul class="tags" style="margin:0">${c.tags.map((t) => `<li><a class="tag" href="index.html#shop?i=${t.toLowerCase()}">${t}</a></li>`).join('')}</ul></dd></div>
+        <div><dt>Intentions</dt><dd><ul class="tags" style="margin:0">${c.tags.map((t) => `<li><a class="tag" href="index.html#shop?i=${encodeURIComponent(t.toLowerCase())}">${esc(t)}</a></li>`).join('')}</ul></dd></div>
         <div><dt>Chakra</dt><dd>${esc(c.chakra)}</dd></div>
         <div><dt>Care</dt><dd>${esc(c.care)}</dd></div>
         <div><dt>Every order</dt><dd>Packed by me, with a little card about your stone.</dd></div>

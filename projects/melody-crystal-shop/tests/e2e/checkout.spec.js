@@ -100,7 +100,7 @@ for (const [ful, pay, plan] of COMBOS) {
     await expect(page.locator('.order-no')).toHaveText(/^Order MC-[2-9A-HJ-NP-Z]{6}$/);
     await expect(page.locator('.confirm')).toContainText('nothing was charged');
     if (pay === 'credit') await expect(page.locator('.recap')).toContainText('Credit card · Visa ending 4242');
-    if (plan === 'over-time') await expect(page.locator('.recap')).toContainText('4 payments of about $34.75 · $34.75 today');
+    if (plan === 'over-time' && pay !== 'person') await expect(page.locator('.recap')).toContainText('4 payments of about $34.75 · $34.75 today');
     expect(await page.evaluate(() => localStorage.getItem('mc.bag.v1'))).toBe('[]');
     // Card details never persist anywhere in the browser.
     const stored = await page.evaluate(() => JSON.stringify({ ...localStorage }) + JSON.stringify({ ...sessionStorage }));
@@ -167,4 +167,15 @@ test.describe('responsive: no horizontal scroll, CTA above the fold', () => {
       expect(box.y + box.height).toBeLessThanOrEqual(w < 768 ? 812 : 900);
     });
   }
+});
+
+test('F-005: pay in person never says money is due today', async ({ page }) => {
+  await page.check('input[name=ful][value=pickup]');
+  await page.check('input[name=pay][value=person]');
+  await page.check('input[name=plan][value=over-time]');
+  await expect(page.locator('[data-place]')).toHaveText('Place order · pay $34.75 at pickup');
+  await expect(page.locator('#order-summary .today dt')).toHaveText('Due at pickup');
+  await expect(page.locator('[data-schedule-list] dt').first()).toHaveText('At pickup');
+  await page.check('input[name=ful][value=delivery]');
+  await expect(page.locator('[data-place]')).toHaveText('Place order · pay $34.75 at delivery');
 });

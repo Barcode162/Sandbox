@@ -11,7 +11,7 @@ const main = document.querySelector('[data-checkout]');
 
 const PAY = {
   credit: { label: 'Credit card', icon: 'card', sub: 'Visa, Mastercard, Amex, Discover' },
-  debit: { label: 'Debit card', icon: 'card', sub: 'Visa or Mastercard debit' },
+  debit: { label: 'Debit card', icon: 'card', sub: 'Visa, Mastercard, Amex, Discover' },
   gift: { label: 'Gift card', icon: 'gift', sub: 'A Melody’s Crystals gift card' },
   person: { label: 'Pay in person', icon: 'cash', sub: 'Cash or card at pickup or delivery' },
 };
@@ -139,6 +139,10 @@ function start() {
   mq.addEventListener('change', () => setSummary(toggle.getAttribute('aria-expanded') === 'true'));
   setSummary(false);
 
+  // With pay-in-person, the first payment happens at the handover, not today.
+  const firstDue = () => (state.pay === 'person' ? (state.ful === 'delivery' ? 'at delivery' : 'at pickup') : 'today');
+  const cap = (s) => s[0].toUpperCase() + s.slice(1);
+
   function renderSummary() {
     const ls = lines();
     const t = totals(ls, state.ful, state.plan);
@@ -153,7 +157,7 @@ function start() {
         <div><dt>Subtotal</dt><dd>${fmt(t.subtotal)}</dd></div>
         <div><dt>${state.ful ? esc(FULFILMENT[state.ful].label) : 'Delivery'}</dt><dd>${feeCell}</dd></div>
         <div class="total"><dt>Total</dt><dd>${fmt(t.total)}</dd></div>
-        ${state.plan === 'over-time' ? `<div class="today"><dt>Due today</dt><dd>${fmt(t.dueToday)}</dd></div>` : ''}
+        ${state.plan === 'over-time' ? `<div class="today"><dt>Due ${firstDue()}</dt><dd>${fmt(t.dueToday)}</dd></div>` : ''}
       </dl>
       <p class="footnote">No sales tax is added in this preview.</p>`;
     summary.querySelector('[data-edit-bag]').addEventListener('click', (e) => openDrawer(e.currentTarget));
@@ -171,13 +175,15 @@ function start() {
     // Plan choices show the real numbers for the current total.
     const full = totals(lines(), state.ful, 'full');
     const over = totals(lines(), state.ful, 'over-time');
-    $('[data-plan-full]').textContent = `${fmt(full.total)} today`;
+    $('[data-plan-full]').textContent = `${fmt(full.total)} ${firstDue()}`;
     $('[data-plan-over]').textContent = `4 × ${fmt(over.parts[1])}`;
     const dates = schedule(new Date());
-    $('[data-schedule-list]').innerHTML = over.parts.map((p, i) => `<div><dt>${i === 0 ? 'Today' : SHORT_DATE.format(dates[i])}</dt><dd>${fmt(p)}</dd></div>`).join('');
+    $('[data-schedule-list]').innerHTML = over.parts.map((p, i) => `<div><dt>${i === 0 ? cap(firstDue()) : SHORT_DATE.format(dates[i])}</dt><dd>${fmt(p)}</dd></div>`).join('');
     $('[data-schedule]').hidden = state.plan !== 'over-time';
     const btn = $('[data-place]');
-    if (!btn.dataset.busy) btn.textContent = state.plan === 'over-time' ? `Place order · ${fmt(t.dueToday)} today` : `Place order · ${fmt(t.total)}`;
+    if (!btn.dataset.busy) btn.textContent = state.pay === 'person'
+      ? `Place order · pay ${fmt(t.dueToday)} ${firstDue()}`
+      : state.plan === 'over-time' ? `Place order · ${fmt(t.dueToday)} today` : `Place order · ${fmt(t.total)}`;
   }
 
   function syncChoices() {
@@ -365,7 +371,8 @@ function showConfirmation(o) {
   const payText = o.pay === 'person' ? 'Pay in person'
     : o.pay === 'gift' ? 'Gift card'
       : `${o.pay === 'debit' ? 'Debit' : 'Credit'} card${o.brand ? ` · ${BRAND_LABEL[o.brand]}` : ''} ending ${o.last4}`;
-  const planText = o.plan === 'over-time' ? `4 payments of about ${fmt(o.t.parts[1])} · ${fmt(o.t.dueToday)} today` : `Paid in full · ${fmt(o.t.total)}`;
+  const when = o.pay === 'person' ? (o.ful === 'delivery' ? 'at delivery' : 'at pickup') : 'today';
+  const planText = o.plan === 'over-time' ? `4 payments of about ${fmt(o.t.parts[1])} · ${fmt(o.t.dueToday)} ${when}` : `${o.pay === 'person' ? 'In full' : 'Paid in full'} · ${fmt(o.t.total)}${o.pay === 'person' ? ` ${when}` : ''}`;
   const fulText = `${FULFILMENT[o.ful].label}${o.address ? ` to ${o.address}` : o.ful === 'pickup' ? ' · I’ll message you to arrange a time' : ''}`;
   document.title = `Order ${o.no} · Melody’s Crystals`;
   main.innerHTML = `<section class="confirm" aria-labelledby="thanks" tabindex="-1">

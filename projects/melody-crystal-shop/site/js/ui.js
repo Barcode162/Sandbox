@@ -186,6 +186,7 @@ function footer() {
 // ── Drawer ───────────────────────────────────────────────────────────────
 let opener = null;
 let lastAdded = null;
+let undo = null; // { name, restore, timer } — the last removal, offered inside the drawer for 5 s
 let undoTimer = 0;
 
 function drawerShell() {
@@ -231,13 +232,14 @@ function renderDrawer() {
   d.querySelector('#bag-title').textContent = n ? `Your bag (${n})` : 'Your bag';
   const body = d.querySelector('.drawer-body');
   const foot = d.querySelector('.drawer-foot');
+  const undoRow = undo ? `<div class="undo-row" role="status"><span>Removed ${esc(undo.name)}</span><button type="button" class="btn-quiet" data-undo>Undo</button></div>` : '';
   if (!ls.length) {
-    body.innerHTML = emptyBag();
+    body.innerHTML = undoRow + emptyBag();
     foot.hidden = true;
     return;
   }
   const sub = ls.reduce((s, l) => s + l.price * l.qty, 0);
-  body.innerHTML = `<ul class="line-items">${ls.map((l) => lineItem(l)).join('')}</ul>`;
+  body.innerHTML = `${undoRow}<ul class="line-items">${ls.map((l) => lineItem(l)).join('')}</ul>`;
   foot.hidden = false;
   foot.innerHTML = `<div class="row"><span>Subtotal</span><span class="price" style="color:inherit">${fmt(sub)}</span></div>
     <p class="note">Delivery and payment options at checkout.</p>
@@ -295,6 +297,14 @@ function wireDrawer() {
     const t = e.target.closest('button, a');
     if (!t) return;
     if (t.matches('[data-close]')) return closeDrawer();
+    if (t.matches('[data-undo]')) {
+      const u = undo;
+      clearTimeout(u?.timer);
+      undo = null;
+      u?.restore();
+      d.querySelector('.line [data-remove], [data-close]')?.focus();
+      return;
+    }
     const li = t.closest('.line');
     if (!li) return;
     const key = li.dataset.key;
@@ -303,9 +313,11 @@ function wireDrawer() {
     if (t.matches('[data-inc]')) bag.setQty(key, l.qty + 1);
     else if (t.matches('[data-dec]')) bag.setQty(key, l.qty - 1);
     else if (t.matches('[data-remove]')) {
-      const restore = bag.remove(key);
-      toast(`Removed ${esc(l.crystal.name)}`, { action: 'Undo', onAction: restore });
-      d.querySelector('[data-close]').focus();
+      clearTimeout(undo?.timer);
+      undo = { name: l.crystal.name, restore: bag.remove(key) };
+      undo.timer = setTimeout(() => { undo = null; renderDrawer(); }, 5000);
+      renderDrawer();
+      d.querySelector('[data-undo]').focus();
       return;
     }
     const again = d.querySelector(`.line[data-key="${key}"] ${t.matches('[data-inc]') ? '[data-inc]' : '[data-dec]'}`);
@@ -373,7 +385,7 @@ export function mount(active = '') {
   wireDrawer();
   paintCount();
   document.addEventListener('bag:change', () => { paintCount(); if (!document.getElementById('bag-drawer').hidden) renderDrawer(); });
-  addEventListener('storage', (e) => { if (e.key === 'mc.bag.v1') { paintCount(); document.dispatchEvent(new CustomEvent('bag:external')); } });
+  addEventListener('storage', (e) => { if (e.key === 'mc.bag.v1' || e.key === null) document.dispatchEvent(new CustomEvent('bag:change')); });
 }
 
 /** A shop-grid card: photo and name both link to the product page. */
@@ -385,7 +397,7 @@ export function card(c, headingLevel = 3) {
       <div class="card-body">
         <${h}><a href="product.html?c=${c.slug}">${esc(c.name)}</a></${h}>
         <p class="meaning">${esc(c.meaning)}</p>
-        <ul class="tags" aria-label="Intentions">${c.tags.map((t) => `<li class="tag">${t}</li>`).join('')}</ul>
+        <ul class="tags" aria-label="Intentions">${c.tags.map((t) => `<li class="tag">${esc(t)}</li>`).join('')}</ul>
         <div class="card-foot"><span class="price">From ${fmt(fromPrice(c), { whole: true })}</span><span class="view" aria-hidden="true">View options →</span></div>
       </div>
     </article>

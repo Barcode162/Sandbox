@@ -81,3 +81,11 @@ test('expiry', () => {
 test('order numbers avoid 0/O/1/I', () => {
   for (let i = 0; i < 500; i++) assert.match(orderNumber(), /^MC-[2-9A-HJ-NP-Z]{6}$/);
 });
+
+test('review fixes: 2-series Mastercard range and far-future expiry', () => {
+  assert.equal(cardBrand('2220'), null);
+  assert.equal(cardBrand('2221'), 'mastercard');
+  assert.equal(cardBrand('2720'), 'mastercard');
+  assert.equal(cardBrand('2721'), null);
+  assert.equal(checkExpiry('12 / 99', new Date(2026, 10, 23)), 'format');
+});

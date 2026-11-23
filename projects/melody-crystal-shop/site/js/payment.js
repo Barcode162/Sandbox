@@ -27,7 +27,7 @@ export function cardBrand(num) {
   const d = digits(num);
   if (/^3[47]/.test(d)) return 'amex';
   if (/^4/.test(d)) return 'visa';
-  if (/^(5[1-5]|2(2[2-9]|[3-6]\d|7[01]|720))/.test(d)) return 'mastercard';
+  if (/^(5[1-5]|222[1-9]|22[3-9]\d|2[3-6]\d\d|27[01]\d|2720)/.test(d)) return 'mastercard'; // 2-series: 2221–2720
   if (/^(6011|65|64[4-9]|622)/.test(d)) return 'discover';
   return null;
 }
@@ -86,6 +86,7 @@ export function checkExpiry(value, now = new Date()) {
   const year = 2000 + Number(m[2]);
   if (month < 1 || month > 12) return 'format';
   const endOfMonth = new Date(year, month, 1); // first day of the following month
+  if (year > now.getFullYear() + 20) return 'format';
   return endOfMonth > now ? 'ok' : 'expired';
 }
 

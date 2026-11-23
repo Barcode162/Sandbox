@@ -9,13 +9,19 @@ let memory = [];
 let persistent = true;
 
 function read() {
+  if (!persistent) return memory;
+  let raw;
   try {
-    const raw = localStorage.getItem(KEY);
-    const list = raw ? JSON.parse(raw) : [];
-    return Array.isArray(list) ? list : [];
+    raw = localStorage.getItem(KEY);
   } catch {
     persistent = false;
     return memory;
+  }
+  try {
+    const list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return []; // a corrupt saved bag starts fresh; storage itself still works
   }
 }
 
@@ -38,6 +44,7 @@ export function isPersistent() {
 export function lines() {
   return read()
     .map((it) => {
+      if (!it || typeof it !== 'object') return null;
       const c = bySlug(it.slug);
       const f = FORMATS.find((x) => x.id === it.format);
       const qty = Math.min(MAX_QTY, Math.max(1, Math.floor(Number(it.qty) || 0)));

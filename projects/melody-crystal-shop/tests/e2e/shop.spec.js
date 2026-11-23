@@ -102,7 +102,7 @@ test('drawer: remove with undo, and empty state', async ({ page }) => {
   const drawer = page.getByRole('dialog');
   await drawer.getByRole('button', { name: /Remove/ }).click();
   await expect(drawer.getByText('Your bag is empty.')).toBeVisible();
-  await page.locator('.toast').getByRole('button', { name: 'Undo' }).click();
+  await drawer.getByRole('button', { name: 'Undo' }).click();
   await expect(drawer.locator('.line')).toHaveCount(1);
   await expect(drawer.locator('.line .val')).toHaveText('2');
 });
@@ -113,4 +113,56 @@ test('buy now goes straight to checkout with the item', async ({ page }) => {
   await page.getByRole('button', { name: 'Buy now' }).click();
   await expect(page).toHaveURL(/checkout\.html$/);
   await expect(page.locator('#order-summary .line')).toHaveCount(1);
+});
+
+test('F-001: a corrupt saved bag never breaks the shop', async ({ page }) => {
+  const g = guard(page);
+  for (const bad of ['[null]', '[1,"x",{"slug":"nope"}]', '{not json', '{"a":1}']) {
+    await page.goto('/credits.html');
+    await page.evaluate((v) => localStorage.setItem('mc.bag.v1', v), bad);
+    await page.goto('/');
+    await expect(page.locator('[data-grid] > li')).toHaveCount(CRYSTALS.length);
+    await page.goto('/product.html?c=amethyst');
+    await page.locator('[data-add]').click();
+    await expect(page.locator('.bag-count')).toHaveText('1');
+  }
+  g.check();
+});
+
+test('F-002: when storage writes fail, the bag still works for the session and says so', async ({ page }) => {
+  await page.addInitScript(() => { Storage.prototype.setItem = () => { throw new Error('quota'); }; });
+  await page.goto('/product.html?c=citrine');
+  await page.locator('[data-add]').click();
+  await expect(page.locator('.bag-count')).toHaveText('1');
+  await expect(page.getByRole('dialog').locator('.line')).toHaveCount(1);
+  await expect(page.getByText('Your bag won’t be saved after you close this tab.')).toBeVisible();
+});
+
+test('F-003/F-004: undo lives in the drawer, keyboard-reachable; Keep shopping is never blocked', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await seedBag(page, [{ slug: 'citrine', format: 'bag', qty: 1 }, { slug: 'amethyst', format: 'big', qty: 1 }]);
+  await page.goto('/');
+  await page.locator('.bag-btn').click();
+  const drawer = page.getByRole('dialog');
+  await drawer.getByRole('button', { name: /Remove Citrine/ }).click();
+  await expect(drawer.getByRole('button', { name: 'Undo' })).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(drawer.locator('.line')).toHaveCount(2);
+  await drawer.getByRole('button', { name: /Remove Citrine/ }).click();
+  await page.waitForTimeout(5300);
+  await expect(drawer.getByRole('button', { name: 'Undo' })).toHaveCount(0);
+  await drawer.getByRole('button', { name: 'Keep shopping' }).click();
+  await expect(drawer).toBeHidden();
+});
+
+test('F-006: checkout updates when the bag changes in another tab', async ({ page, context }) => {
+  await seedBag(page, [{ slug: 'selenite', format: 'bag', qty: 1 }]);
+  await page.goto('/checkout.html');
+  await expect(page.locator('[data-place]')).toHaveText('Place order · $12.00');
+  const other = await context.newPage();
+  await other.goto('/product.html?c=citrine');
+  await other.check('input[name=format][value=jar]');
+  await other.locator('[data-add]').click();
+  await expect(page.locator('[data-place]')).toHaveText('Place order · $162.00');
+  await expect(page.locator('#order-summary .line')).toHaveCount(2);
 });
