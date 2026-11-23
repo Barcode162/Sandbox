@@ -1,0 +1,32 @@
+{
+  "id": "M-0004",
+  "title": "Melody's Crystal Shop",
+  "slug": "melody-crystal-shop",
+  "tier": 2,
+  "domain": "interactive-web",
+  "output": "projects/melody-crystal-shop",
+  "phase": "review",
+  "created": "2026-11-23T22:28:32Z",
+  "rounds": {
+    "plan": 1,
+    "ship": 1
+  },
+  "gates": {},
+  "headcount": {
+    "experience-designer": 1
+  },
+  "levers": [
+    "polish"
+  ],
+  "history": [
+    {
+      "phase": "intake",
+      "at": "2026-11-23T22:28:32Z"
+    },
+    {
+      "phase": "review",
+      "at": "2026-11-23T23:14:31Z"
+    }
+  ],
+  "updated": "2026-11-23T23:14:31Z"
+}
