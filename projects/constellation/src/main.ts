@@ -73,11 +73,15 @@ function boot(): void {
   let unreadable: string | null = null;
   let saveKey = AUTOSAVE_KEY;
   let personal = false;
+  let personalBase: MemoryDoc | null = null;
+  let memoryNote = '';
+  let keptAside: { count: number; names: string[]; raw: string | null } | null = null;
   if (memoryName && !stress) {
     const file = memoryFile === undefined ? null : validateDoc(memoryFile);
     if (file?.ok) {
       personal = true;
       doc = file.doc;
+      personalBase = file.doc;
       saveKey = `${AUTOSAVE_KEY}.${memoryName}`;
       const stamp = stampOf(memoryFile);
       try {
@@ -86,6 +90,18 @@ function boot(): void {
           const saved = loadSaved(store, saveKey);
           if (saved?.ok) ((doc = saved.doc), (returning = true));
         } else if (store) {
+          // A newer file replaces the browser's copy. Stars added by hand are kept aside, never dropped
+          // silently (F-004): the notice offers them as a download.
+          const old = loadSaved(store, saveKey);
+          if (old?.ok) {
+            const fileIds = new Set(file.doc.nodes.map((n) => n.id));
+            const extra = old.doc.nodes.filter((n) => !fileIds.has(n.id));
+            if (extra.length) {
+              const raw = store.getItem(saveKey);
+              if (raw !== null) store.setItem(`${saveKey}.previous`, raw);
+              keptAside = { count: extra.length, names: extra.slice(0, 3).map((n) => n.label), raw };
+            }
+          }
           store.removeItem(saveKey);
           store.setItem(`${saveKey}.stamp`, stamp);
         }
@@ -93,9 +109,9 @@ function boot(): void {
         /* storage blocked: the file opens, unsaved (handled below) */
       }
     } else {
-      note = file
-        ? `The memory "${memoryName}" couldn't be opened (${file.errors[0]?.message ?? 'unknown problem'}), so the seed is shown.`
-        : `There's no memory called "${memoryName}" here, so the seed is shown.`;
+      memoryNote = file
+        ? `The memory "${memoryName}" couldn't be opened (${file.errors[0]?.message ?? 'unknown problem'}), so your usual memory is shown.`
+        : `There's no memory called "${memoryName}" here, so your usual memory is shown.`;
     }
   }
   if (stress) {
@@ -154,8 +170,10 @@ function boot(): void {
   }
 
   const renderer = createRenderer({ container: stage, reducedMotion: motionQuery.matches });
-  const seedIds = new Set(seed.doc.nodes.map((n) => n.id));
-  const app = new App(graph, renderer, seedIds, seed.doc, motionQuery.matches);
+  // The baseline ("what you stored", Reset) is the memory file when a personal memory is open (F-002).
+  const base = personal ? personalBase! : seed.doc;
+  const seedIds = new Set(base.nodes.map((n) => n.id));
+  const app = new App(graph, renderer, seedIds, base, motionQuery.matches);
   const shell = new Shell(app);
   const extras = app.extras;
   motionQuery.addEventListener('change', (e) => {
@@ -209,6 +227,16 @@ function boot(): void {
       error: true,
       timeout: 0,
       actions: [{ label: 'Export', run: () => app.exportFile() }],
+    });
+  }
+  if (memoryNote) toast(memoryNote, { key: 'memory', error: true, timeout: 0 });
+  if (keptAside) {
+    const k = keptAside;
+    const what = k.count === 1 ? `"${k.names[0]}"` : `${k.count} stars you added here (${k.names.join(', ')}${k.count > 3 ? '…' : ''})`;
+    toast(`Your memory was updated. ${what} ${k.count === 1 ? 'was' : 'were'} only in this browser, so a copy is kept aside.`, {
+      key: 'kept',
+      timeout: 0,
+      actions: k.raw === null ? [] : [{ label: 'Download it', run: () => download(`constellation-${memoryName}-browser-copy.json`, k.raw!) }],
     });
   }
   if (note) {
