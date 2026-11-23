@@ -24,8 +24,10 @@ export interface OverlayItem {
   cls?: string;
   /** Placed even if it overlaps (still blocks later items). */
   force?: boolean;
-  /** May sit over other stars' cores (hubs, focus); never over text. */
+  /** May sit over other stars' cores (focus); never over text. */
   overCores?: boolean;
+  /** Tries every clear spot first, then may sit over other stars' cores (hub names, F-031). */
+  overCoresFallback?: boolean;
   /** Counts toward the label cap. */
   isLabel?: boolean;
   nodeId?: string;
@@ -125,13 +127,14 @@ export class Overlay {
       const h = f.h;
       let spot: { x: number; y: number } | null = null;
       const origins = it.spots ? [{ x: it.x, y: it.y }, ...it.spots] : [{ x: it.x, y: it.y }];
-      search: for (const o of origins) {
+      const passes = it.overCoresFallback && !it.overCores ? [true, false] : [!it.overCores];
+      search: for (const cores of passes) for (const o of origins) {
         for (const a of it.anchors) {
           const p = anchorAt(a, o.x, o.y, it.offset, w, h);
           // Never cross the viewport edge (8 px margin, F-026).
           if (p.x < 8 || p.y < minY || p.x + w > vw - 8 || p.y + h > vh - 8) continue;
-          // Chips and labels both keep off text and off star cores (F-020); hubs may sit over cores.
-          if (!it.force && overlaps(p.x, p.y, w, h, !it.overCores, it.nodeId)) continue;
+          // Chips and labels keep off text, and off star cores unless allowed (F-020, F-031).
+          if (!it.force && overlaps(p.x, p.y, w, h, cores, it.nodeId)) continue;
           spot = p;
           break search;
         }

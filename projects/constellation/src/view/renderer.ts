@@ -1382,7 +1382,7 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
       if (ign < 0.06) continue;
       const depthFade = 1 - range(n.depth, 220 * kDist, 480 * kDist);
       const act = activation?.get(n.id);
-      let pr = 10 + Math.min(n.degree, 30) * 0.5;
+      let pr = 10 + Math.min(n.degree, 30) * 0.5 + (n.degree >= 8 && !n.road ? 20 : 0); // hubs name themselves first (F-031)
       if (n.road) pr = trails.length ? 75 : 50;
       if (selNbrs?.has(n.id)) pr = Math.max(pr, 60);
       if (act !== undefined && act <= 1) pr = act === 0 ? 80 : 70;
@@ -1405,9 +1405,10 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
         cls: n.id === selected ? 'sel' : n.road ? 'road' : undefined,
         // Single road letters still declutter but don't spend the 40-word cap (F-015).
         isLabel: !n.road,
-        // Only the selected, hovered or route-named light's label may sit over other cores; everything
-        // else (hub names, run-lit steps, road letters) finds a free side or waits (F-030).
+        // Only the selected, hovered or route-named light's label sits over other cores outright. Hubs
+        // (degree ≥ 8) take a clear side when one exists and otherwise still keep their name (F-030, F-031).
         overCores: pr >= 90,
+        overCoresFallback: !n.road && n.degree >= 8,
         nodeId: n.id,
       });
       // Ghost chips when expanded; the active value sits on top (never as a ghost)
@@ -1504,7 +1505,7 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
       });
     }
     const cores: Array<{ x: number; y: number; r: number; id: string }> = [];
-    for (const n of order) if (n.onScreen && n.bright > 0.1) cores.push({ id: n.id, x: n.sx, y: n.sy, r: (n.id === selected ? Math.max(n.pxR * 2.4, n.pxR + 7) : Math.max(3, n.pxR * (n.data.kind === 'pathway' ? 1.5 : 1))) + 1 });
+    for (const n of order) if (n.onScreen && n.bright > 0.1) cores.push({ id: n.id, x: n.sx, y: n.sy, r: (n.id === selected ? Math.max(n.pxR * 2.4, n.pxR + 7) : Math.max(3, n.pxR * (n.data.kind === 'pathway' ? 1.5 : n.data.kind === 'variable' ? 1.8 : 1))) + 1 }); // variables draw a ring at 1.8r (F-031)
     // Keep labels below the top bar (56 px; 100 px with the 375 lens row).
     overlay.place(items, cap, width, height, cores, width < 768 ? 104 : 60);
   }
