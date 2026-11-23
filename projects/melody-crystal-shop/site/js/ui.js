@@ -202,7 +202,7 @@ function drawerShell() {
 export function lineItem(l, { editable = true } = {}) {
   const c = l.crystal;
   return `<li class="line${l.key === lastAdded ? ' is-new' : ''}" data-key="${l.key}">
-    <div class="thumb"><img src="${img(c.photos[0], 480)}" alt="" style="object-position:${c.focus}" loading="lazy"></div>
+    <div class="thumb"><img src="${img(c.photos[0], 480)}" alt="" style="${photoStyle(c)}" loading="lazy"></div>
     <div>
       <h3><a href="product.html?c=${c.slug}">${esc(c.name)}</a></h3>
       <div class="fmt">${esc(l.formatInfo.name)}${editable ? '' : ` · Qty ${l.qty}`}</div>
@@ -314,7 +314,12 @@ function wireDrawer() {
     else if (t.matches('[data-remove]')) {
       clearTimeout(undo?.timer);
       undo = { name: l.crystal.name, restore: bag.remove(key) };
-      undo.timer = setTimeout(() => { undo = null; renderDrawer(); }, 5000);
+      undo.timer = setTimeout(() => {
+        const hadFocus = !!document.activeElement?.closest('.undo-row');
+        undo = null;
+        renderDrawer();
+        if (hadFocus) d.querySelector('.line [data-remove], [data-close]')?.focus();
+      }, 5000);
       renderDrawer();
       d.querySelector('[data-undo]').focus();
       return;

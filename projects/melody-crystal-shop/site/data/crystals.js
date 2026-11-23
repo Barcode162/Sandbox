@@ -11,6 +11,7 @@
 export const FORMATS = [
   {
     id: 'bag',
+    youGet: '8–10 polished stones, about 2–3 cm each, in a cotton drawstring pouch.',
     name: 'Tumbled bag',
     short: 'Bag',
     size: '8\u2060–\u206010 stones · 2\u2060–\u20603\u00a0cm',
@@ -20,6 +21,7 @@ export const FORMATS = [
   },
   {
     id: 'big',
+    youGet: 'One hand-picked piece, about 6–9 cm, chosen to match the photo’s colour.',
     name: 'Big crystal',
     short: 'Big',
     size: 'One piece · 6\u2060–\u20609\u00a0cm',
@@ -29,6 +31,7 @@ export const FORMATS = [
   },
   {
     id: 'jar',
+    youGet: 'About 6 chunky pieces, 3–5 cm each, in a 500 ml glass jar with a brass lid.',
     name: 'Jar of big crystals',
     short: 'Jar',
     size: 'About 6 pieces · 3\u2060–\u20605\u00a0cm · 500\u00a0ml jar',

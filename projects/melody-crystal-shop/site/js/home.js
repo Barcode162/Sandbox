@@ -1,5 +1,5 @@
 // home.js — hero trio, meanings list, shop grid with intention filter, format strip.
-import { CRYSTALS, FORMATS, INTENTIONS, bySlug, tagCounts, img } from '../data/crystals.js';
+import { CRYSTALS, FORMATS, INTENTIONS, bySlug, tagCounts, img, photoStyle } from '../data/crystals.js';
 import { mount, ICON, esc, framedPhoto, formatArt, reducedMotion, card } from './ui.js';
 
 mount('shop');
@@ -21,7 +21,7 @@ document.querySelector('[data-trio]').innerHTML = trio.map(([slug, cls, size], i
 // ── Meanings ──────────────────────────────────────────────────────────────
 document.querySelector('[data-meanings]').innerHTML = CRYSTALS.map((c) => `
   <li><a class="meaning-row" href="product.html?c=${c.slug}">
-    <span class="thumb"><img src="${img(c.photos[0], 480)}" alt="" style="object-position:${c.focus}" loading="lazy" decoding="async"></span>
+    <span class="thumb"><img src="${img(c.photos[0], 480)}" alt="" style="${photoStyle(c)}" loading="lazy" decoding="async"></span>
     <div><h3>${esc(c.name)}</h3><p>${esc(c.meaning)}</p></div>
     ${ICON.chev}
   </a></li>`).join('');

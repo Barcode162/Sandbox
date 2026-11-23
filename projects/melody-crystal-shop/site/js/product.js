@@ -1,5 +1,5 @@
 // product.js — the marketplace-style listing: gallery, format tiles, quantity, add to bag / buy now.
-import { CRYSTALS, FORMATS, bySlug, img } from '../data/crystals.js';
+import { CRYSTALS, FORMATS, bySlug, img, photoStyle } from '../data/crystals.js';
 import { fmt } from './money.js';
 import * as bag from './bag.js';
 import { mount, ICON, esc, framedPhoto, formatScene, addAndShow, card, reducedMotion } from './ui.js';
@@ -43,7 +43,7 @@ function render(c) {
         <div class="slide-host">${framedPhoto(c, { size: 1200, eager: true })}</div>
       </div>
       ${slides.length > 1 ? `<ul class="thumbs">${slides.map((s, i) => `<li><button type="button" data-slide="${i}" aria-current="${i === 0}" aria-label="Show photo ${i + 1} of ${slides.length}">
-        <img src="${img(s.photo, 480)}" alt="" style="object-position:${c.focus}" loading="lazy"></button></li>`).join('')}</ul>` : ''}
+        <img src="${img(s.photo, 480)}" alt="" style="${photoStyle(c)}" loading="lazy"></button></li>`).join('')}</ul>` : ''}
     </section>
 
     <section class="buybox" aria-labelledby="pdp-title">
@@ -130,11 +130,6 @@ function wire(c, slides) {
   let shownPrice = null;
   let countRaf = 0;
   let addedTimer = 0;
-  const WYG = {
-    bag: '8–10 polished stones, about 2–3 cm each, in a cotton drawstring pouch.',
-    big: 'One hand-picked piece, about 6–9 cm, chosen to match the photo’s colour.',
-    jar: 'About 6 chunky pieces, 3–5 cm each, in a 500 ml glass jar with a brass lid.',
-  };
   const wygArt = main.querySelector('[data-wyg-art]');
   const wygText = main.querySelector('[data-wyg-text]');
   let wygFor = '';
@@ -142,9 +137,9 @@ function wire(c, slides) {
     if (id === wygFor) return;
     wygFor = id;
     wygArt.innerHTML = id === 'big'
-      ? `<img src="${img(c.photos[0], 480)}" alt="" style="object-position:${c.focus}">`
+      ? `<img src="${img(c.photos[0], 480)}" alt="" style="${photoStyle(c)}">`
       : formatScene(id, img(c.photos[0], 480), c.colour);
-    wygText.textContent = WYG[id];
+    wygText.textContent = FORMATS.find((f) => f.id === id).youGet;
   }
 
   const format = () => FORMATS.find((f) => f.id === form.format.value);
