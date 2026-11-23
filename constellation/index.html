@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Constellation: a spatial memory of points, relations, perspectives and pathways." />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#000000" />
+    <title>Constellation</title>
+    <style>html,body{background:#000;margin:0}</style>
+    <script type="module" crossorigin src="./assets/index-ByoMNyJy.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-GgfCe9CM.css">
+  </head>
+  <body class="intro">
+    <a class="skip" href="#search">Skip to search</a>
+    <header class="topbar" id="topbar">
+      <div class="brand" id="brand">
+        <svg class="glyph" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+          <g stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none">
+            <path d="M12 2.5v5M12 16.5v5M3.8 7.2l4.3 2.5M15.9 14.3l4.3 2.5M3.8 16.8l4.3-2.5M15.9 9.7l4.3-2.5" />
+          </g>
+          <circle cx="12" cy="12" r="2.2" fill="currentColor" />
+        </svg>
+        <div class="brand-text">
+          <span class="wordmark">CONSTELLATION</span>
+          <span class="tagline">A memory you can walk through.</span>
+        </div>
+        <p class="stats" id="stats" aria-live="off"></p>
+      </div>
+      <nav class="lenses" id="lenses" aria-label="Perspectives"></nav>
+      <div class="tools" id="tools">
+        <form class="search" id="search-form" role="search" autocomplete="off">
+          <label class="sr-only" for="search">Ask the memory</label>
+          <svg class="search-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
+            <circle cx="7" cy="7" r="4.6" stroke="currentColor" stroke-width="1.4" fill="none" />
+            <path d="M10.4 10.4l3.6 3.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+          </svg>
+          <input id="search" type="search" placeholder="Ask the memory…  /" spellcheck="false" aria-describedby="search-hint" />
+          <span class="sr-only" id="search-hint">Results appear in the Results tab, grouped by how many hops away they are.</span>
+        </form>
+        <button class="btn primary" id="store-open" type="button" aria-keyshortcuts="N"><span>Store</span><kbd>N</kbd></button>
+        <div class="menu-wrap">
+          <button class="btn icon" id="menu-open" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu" aria-label="More">
+            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="3" cy="8" r="1.4" fill="currentColor" /><circle cx="8" cy="8" r="1.4" fill="currentColor" /><circle cx="13" cy="8" r="1.4" fill="currentColor" /></svg>
+          </button>
+          <div class="menu panel" id="menu" role="menu" aria-label="More" hidden></div>
+        </div>
+      </div>
+    </header>
+    <main id="main">
+      <h1 class="sr-only">Constellation</h1>
+      <div id="stage" role="img" aria-label="Constellation memory"></div>
+      <aside class="drawer panel" id="drawer" aria-label="Instruments" hidden></aside>
+      <aside class="inspector panel" id="inspector" aria-label="Inspector" hidden></aside>
+    </main>
+    <div class="hovercard" id="hovercard" aria-hidden="true" hidden></div>
+    <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+    <div class="saved" id="saved" aria-hidden="true">Saved</div>
+    <p class="sr-only" id="announcer" aria-live="polite"></p>
+    <input type="file" id="import-file" accept="application/json,.json" class="sr-only" tabindex="-1" aria-hidden="true" />
+  </body>
+</html>
