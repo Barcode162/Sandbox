@@ -24,6 +24,8 @@ export interface OverlayItem {
   force?: boolean;
   /** May sit over other stars' cores (hubs, focus); never over text. */
   overCores?: boolean;
+  /** Prefer clear sky; only if every anchor is blocked by a star may it sit over cores (hub labels, F-031). */
+  coreFallback?: boolean;
   /** Counts toward the label cap. */
   isLabel?: boolean;
   nodeId?: string;
@@ -129,6 +131,18 @@ export class Overlay {
         if (!it.force && overlaps(p.x, p.y, w, h, !it.overCores)) continue;
         spot = p;
         break;
+      }
+      if (!spot && it.coreFallback) {
+        // Every anchor touches a star: take the one that covers the fewest cores (and no text).
+        let fewest = Infinity;
+        for (const a of it.anchors) {
+          const p = anchorAt(a, it.x, it.y, it.offset, w, h);
+          if (p.x < 8 || p.y < minY || p.x + w > vw - 8 || p.y + h > vh - 8) continue;
+          if (overlaps(p.x, p.y, w, h, false)) continue;
+          let covered = 0;
+          for (const r of blockers) if (p.x < r.x + r.w && p.x + w > r.x && p.y < r.y + r.h && p.y + h > r.y) covered++;
+          if (covered < fewest) ((fewest = covered), (spot = p));
+        }
       }
       if (!spot && it.force) spot = anchorAt(it.anchors[0] ?? 'center', it.x, it.y, it.offset, w, h);
       if (!spot) continue;

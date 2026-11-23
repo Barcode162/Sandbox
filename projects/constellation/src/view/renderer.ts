@@ -1378,13 +1378,14 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
     const clip = (t: string) => (t.length > 16 ? t.slice(0, 15).trimEnd() + '…' : t);
     // The three most connected visible lights always get a name (F-031): they win priority among
     // plain labels and may sit over neighbouring cores (never over text) when the cluster is dense.
-    const hubs = new Set(
-      order
+    const hubList = order
         .filter((n) => n.onScreen && n.dying === NEVER && n.bright >= 0.06 && n.data.kind !== 'pathway' && !n.road)
         .sort((a, b) => b.degree - a.degree)
         .slice(0, 3)
-        .map((n) => n.id),
-    );
+        .map((n) => n.id);
+    const hubs = new Set(hubList);
+    // Only the top hub may, as a last resort, cover a neighbouring core; the others drop out instead.
+    const topHub = hubList[0];
     for (const n of order) {
       if (!n.onScreen || n.dying !== NEVER) continue;
       const ign = n.bright;
@@ -1414,7 +1415,8 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
         priority: pr,
         opacity: op,
         cls: n.id === selected ? 'sel' : n.road ? 'road' : undefined,
-        overCores: hub || n.id === selected,
+        overCores: n.id === selected,
+        coreFallback: n.id === topHub,
         // Single road letters still declutter but don't spend the 40-word cap (F-015).
         isLabel: !n.road,
         nodeId: n.id,

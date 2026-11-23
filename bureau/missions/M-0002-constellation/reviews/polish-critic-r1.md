@@ -43,8 +43,7 @@ It compounds F-016 (A and Z are neighbours). Filed as S2 (F-015), ranked second.
 
 ## Five tests
 - **Flagship:** not yet. F2 and F10 are flagship; F5–F8, which carry the thesis, are not.
-- **Second look:** fails at F8 and F5.
-- **First impression (10 s):** pass. Black sky, clear wordmark, readable clusters.
+- **First impression (10 s):** pass.
 - **Coherence:** mostly. The lens accent carries through the UI, but not the sky (F-019).
 - **Craft details:** mixed. The states are good; wraps and clipping are not.
 
@@ -87,7 +86,12 @@ I re-rendered the frames into `evidence/critic/r2v/`.
 
 **New:**
 - **F-031 (S2):** Temperature has no label at the F1 overview.
-- **F-032 (S3):** the Physicist chips still crowd. I rated this S3 rather than S2: the values are readable, and only matching them to their nodes takes a second look.
+- **F-032 (S3):** the Physicist chips crowd, though the values stay readable.
 - **F-033 (S3):** an icon crosses the stats text.
+
+**r3 (7b9841d):**
+- **F-024:** verified.
+- **F-031:** reopened. Temperature is now labelled, but the forced hub labels overlap cores ("Boiling Point" over Heat, "Memory" under Route).
+- **F-032 and F-033:** I would waive both for this milestone.
 
 Verdict: **PASS WITH FINDINGS**. No S1 is open.
