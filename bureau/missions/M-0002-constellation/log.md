@@ -33,3 +33,21 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-23T00:59:32Z` **code-reviewer** — F-011 [S3] filed: SpriteLayer/EdgeLayer grow mid-batch without copying already-pushed data
 - `2026-11-23T00:59:32Z` **code-reviewer** — F-012 [S3] filed: Seed-specific copy and magic label in product code
 - `2026-11-23T00:59:32Z` **code-reviewer** — F-013 [S3] filed: Overlay text-width cache grows without bound
+- `2026-11-23T01:02:46Z` **polish-critic** — F-014 [S1] filed: Find route and search never reframe the camera; results play off-screen
+- `2026-11-23T01:02:46Z` **polish-critic** — F-015 [S2] filed: Long Road carries no letters at F1, F6, F7; A→F→X→Z cannot be read on the ring
+- `2026-11-23T01:02:47Z` **polish-critic** — F-016 [S2] filed: The shortcut does not cut across the ring: A and Z are neighbours, chord hugs the bottom
+- `2026-11-23T01:02:47Z` **polish-critic** — F-017 [S2] filed: Bottom-centre toast and hint pill cover the learned line and the start of the Long Road
+- `2026-11-23T01:02:47Z` **polish-critic** — F-018 [S2] filed: Undo of Learn leaves the drawer stale and the reverse draw is ~120 ms, not 300
+- `2026-11-23T01:02:47Z` **polish-critic** — F-019 [S2] filed: Lens colour is not visible in the sky; halos read neutral grey
+- `2026-11-23T01:03:08Z` **polish-critic** — F-020 [S2] filed: Disagreement window shows 21 bordered chips that crowd the Heat cluster and cannot be attributed
+- `2026-11-23T01:03:08Z` **polish-critic** — F-021 [S2] filed: Pathway glyphs collapse into solid mint discs on a shifting subset of nodes
+- `2026-11-23T01:03:08Z` **polish-critic** — F-022 [S2] filed: Line breaks split numbers from units and orphan route endpoints
+- `2026-11-23T01:03:08Z` **polish-critic** — F-023 [S2] filed: Canvas runs under the top bar; F9 read target and chip sit behind the search field
+- `2026-11-23T01:03:08Z` **polish-critic** — F-024 [S2] filed: New node is born on top of its link target
+- `2026-11-23T01:03:08Z` **polish-critic** — F-025 [S2] filed: Route drawer: verdict chip looks like the primary button; Learn looks secondary; close X outside the panel
+- `2026-11-23T01:03:08Z` **polish-critic** — F-026 [S2] filed: 375: default view is not the Heat + Simmer + Serve fit; labels clipped at the edge; desktop hint copy
+- `2026-11-23T01:03:08Z` **polish-critic** — F-027 [S3] filed: Close-up nodes render as flat white discs
+- `2026-11-23T01:03:08Z` **polish-critic** — F-028 [S3] filed: Results header duplicates the section headings and wraps
+- `2026-11-23T01:03:08Z` **polish-critic** — F-029 [S3] filed: Store sheet 375: error crowds next label; no title
+- `2026-11-23T01:04:15Z` **ceo** — Phase review → **remediation**
+- `2026-11-23T01:04:32Z` **ceo** — Reviews r1: 29 findings (2 S1, 18 S2, 9 S3). Routed core (F-002/7/8/9/10/16) to WO-002 engineer, rest to WO-003 engineer, both resumed.
