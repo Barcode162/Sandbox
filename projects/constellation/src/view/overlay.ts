@@ -16,6 +16,8 @@ export interface OverlayItem {
   /** Distance from the anchor point (e.g. the node's screen radius + gap). */
   offset: number;
   anchors: readonly Anchor[];
+  /** Alternate anchor points tried in order after (x, y), each with the same anchors (ghost chips, F-020). */
+  spots?: ReadonlyArray<{ x: number; y: number }>;
   priority: number;
   opacity: number;
   color?: string;
@@ -97,18 +99,20 @@ export class Overlay {
   }
 
   /** Greedy placement; `labelCap` limits items with isLabel. `obstacles` (node cores) block labels too. */
-  place(items: OverlayItem[], labelCap: number, vw: number, vh: number, obstacles: Array<{ x: number; y: number; r: number }> = [], minY = 2): void {
+  place(items: OverlayItem[], labelCap: number, vw: number, vh: number, obstacles: Array<{ x: number; y: number; r: number; id?: string }> = [], minY = 2): void {
     this.frame++;
     items.sort((a, b) => b.priority - a.priority);
     const placed: PlacedRect[] = [];
-    const blockers = obstacles.map((o) => ({ x: o.x - o.r, y: o.y - o.r, w: o.r * 2, h: o.r * 2 }));
+    const blockers = obstacles.map((o) => ({ x: o.x - o.r, y: o.y - o.r, w: o.r * 2, h: o.r * 2, id: o.id }));
     let labels = 0;
     const seen = new Set<string>();
-    const overlaps = (x: number, y: number, w: number, h: number, cores = true) => {
+    const overlaps = (x: number, y: number, w: number, h: number, cores = true, self?: string) => {
       for (const r of placed) {
         if (x < r.x + r.w + PAD && x + w + PAD > r.x && y < r.y + r.h + PAD && y + h + PAD > r.y) return true;
       }
       if (cores) for (const r of blockers) {
+        // An item never collides with its own star (a pathway ring is wider than its label offset).
+        if (r.id !== undefined && r.id === self) continue;
         if (x < r.x + r.w && x + w > r.x && y < r.y + r.h && y + h > r.y) return true;
       }
       return false;
@@ -120,14 +124,17 @@ export class Overlay {
       const w = this.measure(it.kind, it.text);
       const h = f.h;
       let spot: { x: number; y: number } | null = null;
-      for (const a of it.anchors) {
-        const p = anchorAt(a, it.x, it.y, it.offset, w, h);
-        // Never cross the viewport edge (8 px margin, F-026).
-        if (p.x < 8 || p.y < minY || p.x + w > vw - 8 || p.y + h > vh - 8) continue;
-        // Ghost chips declutter against text, not against stars (they sit in dense clusters).
-        if (!it.force && overlaps(p.x, p.y, w, h, it.kind !== 'chip' && !it.overCores)) continue;
-        spot = p;
-        break;
+      const origins = it.spots ? [{ x: it.x, y: it.y }, ...it.spots] : [{ x: it.x, y: it.y }];
+      search: for (const o of origins) {
+        for (const a of it.anchors) {
+          const p = anchorAt(a, o.x, o.y, it.offset, w, h);
+          // Never cross the viewport edge (8 px margin, F-026).
+          if (p.x < 8 || p.y < minY || p.x + w > vw - 8 || p.y + h > vh - 8) continue;
+          // Chips and labels both keep off text and off star cores (F-020); hubs may sit over cores.
+          if (!it.force && overlaps(p.x, p.y, w, h, !it.overCores, it.nodeId)) continue;
+          spot = p;
+          break search;
+        }
       }
       if (!spot && it.force) spot = anchorAt(it.anchors[0] ?? 'center', it.x, it.y, it.offset, w, h);
       if (!spot) continue;

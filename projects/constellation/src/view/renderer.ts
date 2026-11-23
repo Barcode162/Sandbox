@@ -1051,7 +1051,7 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
       const kind = n.data.kind === 'pathway' ? KIND_CODE.pathway : n.road ? KIND_CODE.road : KIND_CODE[n.data.kind] ?? 0;
       const op = n.data.op ? OP_CODE[n.data.op] : 0;
       const coreCol = n.data.kind === 'pathway' ? PULSE : flash > 1.01 ? mix(STAR, n.flashColor, Math.min(1, (flash - 1) / 1.2)) : STAR;
-      const haloCol = n.data.kind === 'pathway' ? mix(PULSE, lensRgb, 0.15) : mix(STAR, lensRgb, 0.55); // the sky carries the lens (F-019)
+      const haloCol = n.data.kind === 'pathway' ? mix(PULSE, lensRgb, 0.15) : mix(STAR, lensRgb, 0.75); // the sky carries the lens (F-019)
       const ring = n.id === selected ? 1 : 0;
       nodeLayer.push(wx, wy, wz, n.r, coreCol, haloCol, bright, scale, haloScale, ring, kind, op);
       const minR = kind === KIND_CODE.pathway ? 4.5 : 3;
@@ -1405,7 +1405,9 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
         cls: n.id === selected ? 'sel' : n.road ? 'road' : undefined,
         // Single road letters still declutter but don't spend the 40-word cap (F-015).
         isLabel: !n.road,
-        overCores: pr >= 14,
+        // Only the selected, hovered or route-named light's label may sit over other cores; everything
+        // else (hub names, run-lit steps, road letters) finds a free side or waits (F-030).
+        overCores: pr >= 90,
         nodeId: n.id,
       });
       // Ghost chips when expanded; the active value sits on top (never as a ghost)
@@ -1417,12 +1419,21 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
         n.data.ghosts.forEach((g, i) => {
           const ang = ((90 + 120 * (i + 1)) * Math.PI) / 180;
           const off = ghostR * pxPerU + 8;
+          // Beside its facet first, then swung ±35° / ±70° around its own star at the same reach,
+          // then one step farther out: a chip that still finds no clear spot waits for D (F-020).
+          const spots: Array<{ x: number; y: number }> = [];
+          for (const r of [off, off + 12]) for (const da of [0, 35, -35, 70, -70]) {
+            if (r === off && da === 0) continue;
+            const a2 = ang + (da * Math.PI) / 180;
+            spots.push({ x: n.sx + Math.cos(a2) * r, y: n.sy - Math.sin(a2) * r });
+          }
           items.push({
             key: `g:${n.id}:${g.perspective}`,
             kind: 'chip',
             text: clip(n.data.ghostText?.[g.perspective] ?? String(g.value ?? '—')),
             x: n.sx + Math.cos(ang) * off,
             y: n.sy - Math.sin(ang) * off,
+            spots,
             offset: 0,
             anchors: [Math.cos(ang) < 0 ? 'left' : 'right', 'below'],
             priority: 85 - (chipRank.get(n.id) ?? 8) * 0.5 - i * 0.1 + (n.id === selected ? 10 : 0),
@@ -1492,8 +1503,8 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
         force: true,
       });
     }
-    const cores: Array<{ x: number; y: number; r: number }> = [];
-    for (const n of order) if (n.onScreen && n.bright > 0.1) cores.push({ x: n.sx, y: n.sy, r: (n.id === selected ? Math.max(n.pxR * 2.4, n.pxR + 7) : Math.max(3, n.pxR * (n.data.kind === 'pathway' ? 1.5 : 1))) + 1 });
+    const cores: Array<{ x: number; y: number; r: number; id: string }> = [];
+    for (const n of order) if (n.onScreen && n.bright > 0.1) cores.push({ id: n.id, x: n.sx, y: n.sy, r: (n.id === selected ? Math.max(n.pxR * 2.4, n.pxR + 7) : Math.max(3, n.pxR * (n.data.kind === 'pathway' ? 1.5 : 1))) + 1 });
     // Keep labels below the top bar (56 px; 100 px with the 375 lens row).
     overlay.place(items, cap, width, height, cores, width < 768 ? 104 : 60);
   }

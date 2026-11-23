@@ -113,10 +113,11 @@ test('[U-layout-10] seed positions follow §6: ring formula, flowchart offsets, 
   // Flowchart offsets: P4 = anchor + (0, −6); Q7 = anchor + (24, −20).
   assert.deepEqual(at('cook', 'p4'), { x: -60, y: -36, z: 50 });
   assert.deepEqual(at('child', 'q7'), { x: 134, y: -10, z: 60 });
-  // Heat members sit inside the cluster radius; Energy (orphan under Cook) sits on the rim.
+  // Heat members sit near the cluster radius (r58 = §6 ×1.6, F-030; the declutter may nudge a few
+  // units past it); Energy (orphan under Cook) never moves off the rim.
   const heat = { x: 0, y: 10, z: 0 };
-  for (const id of ['temperature', 'heat', 'stove', 'ice']) assert.ok(dist(at('cook', id), heat) <= 36.02, id);
-  assert.ok(Math.abs(dist(at('cook', 'energy'), heat) - 36) < 0.02);
+  for (const id of ['temperature', 'heat', 'stove', 'ice']) assert.ok(dist(at('cook', id), heat) <= 58 + 8, id);
+  assert.ok(Math.abs(dist(at('cook', 'energy'), heat) - 58) < 0.02);
 });
 
 test('[U-layout-11] F-016: in every lens the learned A–Z line crosses the ring centre, A–F cuts the interior, laps never touch', () => {

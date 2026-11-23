@@ -8,6 +8,9 @@ import type { Units } from './format.ts';
 const LENS_TOKENS: Record<string, string> = { cook: '#FF9F5A', physicist: '#6FD3FF', child: '#FF7EC8' };
 const FALLBACK = ['#FF9F5A', '#6FD3FF', '#FF7EC8', '#B8A6FF', '#7CF0A0', '#FFD36E'];
 
+const COS12 = Math.cos((12 * Math.PI) / 180);
+const SIN12 = Math.sin((12 * Math.PI) / 180);
+
 export function lensColor(p: Perspective, index: number): string {
   return p.accent ?? LENS_TOKENS[p.id] ?? FALLBACK[index % FALLBACK.length] ?? '#FF9F5A';
 }
@@ -89,11 +92,14 @@ export class SceneBuilder {
       const tilt = (hash01(p.id + id) - 0.5) * 0.6;
       let best: Vec3 = c;
       let bestGap = -1;
+      // Candidates circle the target in the screen plane (the default camera looks along −z from 12°
+      // above), and "emptiest" is measured there too: a spot behind a neighbour is not empty (F-024).
+      const pv = (o: Vec3) => o.y * COS12 - o.z * SIN12;
       for (let k = 0; k < 8; k++) {
         const a = phase + (k * Math.PI) / 4;
-        const q = { x: c.x + Math.cos(a) * Math.cos(tilt) * dist, y: c.y + Math.sin(tilt + (k % 2 ? 0.35 : -0.35)) * dist, z: c.z + Math.sin(a) * Math.cos(tilt) * dist };
+        const q = { x: c.x + Math.cos(a) * dist, y: c.y + Math.sin(a) * dist, z: c.z + tilt * dist * 0.5 };
         let gap = Infinity;
-        for (const [other, o] of pos) if (other !== near) gap = Math.min(gap, Math.hypot(o.x - q.x, o.y - q.y, o.z - q.z));
+        for (const [other, o] of pos) if (other !== near) gap = Math.min(gap, Math.hypot(o.x - q.x, pv(o) - pv(q)));
         if (gap > bestGap) ((bestGap = gap), (best = q));
       }
       out[p.id] = { x: round(best.x), y: round(best.y), z: round(best.z) };

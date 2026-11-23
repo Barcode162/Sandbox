@@ -231,7 +231,7 @@ body.show-tools .lenses, body.show-tools .tools { opacity: 1; transform: none; t
 .route-row .swatch { height: 3px; border-radius: 2px; align-self: center; background: var(--c); }
 .route-row .swatch.dotted { background: repeating-linear-gradient(90deg, var(--c) 0 2px, transparent 2px 5px); }
 .route-row .hops { font-weight: 700; white-space: nowrap; }
-.route-row .path { font: 400 var(--fs-12) / 1.45 var(--font-mono); color: var(--ink-dim); overflow-wrap: anywhere; }
+.route-row .path { font: 400 var(--fs-12) / 1.45 var(--font-mono); color: var(--ink-dim); overflow-wrap: break-word; min-width: 0; }
 /* The verdict is a statement, not a control; Learn is the primary action (F-025). */
 .verdict { font: 700 var(--fs-15) / 1.3 var(--font-ui); color: var(--signal); }
 .note { font-size: var(--fs-12); color: var(--ink-dim); }
@@ -376,6 +376,12 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
 @media (max-width: 1279px) {
   :root { --drawer-w: 300px; --inspector-w: 320px; }
   .tagline { display: none; }
+  /* 300 px drawer: tighter tabs so the row fits beside the ✕, which keeps its own 32 px (F-025). */
+  .panel-head { gap: var(--s2); padding-right: var(--s2); }
+  .panel-head .tabs { gap: 0; }
+  .tab { padding: 0 5px; gap: 4px; }
+  .tab[aria-selected='true']::after { left: 5px; right: 5px; }
+  .panel-head .close { min-width: 32px; }
   .search { flex-basis: 200px; }
 }
 @media (max-width: 1099px) {

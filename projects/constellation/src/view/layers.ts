@@ -51,7 +51,9 @@ void main() {
   float r = clamp(aSize * uPxScale / depth, minR, 18.0) * aMisc.y;
   float haloK = kindV == 2.0 ? 0.6 : 1.0;
   // The halo is visually spent by ~2.7r; a tighter sprite saves fill rate at 500 points.
-  float ext = max(r * 2.7 * aMisc.z * haloK, aMisc.w > 0.0 ? max(r * 2.4, r + 7.0) + 2.0 : 0.0);
+  // Small (overview) stars keep a tinted halo of at least r + 7 px so the lens colour reads in the sky (F-019).
+  float hExt = kindV == 3.0 ? r * 2.7 * aMisc.z * haloK : max(r * 2.7 * aMisc.z * haloK, (r + 7.0) * aMisc.z);
+  float ext = max(hExt, aMisc.w > 0.0 ? max(r * 2.4, r + 7.0) + 2.0 : 0.0);
   vSprite = max(ext, r * 2.4) + 2.0;
   vR = r;
   vCore = aCore;
@@ -134,9 +136,12 @@ void main() {
     }
   }
   // Gaussian-shaped falloff without exp/pow: (1 - x²)³ over the halo extent.
-  float hx = clamp(d / (R * 2.7 * vMisc.z * haloK), 0.0, 1.0);
+  // Small stars: the halo floor is R + 7 px and the falloff (1 - x²)² rather than ³, so at the overview the
+  // ring around a 3 px core carries the lens hue (F-019). Close-ups (R ≥ 9 px) are unchanged.
+  float hR = kind == 3.0 ? R * 2.7 * vMisc.z * haloK : max(R * 2.7 * vMisc.z * haloK, (R + 7.0) * vMisc.z);
+  float hx = clamp(d / hR, 0.0, 1.0);
   float hq = 1.0 - hx * hx;
-  float halo = hq * hq * hq * (kind == 3.0 ? 0.14 : 0.59); // +40% so the lens tint reads (F-019)
+  float halo = hq * hq * mix(1.0, hq, smoothstep(4.0, 9.0, R)) * (kind == 3.0 ? 0.14 : 0.59);
   float ring = vMisc.w > 0.0 ? stroke(d - max(R * 2.4, R + 7.0), 1.5) * vMisc.w : 0.0;
   float b = vMisc.x;
   vec3 col = coreCol * core * b + vHalo * halo * min(b, 1.4) + vec3(0.96, 0.97, 1.0) * ring;

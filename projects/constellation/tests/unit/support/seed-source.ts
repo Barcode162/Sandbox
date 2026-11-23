@@ -236,7 +236,8 @@ rel('read', 'q5', 'room', 'reads');
 type Anchor = { at: Vec3; r: number };
 const v = (x: number, y: number, z: number): Vec3 => ({ x, y, z });
 const CLUSTERS: Record<'heat' | 'files' | 'variables' | 'meta', Record<Lens, Anchor>> = {
-  heat: { cook: { at: v(0, 10, 0), r: 36 }, physicist: { at: v(0, 0, 0), r: 42 }, child: { at: v(0, 0, 30), r: 50 } },
+  // Heat radii are §6's ×1.6 so the hub cluster never knots at the overview (F-030).
+  heat: { cook: { at: v(0, 10, 0), r: 58 }, physicist: { at: v(0, 0, 0), r: 67 }, child: { at: v(0, 0, 30), r: 80 } },
   files: { cook: { at: v(-130, 70, -40), r: 38 }, physicist: { at: v(150, 30, -50), r: 38 }, child: { at: v(-70, 80, 0), r: 40 } },
   variables: { cook: { at: v(150, -70, -90), r: 34 }, physicist: { at: v(-150, 20, -30), r: 30 }, child: { at: v(160, 90, -120), r: 30 } },
   meta: { cook: { at: v(0, 120, -90), r: 30 }, physicist: { at: v(0, 95, -40), r: 30 }, child: { at: v(-140, -20, -60), r: 34 } },
@@ -252,7 +253,7 @@ const FLOWCHARTS: Record<'simmer' | 'serve', { anchor: Record<Lens, Vec3>; offse
   },
 };
 const RING: Record<Lens, { at: Vec3; R: number; tilt: number; wobble: number }> = {
-  cook: { at: v(0, -120, -30), R: 70, tilt: 25, wobble: 6 },
+  cook: { at: v(0, -130, -30), R: 70, tilt: 25, wobble: 6 }, // 10 u lower than §6: the top lap clears Simmer (F-030)
   physicist: { at: v(0, -110, 0), R: 70, tilt: 12, wobble: 0 },
   child: { at: v(40, -100, 0), R: 55, tilt: 35, wobble: 14 },
 };
@@ -282,6 +283,42 @@ export function ringPosition(lens: Lens, i: number): Vec3 {
   return { x: ring.at.x + gx, y: ring.at.y - gz * Math.sin(t), z: ring.at.z + gz * Math.cos(t) };
 }
 
+/**
+ * Screen-plane declutter (F-030). The default camera looks along −z from 12° above, so two lights
+ * overlap on screen when they are close in (u, v) = (x, y·cos12° − z·sin12°), whatever their depth.
+ * Linked cluster members closer than 19 u (both Heat) or 13 u (otherwise) to any light are pushed
+ * apart in x and y; flowchart steps, ring stops and rim orphans never move (their partner takes the
+ * whole push). Pairs are visited in a fixed order, so the result is deterministic.
+ */
+function declutter(pos: Record<string, Vec3>, movable: string[]): void {
+  const EL = (12 * Math.PI) / 180, COS = Math.cos(EL), SIN = Math.sin(EL);
+  const canMove = new Set(movable);
+  const ids = Object.keys(pos).sort();
+  const heat = (id: string) => clusterOf.get(id) === 'heat';
+  const pv = (id: string) => pos[id]!.y * COS - pos[id]!.z * SIN;
+  for (let it = 0; it < 400; it++) {
+    let moved = 0;
+    for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) {
+      const a = ids[i]!, b = ids[j]!;
+      const ma = canMove.has(a), mb = canMove.has(b);
+      if (!ma && !mb) continue;
+      const min = heat(a) && heat(b) ? 19 : 13;
+      let du = pos[a]!.x - pos[b]!.x, dv = pv(a) - pv(b);
+      let d = Math.hypot(du, dv);
+      if (d >= min) continue;
+      if (d < 1e-6) { const ang = (((i * 37 + j * 101) % 360) * Math.PI) / 180; du = Math.cos(ang); dv = Math.sin(ang); d = 1; }
+      const push = (min - d) / 2 + 0.05;
+      const ux = (du / d) * push, uv = (dv / d) * push;
+      const wa = ma ? (mb ? 1 : 2) : 0, wb = mb ? (ma ? 1 : 2) : 0;
+      pos[a] = { x: pos[a]!.x + ux * wa, y: pos[a]!.y + (uv * wa) / COS, z: pos[a]!.z };
+      pos[b] = { x: pos[b]!.x - ux * wb, y: pos[b]!.y - (uv * wb) / COS, z: pos[b]!.z };
+      moved++;
+    }
+    if (!moved) break;
+  }
+  for (const id of movable) pos[id] = r2(pos[id]!);
+}
+
 function positionsFor(lens: Lens): Record<string, Vec3> {
   const out: Record<string, Vec3> = {};
   const visible = relations.filter((r) => !r.perspectives || r.perspectives.includes(lens));
@@ -308,6 +345,8 @@ function positionsFor(lens: Lens): Record<string, Vec3> {
     for (const [id, [ox, oy]] of Object.entries(offsets)) out[id] = r2({ x: anchor[lens].x + ox, y: anchor[lens].y + oy, z: anchor[lens].z });
   }
   LETTERS.forEach((l, i) => { out[`road-${l.toLowerCase()}`] = r2(ringPosition(lens, i)); });
+  const FREE = new Set(['heat', 'files', 'variables', 'meta']);
+  declutter(out, nodes.filter((n) => FREE.has(clusterOf.get(n.id) ?? '') && linked.has(n.id)).map((n) => n.id));
   // Same key order as the node list, so the JSON reads cluster by cluster.
   const ordered: Record<string, Vec3> = {};
   for (const n of nodes) ordered[n.id] = out[n.id]!;

@@ -631,7 +631,7 @@ export class App {
     });
     queueMicrotask(() => {
       this.extras.burst(id);
-      this.extras.nudgeToward(id, 0.3);
+      this.extras.nudgeToward(id, 0.6); // ease well toward the birth so it reads clear of its neighbours (F-024)
       this.select(id, { fly: false, open: this.inspectorOpen });
     });
     const linked = rel ? ` · linked to ${labelOf(g, rel.to)}` : '';
