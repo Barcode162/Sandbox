@@ -30,3 +30,11 @@ Entries are appended below by the CLI. Don't edit their headers by hand.
 - **Change:** Verification specifics gains a spatial/3D paragraph: judge layout in projected screen space, ship a probe that prints critic targets, assert who stays named, and make helpers fail when their input is missing
 - **Files:** bureau/playbooks/interactive-web.md
 - **Approved by:** ceo
+
+## U-0004 · v2.0.2 · tooling · 2026-11-23
+
+- **Title:** update-constellations: Owner's standing command for the personal memory
+- **Trigger:** M-0003 (Owner request)
+- **Change:** New skill .claude/skills/update-constellations and CLAUDE.md trigger line; standing Owner approval to publish that memory and save it to main
+- **Files:** .claude/skills/update-constellations/SKILL.md,CLAUDE.md
+- **Approved by:** ceo, owner

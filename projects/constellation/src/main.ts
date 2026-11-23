@@ -174,6 +174,7 @@ function boot(): void {
   const base = personal ? personalBase! : seed.doc;
   const seedIds = new Set(base.nodes.map((n) => n.id));
   const app = new App(graph, renderer, seedIds, base, motionQuery.matches);
+  if (personal) app.baseLabel = 'the latest published version';
   const shell = new Shell(app);
   const extras = app.extras;
   motionQuery.addEventListener('change', (e) => {

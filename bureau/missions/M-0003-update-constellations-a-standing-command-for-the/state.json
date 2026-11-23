@@ -5,13 +5,19 @@
   "tier": 1,
   "domain": "interactive-web",
   "output": "projects/update-constellations-a-standing-command-for-the",
-  "phase": "review",
+  "phase": "closed",
   "created": "2026-11-23T05:17:18Z",
   "rounds": {
     "plan": 1,
     "ship": 1
   },
-  "gates": {},
+  "gates": {
+    "ship": {
+      "passed": true,
+      "round": 1,
+      "at": "2026-11-23T06:50:20Z"
+    }
+  },
   "headcount": {
     "code-reviewer": 1
   },
@@ -28,7 +34,20 @@
     {
       "phase": "review",
       "at": "2026-11-23T05:21:37Z"
+    },
+    {
+      "phase": "ship-review",
+      "at": "2026-11-23T06:50:20Z"
+    },
+    {
+      "phase": "delivery",
+      "at": "2026-11-23T06:50:20Z"
+    },
+    {
+      "phase": "closed",
+      "at": "2026-11-23T06:50:20Z"
     }
   ],
-  "updated": "2026-11-23T05:21:41Z"
+  "updated": "2026-11-23T06:50:20Z",
+  "closed": "2026-11-23T06:50:20Z"
 }

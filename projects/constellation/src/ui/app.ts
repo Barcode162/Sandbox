@@ -112,6 +112,8 @@ export class App {
   readonly renderer: Renderer;
   readonly seedIds: ReadonlySet<NodeId>;
   readonly seedDoc: MemoryDoc;
+  /** What Reset brings back, in words: the seed, or a personal memory's published file (F-007). */
+  baseLabel = 'the seed';
 
   constructor(graph: MemoryGraph, renderer: Renderer, seedIds: ReadonlySet<NodeId>, seedDoc: MemoryDoc, reduced: boolean) {
     this.graph = graph;
@@ -749,8 +751,8 @@ export class App {
   async resetToSeed(): Promise<void> {
     const k = this.storedCount();
     const msg = k
-      ? `Replace your memory with the seed? Your ${k} stored ${k === 1 ? 'thing' : 'things'} will be gone unless you export first.`
-      : 'Replace your memory with the seed? Any changes you made will be gone unless you export first.';
+      ? `Replace your memory with ${this.baseLabel}? Your ${k} stored ${k === 1 ? 'thing' : 'things'} will be gone unless you export first.`
+      : `Replace your memory with ${this.baseLabel}? Any changes you made will be gone unless you export first.`;
     const choice = await confirmDialog(msg, [
       { label: 'Cancel', value: '', kind: 'ghost' },
       { label: 'Export first', value: 'export' },
@@ -763,7 +765,7 @@ export class App {
     if (choice !== 'replace') return;
     const v = validateDoc(this.seedDoc);
     if (v.ok) this.graph.load(v.doc);
-    toast('The seed memory is back.', { key: 'reset' });
+    toast(this.baseLabel === 'the seed' ? 'The seed memory is back.' : `Back to ${this.baseLabel}.`, { key: 'reset' });
   }
 
   /** Value parsing for the Store sheet: numbers and booleans stay typed so conditions can read them. */
