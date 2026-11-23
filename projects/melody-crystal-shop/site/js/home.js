@@ -1,6 +1,6 @@
 // home.js — hero trio, meanings list, shop grid with intention filter, format strip.
 import { CRYSTALS, FORMATS, INTENTIONS, bySlug, tagCounts, img, photoStyle } from '../data/crystals.js';
-import { mount, ICON, esc, framedPhoto, formatArt, reducedMotion, card } from './ui.js';
+import { mount, ICON, esc, framedPhoto, formatScene, reducedMotion, card } from './ui.js';
 
 mount('shop');
 
@@ -70,6 +70,8 @@ function intentFromHash() {
   return m ? m[1] : '';
 }
 
+const paintFade = () => chipsEl.classList.toggle('is-scrolled', chipsEl.scrollLeft > 4);
+chipsEl.addEventListener('scroll', paintFade, { passive: true });
 chipsEl.addEventListener('click', (e) => {
   const b = e.target.closest('.chip');
   if (!b) return;
@@ -83,6 +85,7 @@ if (initial) {
   document.getElementById('shop').scrollIntoView();
   const chip = chipsEl.querySelector('[aria-pressed="true"]');
   chipsEl.scrollLeft = chip.offsetLeft - chipsEl.clientWidth / 2 + chip.offsetWidth / 2;
+  paintFade();
 }
 addEventListener('hashchange', () => {
   const i = intentFromHash();
@@ -90,6 +93,9 @@ addEventListener('hashchange', () => {
 });
 
 // ── Formats strip ─────────────────────────────────────────────────────────
+const FORMAT_PHOTO = { bag: 'rose-quartz', big: 'amethyst', jar: 'citrine' };
 document.querySelector('[data-formats]').innerHTML = FORMATS.map((f) => `
-  <div class="format-card">${formatArt(f.id, f.id === 'big' ? '#c9b6e0' : f.id === 'bag' ? '#e6a9b4' : '#e0a63a')}
+  <div class="format-card"><div class="wyg-art">${f.id === 'big'
+    ? `<img src="${img(FORMAT_PHOTO.big, 480)}" alt="" style="${photoStyle(bySlug('amethyst'))}" loading="lazy">`
+    : formatScene(f.id, img(FORMAT_PHOTO[f.id], 480), bySlug(FORMAT_PHOTO[f.id]).colour)}</div>
     <div><h4>${esc(f.name)}</h4><p>${esc(f.size)}. ${esc(f.blurb)}</p></div></div>`).join('');

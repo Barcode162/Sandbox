@@ -178,6 +178,8 @@ function start() {
     const full = totals(lines(), state.ful, 'full');
     const over = totals(lines(), state.ful, 'over-time');
     $('[data-plan-full]').textContent = `${fmt(full.total)} ${firstDue()}`;
+    form.querySelector('input[name=plan][value=full] + .choice-body .c-sub').textContent = `One payment ${firstDue()}`;
+    form.querySelector('input[name=plan][value=over-time] + .choice-body .c-sub').textContent = `4 equal payments: one ${firstDue()}, then every 2 weeks. No fees.`;
     $('[data-plan-over]').textContent = `4 × ${fmt(over.parts[1])}`;
     const dates = schedule(new Date());
     $('[data-schedule-list]').innerHTML = over.parts.map((p, i) => `<div><dt>${i === 0 ? cap(firstDue()) : SHORT_DATE.format(dates[i])}</dt><dd>${fmt(p)}</dd></div>`).join('');

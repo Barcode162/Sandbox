@@ -38,3 +38,8 @@ F-026: when the 5 s timer re-renders the drawer, it destroys the focused Undo bu
 
 ## Overall
 All eight round-1 fixes hold under independent repro. The polish round introduced no money, data or security regressions. F-026 is the one item a keyboard or screen-reader customer would notice; fix it before delivery.
+
+## Round 2b (613affd)
+- F-026 verified: focus stays inside the drawer when the Undo row expires (probe). The timer still does not pause on focus; that is not blocking.
+- F-027 verified: the copy now lives in `FORMATS[].youGet`, and every crystal image uses `photoStyle(c)`.
+- e2e on an isolated port: `50 passed`.
