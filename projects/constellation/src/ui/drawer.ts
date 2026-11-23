@@ -33,7 +33,6 @@ export class Drawer {
         { type: 'button', role: 'tab', id: `tab-${t.id}`, 'data-tab': t.id, 'aria-controls': 'drawer-panel', 'aria-selected': 'false', 'aria-keyshortcuts': t.key, title: t.key ? `${t.label} (${t.key})` : t.label },
         svgIcon(t.icon),
         h('span.tab-label', {}, t.label),
-        t.key ? h('kbd', { 'aria-hidden': 'true' }, t.key) : null,
       );
       b.addEventListener('click', () => {
         if (this.el.classList.contains('rail')) this.el.classList.remove('rail');
@@ -274,7 +273,7 @@ export class Drawer {
     const n = h('span.n', {});
     text.split(' · ').forEach((seg, k) => {
       if (k) n.append(' · ');
-      n.append(h('span.seg', {}, seg));
+      n.append(h('span.tseg', {}, seg));
     });
     return h('li', { class: cls || undefined, 'aria-current': cur ? 'step' : undefined }, h('span.i', { 'aria-hidden': 'true' }, String(i + 1)), n);
   }

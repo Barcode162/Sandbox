@@ -74,13 +74,13 @@ export class SceneBuilder {
   }
 
   /**
-   * A birthplace beside the link target, in every lens (F-024): distance max(14, 2.5·(r_target + r_new)),
+   * A birthplace beside the link target, in every lens (F-024): distance max(18, 2.5·(r_target + r_new)),
    * in the emptiest of 8 seeded sectors around it, so the new light joins its neighbourhood clear of it.
    */
   birthplace(id: NodeId, near: NodeId | null): Partial<Record<PerspectiveId, Vec3>> {
     const out: Partial<Record<PerspectiveId, Vec3>> = {};
     const deg = near ? this.graph.relationsOf(near).length + 1 : 0;
-    const dist = Math.max(14, 2.5 * (1.6 + 0.45 * Math.sqrt(deg) + 1.6 + 0.45));
+    const dist = Math.max(18, 2.5 * (1.6 + 0.45 * Math.sqrt(deg) + 1.6 + 0.45));
     for (const p of this.graph.perspectives()) {
       const pos = this.positions(p.id);
       const base = near ? pos.get(near) : undefined;

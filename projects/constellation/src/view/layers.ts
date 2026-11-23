@@ -126,10 +126,12 @@ void main() {
     haloK = 0.7;
   } else {
     // Small stars stay crisp; close-up cores get a hot 0.4r centre with a soft falloff (F-027).
-    float crisp = fill(d - R);
-    float t = max(0.0, d - 0.4 * R) / (0.35 * R);
-    float soft = max(fill(d - 0.4 * R), exp(-t * t)) * step(d, R + 1.0);
-    core = mix(crisp, soft, smoothstep(6.0, 12.0, R));
+    core = fill(d - R);
+    if (R > 6.0) {
+      float t = max(0.0, d - 0.4 * R) / (0.35 * R);
+      float soft = max(fill(d - 0.4 * R), exp(-t * t)) * step(d, R + 1.0);
+      core = mix(core, soft, smoothstep(6.0, 12.0, R));
+    }
   }
   // Gaussian-shaped falloff without exp/pow: (1 - x²)³ over the halo extent.
   float hx = clamp(d / (R * 2.7 * vMisc.z * haloK), 0.0, 1.0);

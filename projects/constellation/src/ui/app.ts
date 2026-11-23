@@ -4,7 +4,7 @@ import {
   compareRoutes,
   exportJson,
   importJson,
-  learnShortcut,
+  learnShortcutDetailed,
   listPathways,
   parseExpr,
   pathwayNodes,
@@ -408,15 +408,13 @@ export class App {
     const v = this.route;
     const s = v?.cmp.shortest;
     if (!v || !s || s.hops < 2) return;
-    const before = new Set(this.graph.relations().map((r) => r.id));
-    const rel = learnShortcut(this.graph, s);
-    const isNew = !before.has(rel.id);
+    // learned is true only when something changed, so "Learned" is always truthful (F-007).
+    const res = learnShortcutDetailed(this.graph, s);
+    const rel = res.relation;
     const A = labelOf(this.graph, s.nodes[0] as NodeId);
     const Z = labelOf(this.graph, s.nodes[s.nodes.length - 1] as NodeId);
-    if (!isNew) {
-      // Already there (possibly for another lens): say so, register no undo (F-007).
-      const owners = rel.perspectives?.length ? ` It exists for ${listJoin(rel.perspectives.map((p) => 'the ' + this.lensLabel(p)))}, not the ${this.lensLabel()}.` : '';
-      toast(`${A} ↔ ${Z} is already a shortcut.${owners}`, { key: 'learn', timeout: 5000 });
+    if (!res.learned) {
+      toast(`${A} ↔ ${Z} is already a shortcut.`, { key: 'learn', timeout: 5000 });
       return;
     }
     const learnedRoute: Route = { kind: 'shortest', nodes: [rel.from, rel.to], relations: [rel.id], hops: 1, cost: 1 / rel.weight };
@@ -425,8 +423,11 @@ export class App {
     const pct = cmp.declared && cmp.shortest ? Math.round(((cmp.declared.hops - cmp.shortest.hops) / cmp.declared.hops) * 100) : 0;
     this.route = { ...v, cmp, learned: true, note: '', verdict: cmp.declared && cmp.shortest ? `${hops(cmp.declared.hops)} → ${hops(cmp.shortest.hops)} · ${pct}% shorter` : v.verdict };
     const id = rel.id;
+    const previous = res.previous;
     this.pushUndo(`Learned ${A} ↔ ${Z}`, () => {
-      if (this.graph.getRelation(id)) this.graph.removeRelation(id);
+      if (!this.graph.getRelation(id)) return;
+      if (previous) this.graph.updateRelation(id, { perspectives: previous.perspectives });
+      else this.graph.removeRelation(id);
     }, `Forgot the shortcut ${A} ↔ ${Z}.`);
     toast(`Learned: ${A} ↔ ${Z}. Next time it's one hop.`, {
       key: 'learn',

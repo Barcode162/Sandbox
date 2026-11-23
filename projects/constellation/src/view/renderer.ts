@@ -1363,12 +1363,15 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
     }
     // Ghost chips are rationed: the 8 most central disagreeing nodes, plus hover / selection; all with D (F-020).
     const chipNodes = new Set<NodeId>();
+    const chipRank = new Map<NodeId, number>();
     if (ghostExpanded) {
       const cx = width / 2;
       const cy = height / 2;
       const cands = order.filter((n) => n.onScreen && n.data.ghosts?.length && n.bright > 0.2);
-      cands.sort((a, b) => Math.hypot(a.sx - cx, a.sy - cy) - Math.hypot(b.sx - cx, b.sy - cy));
+      // Hubs first (Temperature in the seed), then nearest the centre.
+      cands.sort((a, b) => b.degree - a.degree || Math.hypot(a.sx - cx, a.sy - cy) - Math.hypot(b.sx - cx, b.sy - cy));
       for (const n of ghostHeld ? cands : cands.slice(0, 8)) chipNodes.add(n.id);
+      [...chipNodes].forEach((id, i) => chipRank.set(id, i));
       if (selected) chipNodes.add(selected);
       if (hovered) chipNodes.add(hovered);
     }
@@ -1400,7 +1403,9 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
         priority: pr,
         opacity: op,
         cls: n.id === selected ? 'sel' : n.road ? 'road' : undefined,
-        isLabel: true,
+        // Single road letters still declutter but don't spend the 40-word cap (F-015).
+        isLabel: !n.road,
+        overCores: pr >= 14,
         nodeId: n.id,
       });
       // Ghost chips when expanded; the active value sits on top (never as a ghost)
@@ -1420,7 +1425,7 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
             y: n.sy - Math.sin(ang) * off,
             offset: 0,
             anchors: [Math.cos(ang) < 0 ? 'left' : 'right', 'below'],
-            priority: 85 - i * 0.1 + (n.id === selected ? 10 : 0),
+            priority: 85 - (chipRank.get(n.id) ?? 8) * 0.5 - i * 0.1 + (n.id === selected ? 10 : 0),
             opacity: Math.max(op, 0.85),
             color: toCss(lensOf(g.perspective)),
           });
@@ -1434,7 +1439,7 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
             y: n.sy - (ghostR * pxPerU + 8),
             offset: 0,
             anchors: ['above'],
-            priority: 86,
+            priority: 85.2 - (chipRank.get(n.id) ?? 8) * 0.5,
             opacity: Math.max(op, 0.85),
             color: lensCss,
           });

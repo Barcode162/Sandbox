@@ -22,6 +22,8 @@ export interface OverlayItem {
   cls?: string;
   /** Placed even if it overlaps (still blocks later items). */
   force?: boolean;
+  /** May sit over other stars' cores (hubs, focus); never over text. */
+  overCores?: boolean;
   /** Counts toward the label cap. */
   isLabel?: boolean;
   nodeId?: string;
@@ -102,11 +104,11 @@ export class Overlay {
     const blockers = obstacles.map((o) => ({ x: o.x - o.r, y: o.y - o.r, w: o.r * 2, h: o.r * 2 }));
     let labels = 0;
     const seen = new Set<string>();
-    const overlaps = (x: number, y: number, w: number, h: number) => {
+    const overlaps = (x: number, y: number, w: number, h: number, cores = true) => {
       for (const r of placed) {
         if (x < r.x + r.w + PAD && x + w + PAD > r.x && y < r.y + r.h + PAD && y + h + PAD > r.y) return true;
       }
-      for (const r of blockers) {
+      if (cores) for (const r of blockers) {
         if (x < r.x + r.w && x + w > r.x && y < r.y + r.h && y + h > r.y) return true;
       }
       return false;
@@ -122,7 +124,8 @@ export class Overlay {
         const p = anchorAt(a, it.x, it.y, it.offset, w, h);
         // Never cross the viewport edge (8 px margin, F-026).
         if (p.x < 8 || p.y < minY || p.x + w > vw - 8 || p.y + h > vh - 8) continue;
-        if (!it.force && overlaps(p.x, p.y, w, h)) continue;
+        // Ghost chips declutter against text, not against stars (they sit in dense clusters).
+        if (!it.force && overlaps(p.x, p.y, w, h, it.kind !== 'chip' && !it.overCores)) continue;
         spot = p;
         break;
       }

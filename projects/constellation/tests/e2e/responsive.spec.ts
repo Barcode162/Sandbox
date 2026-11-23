@@ -64,6 +64,11 @@ test.describe('1024×768', () => {
     await expect(page.locator('#route-verdict')).toHaveText('25 hops → 3 hops · 88% shorter');
     await page.mouse.move(1000, 700);
     await shot('F7-route-complete-1024');
+    // The route framed the ring (F-014): clear it and go home before picking Temperature.
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('Home');
+    await page.waitForTimeout(900);
+    await idle(page);
     const t = await nodePoint(page, 'Temperature');
     await page.mouse.click(t.x, t.y);
     await page.waitForTimeout(1000);
