@@ -17,7 +17,7 @@ import type {
   SceneSnapshot,
   TransitionOptions,
 } from './contracts.ts';
-import { createDust, DASH, KIND_CODE, LineLayer, NodeLayer, OP_CODE, SHEEN, SPRITE, SpriteLayer, type LineSpec } from './layers.ts';
+import { createDust, DASH, KIND_CODE, LineLayer, LiteLineLayer, NodeLayer, OP_CODE, SHEEN, SPRITE, SpriteLayer, type LineSpec } from './layers.ts';
 import { clamp, createClock, easeBack, easeInOut, easeOut, easeSine, hash01, lerp, range } from './motion.ts';
 import { Overlay, type OverlayItem } from './overlay.ts';
 
@@ -173,9 +173,10 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
   const nodeLayer = new NodeLayer();
   const edgeLayer = new LineLayer();
   const fxLines = new LineLayer();
+  const liteLines = new LiteLineLayer();
   const sprites = new SpriteLayer();
   const dust = createDust();
-  scene.add(dust, edgeLayer.mesh, fxLines.mesh, nodeLayer.points, sprites.points);
+  scene.add(dust, liteLines.lines, edgeLayer.mesh, fxLines.mesh, nodeLayer.points, sprites.points);
   for (const m of [nodeLayer.material, sprites.material, dust.material as typeof nodeLayer.material]) {
     if (m.uniforms.uDpr) m.uniforms.uDpr.value = dpr;
   }
@@ -233,6 +234,7 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
   let frameMs = 0;
   let raf = 0;
   let disposed = false;
+  let renderScale = 1;
 
   const tmp = new Vector3();
 
@@ -1067,6 +1069,9 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
 
     // Edge pass
     edgeLayer.begin();
+    liteLines.begin();
+    // LOD: in dense scenes plain 1 px lines take the cheap native path.
+    const dense = visibleEdgeIds.size > 300;
     edgeLayer.material.uniforms.uTime!.value = now;
     edgeLayer.material.uniforms.uSheen!.value = reduced ? 0 : 1;
     edgeLayer.material.uniforms.uViewport!.value.set(width, height);
@@ -1103,7 +1108,8 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
       if (reduced && intro.t0 !== NEVER) k *= introFade;
       k *= Math.min(na?.dying === NEVER ? 1 : 0, nb?.dying === NEVER ? 1 : 0) || (e.removing !== NEVER ? 1 : 0);
       const midDepth = ((na?.depth ?? 300) + (nb?.depth ?? 300)) / 2;
-      const fog = lerp(1, 0.35, range(midDepth, 150 * kDist, 450 * kDist));
+      // Learned shortcuts are the brightest lines in the sky (polish 12): no distance fog.
+      const fog = e.look === 'shortcut' ? 1 : lerp(1, 0.35, range(midDepth, 150 * kDist, 450 * kDist));
       let alpha = st.alpha * (0.6 + 0.4 * e.weight) * fog * k * fade;
       // Focus
       if (activationFade > 0) {
@@ -1125,7 +1131,9 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
         rgb: st.rgb, mid, alpha, width: st.width, dash: st.dash, from, to,
         sheen: st.sheen, phase: e.phase, len: Math.max(1, e.look === 'next' ? e.len : Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z)),
       };
-      edgeLayer.push(spec);
+      const focused = (hovered && (e.from === hovered || e.to === hovered)) || (selected && (e.from === selected || e.to === selected)) || (activationFade > 0 && activation?.has(e.from) && activation?.has(e.to));
+      if (dense && !focused && e.look === 'relates' && !e.lensOnly && from === 0 && to >= 1) liteLines.push(spec);
+      else edgeLayer.push(spec);
       // Shortcut glints at both ends (1.6×)
       if (e.look === 'shortcut' && na && nb && alpha > 0.05) {
         for (const n of [na, nb]) {
@@ -1135,6 +1143,7 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
       }
     }
     edgeLayer.end();
+    liteLines.end();
 
     // Trails
     const trailHeads: RenderDebugState['trailHeads'] = [];
@@ -1234,6 +1243,17 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
       fps = (fpsFrames * 1000) / (wall - fpsT0);
       fpsFrames = 0;
       fpsT0 = wall;
+      // Adaptive resolution: a fill-bound device (software GL, weak GPU) trades sharpness for
+      // frame rate in 15% steps down to 0.6×, and recovers when there is headroom.
+      const next = fps < 40 ? Math.max(0.6, renderScale - 0.15) : fps > 57 ? Math.min(1, renderScale + 0.15) : renderScale;
+      if (next !== renderScale) {
+        renderScale = next;
+        gl.setPixelRatio(dpr * renderScale);
+        gl.setSize(width, height, false);
+        for (const m of [nodeLayer.material, sprites.material, dust.material as typeof nodeLayer.material]) {
+          if (m.uniforms.uDpr) m.uniforms.uDpr.value = dpr * renderScale;
+        }
+      }
     }
 
     // Hover pick (after positions are fresh)
@@ -1595,6 +1615,7 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
       overlay.dispose();
       nodeLayer.dispose();
       edgeLayer.dispose();
+      liteLines.dispose();
       fxLines.dispose();
       sprites.dispose();
       gl.dispose();

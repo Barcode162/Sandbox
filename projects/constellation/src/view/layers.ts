@@ -8,6 +8,7 @@ import {
   DynamicDrawUsage,
   InstancedBufferAttribute,
   InstancedBufferGeometry,
+  LineSegments,
   Mesh,
   Points,
   ShaderMaterial,
@@ -359,7 +360,7 @@ void main() {
   vec2 n = vec2(-dir.y, dir.x);
   vLenPx = len;
   vHalfW = iStyle.x * 0.5;
-  float hw = vHalfW + 1.0;
+  float hw = max(vHalfW, 0.5) + 0.6; // tight AA margin: long faint lines are the fill cost
   vSide = corner.y * hw;
   vec4 p = mix(a, b, corner.x);
   p.xy += n * corner.y * hw * 2.0 / uViewport * p.w;
@@ -540,4 +541,74 @@ export function createDust(seed = 7): Points {
   const p = new Points(geo, mat);
   p.frustumCulled = false;
   return p;
+}
+
+// ── Lite lines: native 1 px GL_LINES for dense scenes (LOD) ──────────────────────────
+const LITE_VS = /* glsl */ `
+attribute vec3 aCol; // premultiplied rgb
+varying vec3 vCol;
+void main() {
+  vCol = aCol;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
+const LITE_FS = /* glsl */ `
+varying vec3 vCol;
+void main() { gl_FragColor = vec4(vCol, 1.0); }`;
+
+export class LiteLineLayer {
+  readonly lines: LineSegments;
+  private geo = new BufferGeometry();
+  private pos = new Float32Array(0) as Float32Array<ArrayBuffer>;
+  private col = new Float32Array(0) as Float32Array<ArrayBuffer>;
+  count = 0;
+
+  constructor() {
+    const mat = new ShaderMaterial({ vertexShader: LITE_VS, fragmentShader: LITE_FS, ...additive });
+    this.lines = new LineSegments(this.geo, mat);
+    this.lines.frustumCulled = false;
+    this.ensure(64);
+  }
+
+  private ensure(n: number): void {
+    if (this.pos.length >= n * 6) return;
+    const keepP = this.pos;
+    const keepC = this.col;
+    this.pos = grow(this.pos, n * 6);
+    this.col = new Float32Array(this.pos.length);
+    this.pos.set(keepP);
+    this.col.set(keepC);
+    for (const [name, arr] of [['position', this.pos], ['aCol', this.col]] as const) {
+      const a = new BufferAttribute(arr, 3);
+      a.setUsage(DynamicDrawUsage);
+      this.geo.setAttribute(name, a);
+    }
+  }
+
+  begin(): void {
+    this.count = 0;
+  }
+
+  push(l: LineSpec): void {
+    this.ensure(this.count + 1);
+    const i = this.count++ * 6;
+    this.pos[i] = l.ax; this.pos[i + 1] = l.ay; this.pos[i + 2] = l.az;
+    this.pos[i + 3] = l.bx; this.pos[i + 4] = l.by; this.pos[i + 5] = l.bz;
+    const a = Math.min(1, l.alpha);
+    for (let k = 0; k < 2; k++) {
+      this.col[i + k * 3] = (l.rgb[0] ?? 1) * a;
+      this.col[i + k * 3 + 1] = (l.rgb[1] ?? 1) * a;
+      this.col[i + k * 3 + 2] = (l.rgb[2] ?? 1) * a;
+    }
+  }
+
+  end(): void {
+    for (const name of ['position', 'aCol']) (this.geo.getAttribute(name) as BufferAttribute).needsUpdate = true;
+    this.geo.setDrawRange(0, this.count * 2);
+    this.lines.visible = this.count > 0;
+  }
+
+  dispose(): void {
+    this.geo.dispose();
+    (this.lines.material as ShaderMaterial).dispose();
+  }
 }
