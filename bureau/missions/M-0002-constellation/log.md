@@ -149,3 +149,4 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-23T03:04:39Z` **ceo** — Phase ship-review → **delivery**
 - `2026-11-23T03:04:47Z` **ceo** — Phase delivery → **retro**
 - `2026-11-23T03:05:29Z` **ceo** — Phase retro → **closed**
+- `2026-11-23T03:08:22Z` **ceo** — Owner asked to publish to GitHub: built dist/ and published to gh-pages under /constellation/ (fast-forward 445b32a, other sites untouched). Live: https://barcode162.github.io/Sandbox/constellation/ , verified in Chromium, 88 lights, 0 console errors.
