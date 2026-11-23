@@ -91,7 +91,7 @@ I re-rendered the frames into `evidence/critic/r2v/`.
 
 **r3 (7b9841d):**
 - **F-024:** verified.
-- **F-031:** reopened. Temperature is now labelled, but the forced hub labels overlap cores ("Boiling Point" over Heat, "Memory" under Route).
-- **F-032 and F-033:** I would waive both for this milestone.
+- **F-031:** reopened at r3 (hub labels sat on cores); verified at 4a1388b (`r4v/`).
+- **Waiver:** I recommend waiving F-032 and F-033 for M1; both are S3 and cosmetic.
 
 Verdict: **PASS WITH FINDINGS**. No S1 is open.
