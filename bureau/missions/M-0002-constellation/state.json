@@ -5,7 +5,7 @@
   "tier": 2,
   "domain": "interactive-web",
   "output": "projects/constellation",
-  "phase": "build",
+  "phase": "review",
   "created": "2026-11-22T19:28:56Z",
   "rounds": {
     "plan": 1,
@@ -21,7 +21,9 @@
   "headcount": {
     "experience-designer": 1,
     "architect": 1,
-    "engineer": 2
+    "engineer": 2,
+    "code-reviewer": 1,
+    "polish-critic": 1
   },
   "levers": [
     "polish"
@@ -42,7 +44,11 @@
     {
       "phase": "build",
       "at": "2026-11-22T19:39:09Z"
+    },
+    {
+      "phase": "review",
+      "at": "2026-11-23T00:55:15Z"
     }
   ],
-  "updated": "2026-11-22T19:39:09Z"
+  "updated": "2026-11-23T00:55:25Z"
 }

@@ -17,3 +17,6 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-22T20:12:26Z` **ceo** — WO-002 DONE: 80/80 unit, units + formatValue, boil 2/4/12/11.
 - `2026-11-23T00:47:17Z` **ceo** — WO-003 engineer stopped by usage limit mid-build (debugging an edge not reaching GPU). WIP checkpointed; resuming same agent after reset.
 - `2026-11-23T00:55:13Z` **ceo** — WO-003 DONE. CEO join: verify green (14 e2e). Ratified WO-003's optional view/contracts.ts members; spec F12 amended for substring search.
+- `2026-11-23T00:55:15Z` **ceo** — Phase build → **review**
+- `2026-11-23T00:55:25Z` **ceo** — Convened 1× code-reviewer — review r1
+- `2026-11-23T00:55:25Z` **ceo** — Convened 1× polish-critic — review r1
