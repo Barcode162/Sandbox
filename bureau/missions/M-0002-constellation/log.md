@@ -20,3 +20,16 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-23T00:55:15Z` **ceo** — Phase build → **review**
 - `2026-11-23T00:55:25Z` **ceo** — Convened 1× code-reviewer — review r1
 - `2026-11-23T00:55:25Z` **ceo** — Convened 1× polish-critic — review r1
+- `2026-11-23T00:59:19Z` **code-reviewer** — F-001 [S1] filed: UI says 'Saved' when nothing was saved (storage blocked or save failed)
+- `2026-11-23T00:59:19Z` **code-reviewer** — F-002 [S2] filed: Imported perspective.accent is unvalidated and interpolated into style attributes (CSS injection, external beacon)
+- `2026-11-23T00:59:19Z` **code-reviewer** — F-003 [S2] filed: Import replaces the whole memory with no confirm, no undo and no export-first
+- `2026-11-23T00:59:19Z` **code-reviewer** — F-004 [S2] filed: Unreadable autosave is silently overwritten on the next change
+- `2026-11-23T00:59:19Z` **code-reviewer** — F-005 [S2] filed: Autosave never flushes on page hide; edits in the last 400 ms are lost
+- `2026-11-23T00:59:19Z` **code-reviewer** — F-006 [S2] filed: Undo of Delete drops the node's units (and created time)
+- `2026-11-23T00:59:19Z` **code-reviewer** — F-007 [S2] filed: learnShortcut returns an existing lens-hidden shortcut; UI claims 'learned' and Undo deletes the pre-existing line
+- `2026-11-23T00:59:31Z` **code-reviewer** — F-008 [S3] filed: Huge numeric literals evaluate to Infinity, bypassing the finite() guard
+- `2026-11-23T00:59:32Z` **code-reviewer** — F-009 [S3] filed: maxSteps NaN/Infinity disables the step guard
+- `2026-11-23T00:59:32Z` **code-reviewer** — F-010 [S3] filed: Ids named __proto__ silently lose positions/facets on load (plain-object canon copies)
+- `2026-11-23T00:59:32Z` **code-reviewer** — F-011 [S3] filed: SpriteLayer/EdgeLayer grow mid-batch without copying already-pushed data
+- `2026-11-23T00:59:32Z` **code-reviewer** — F-012 [S3] filed: Seed-specific copy and magic label in product code
+- `2026-11-23T00:59:32Z` **code-reviewer** — F-013 [S3] filed: Overlay text-width cache grows without bound
