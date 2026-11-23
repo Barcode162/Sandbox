@@ -62,6 +62,9 @@ test('[U-expr-2] parse errors carry a column and a plain message', () => {
   parseError('', /Expected a value/);
   parseError('1 2', /Expected an operator/);
   parseError('x'.repeat(501), /up to 500 characters/);
+  parseError('9'.repeat(400), /^That number is too large to keep at column 1$/); // F-008: would be Infinity
+  parseError('1 + ' + '9'.repeat(309) + '.5', /too large/);
+  assert.equal(run('9'.repeat(300)), Number('9'.repeat(300)), 'large but finite is fine');
   parseError('('.repeat(80) + '1' + ')'.repeat(80), /nests too deeply/);
 });
 

@@ -90,7 +90,9 @@ function tokenize(src: string): Token[] {
         while (isDigit(src[i])) i++;
       }
       if (isIdStart(src[i])) fail(`Expected an operator after the number`, i);
-      out.push({ t: 'num', v: Number(src.slice(pos, i)), pos });
+      const v = Number(src.slice(pos, i));
+      if (!Number.isFinite(v)) fail('That number is too large to keep', pos);
+      out.push({ t: 'num', v, pos });
       continue;
     }
     if (c === '"' || c === "'") {

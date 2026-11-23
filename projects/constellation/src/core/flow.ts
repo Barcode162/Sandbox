@@ -20,6 +20,9 @@ import { formatNumber, hasOwn, isScaleWord, isVariableName, showValue, unitOf, w
 import { isRelationVisible, resolveValue } from './perspectives.ts';
 import type { Expr, FlowBranch, MemoryGraph, MemoryNode, NodeId, PerspectiveId, Relation, RunOptions, Scope, Trace, TraceStep, Value } from './types.ts';
 
+const DEFAULT_MAX_STEPS = 500;
+/** Upper bound for RunOptions.maxSteps, so one run always stays small enough to keep in memory. */
+const MAX_STEPS_CAP = 100_000;
 const BRANCH_RANK: Record<FlowBranch, number> = { next: 0, true: 1, false: 2 };
 
 /** All `start` pathway nodes, sorted by label. */
@@ -60,7 +63,9 @@ class Stop extends Error {}
  * status 'error' and a human `error`. Hitting maxSteps → status 'max-steps'.
  */
 export function* stepPathway(graph: MemoryGraph, start: NodeId, perspective: PerspectiveId, options?: RunOptions): Generator<TraceStep, Trace, void> {
-  const maxSteps = Math.max(1, Math.floor(options?.maxSteps ?? 500));
+  // A guard that can't be disabled: NaN, ±Infinity or non-numbers fall back to the default.
+  const asked = options?.maxSteps;
+  const maxSteps = typeof asked === 'number' && Number.isFinite(asked) ? Math.min(MAX_STEPS_CAP, Math.max(1, Math.floor(asked))) : DEFAULT_MAX_STEPS;
   const lens = graph.getPerspective(perspective)?.label ?? perspective;
   const vars: Record<string, Value> = {};
   const steps: TraceStep[] = [];

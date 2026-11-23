@@ -73,17 +73,30 @@ export class SceneBuilder {
     return m;
   }
 
-  /** A birthplace 8 u from the link target, at a seeded angle, in every lens. */
+  /**
+   * A birthplace beside the link target, in every lens (F-024): distance max(14, 2.5·(r_target + r_new)),
+   * in the emptiest of 8 seeded sectors around it, so the new light joins its neighbourhood clear of it.
+   */
   birthplace(id: NodeId, near: NodeId | null): Partial<Record<PerspectiveId, Vec3>> {
     const out: Partial<Record<PerspectiveId, Vec3>> = {};
+    const deg = near ? this.graph.relationsOf(near).length + 1 : 0;
+    const dist = Math.max(14, 2.5 * (1.6 + 0.45 * Math.sqrt(deg) + 1.6 + 0.45));
     for (const p of this.graph.perspectives()) {
       const pos = this.positions(p.id);
       const base = near ? pos.get(near) : undefined;
-      const a = hash01(id + p.id) * Math.PI * 2;
-      const b = (hash01(p.id + id) - 0.5) * 0.9;
       const c = base ?? { x: 0, y: 0, z: 0 };
-      const r = base ? 8 : 20;
-      out[p.id] = { x: round(c.x + Math.cos(a) * Math.cos(b) * r), y: round(c.y + Math.sin(b) * r), z: round(c.z + Math.sin(a) * Math.cos(b) * r) };
+      const phase = hash01(id + p.id) * Math.PI * 2;
+      const tilt = (hash01(p.id + id) - 0.5) * 0.6;
+      let best: Vec3 = c;
+      let bestGap = -1;
+      for (let k = 0; k < 8; k++) {
+        const a = phase + (k * Math.PI) / 4;
+        const q = { x: c.x + Math.cos(a) * Math.cos(tilt) * dist, y: c.y + Math.sin(tilt + (k % 2 ? 0.35 : -0.35)) * dist, z: c.z + Math.sin(a) * Math.cos(tilt) * dist };
+        let gap = Infinity;
+        for (const [other, o] of pos) if (other !== near) gap = Math.min(gap, Math.hypot(o.x - q.x, o.y - q.y, o.z - q.z));
+        if (gap > bestGap) ((bestGap = gap), (best = q));
+      }
+      out[p.id] = { x: round(best.x), y: round(best.y), z: round(best.z) };
     }
     return out;
   }
@@ -107,8 +120,8 @@ export class SceneBuilder {
       lensOnly: !!r.perspectives && r.perspectives.length < total,
       chip: r.type === 'flow' ? r.label : undefined,
     }));
-    const root = g.findByLabel('Memory')?.id;
-    return { perspective: lens, nodes, relations, lensColors, root };
+    // No seed knowledge here: the renderer ignites from the most connected node (F-012).
+    return { perspective: lens, nodes, relations, lensColors };
   }
 
   private sceneNode(n: MemoryNode, lens: PerspectiveId, perspectives: readonly Perspective[], pos: Map<NodeId, Vec3>): SceneNode {

@@ -15,49 +15,29 @@ export function formatValue(v: Value): string {
   return v;
 }
 
-/**
- * Units are data, not code: a variable labelled "unit" applies its value (per lens) to the
- * numeric variables in the tag groups of the nodes it relates to (in the seed: the heat group,
- * so Temperature reads 20 °C to the Cook and 293 K to the Physicist).
- */
+/** Units are data: MemoryNode.units per lens (key "*" = base). No-break space keeps "20 °C" whole. */
 export class Units {
-  private unitNode: MemoryNode | undefined;
-  private tags = new Set<string>();
   private graph: MemoryGraph;
 
   constructor(graph: MemoryGraph) {
     this.graph = graph;
-    this.refresh();
   }
 
-  refresh(): void {
-    this.unitNode = this.graph.findByLabel('unit');
-    this.tags.clear();
-    if (!this.unitNode) return;
-    for (const r of this.graph.relationsOf(this.unitNode.id)) {
-      const other = this.graph.getNode(r.from === this.unitNode.id ? r.to : r.from);
-      if (other) for (const t of other.tags) this.tags.add(t);
-    }
-  }
+  refresh(): void {}
 
   unitFor(node: MemoryNode, lens: PerspectiveId): string {
-    // The core's own per-node units win (MemoryNode.units); the "unit" variable is the fallback.
-    if (node.units) return node.units[lens] ?? node.units['*'] ?? '';
-    if (!this.unitNode || node.id === this.unitNode.id || node.kind !== 'variable') return '';
-    if (!node.tags.some((t) => this.tags.has(t))) return '';
-    const u = resolveValue(this.unitNode, lens);
-    return typeof u === 'string' ? u : '';
+    return (node.units?.[lens] ?? node.units?.['*'] ?? '').trim();
   }
 
-  /** True when a label names a unit-bearing node. */
-  bearsUnit(label: string): boolean {
-    const n = this.graph.findByLabel(label);
-    return !!n && this.unitFor(n, this.graph.meta.defaultPerspective) !== '';
-  }
-
-  unitOf(lens: PerspectiveId): string {
-    const u = this.unitNode ? resolveValue(this.unitNode, lens) : null;
-    return typeof u === 'string' ? u : '';
+  /** The one unit shared by these labels under `lens`, or '' if none or mixed. */
+  sharedUnit(labels: string[], lens: PerspectiveId): string {
+    const us = new Set<string>();
+    for (const l of labels) {
+      const n = this.graph.findByLabel(l);
+      const u = n ? this.unitFor(n, lens) : '';
+      if (u) us.add(u);
+    }
+    return us.size === 1 ? [...us][0]! : '';
   }
 
   /** The node's value under `lens`, formatted with its unit. */
@@ -65,8 +45,7 @@ export class Units {
     const text = formatValue(value);
     if (typeof value !== 'number') return text;
     const u = this.unitFor(node, lens);
-    if (!u) return text;
-    return `${text} ${u}`;
+    return u ? `${text}\u00a0${u}` : text;
   }
 }
 
@@ -79,15 +58,16 @@ export function withUnits(evaluated: string, unit: string): string {
   const [lhs, ...rest] = evaluated.split('→');
   if (!lhs) return evaluated;
   const parts = lhs.split(/(\s(?:<=|>=|==|!=|<|>|\+|-)\s)/);
-  const out = parts.map((p) => (/^\s*-?\d+(\.\d+)?\s*$/.test(p) ? `${p.trim()} ${unit} ` : p));
+  const out = parts.map((p) => (/^\s*-?\d+(\.\d+)?\s*$/.test(p) ? `${p.trim()}\u00a0${unit} ` : p));
   const left = out.join('').replace(/\s+/g, ' ').trim();
   return rest.length ? `${left} →${rest.join('→')}` : left;
 }
 
 /** A → B → C → … → X → Y → Z (elides the middle, never the end). */
 export function elidePath(labels: string[], max = 7): string {
-  if (labels.length <= max) return labels.join(' → ');
-  return [...labels.slice(0, 3), '…', ...labels.slice(-3)].join(' → ');
+  // No-break space before each arrow: a wrap never orphans the destination (polish 11).
+  const list = labels.length <= max ? labels : [...labels.slice(0, 3), '…', ...labels.slice(-3)];
+  return list.join('\u00a0→ ');
 }
 
 export function hops(n: number): string {

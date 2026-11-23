@@ -46,9 +46,10 @@ varying vec2 vKind;
 void main() {
   vec4 mv = modelViewMatrix * vec4(position, 1.0);
   float depth = max(0.1, -mv.z);
-  float minR = aKind.x == 3.0 ? 4.5 : 3.0;
+  float kindV = floor(aKind.x + 0.5);
+  float minR = kindV == 3.0 ? 4.5 : 3.0;
   float r = clamp(aSize * uPxScale / depth, minR, 18.0) * aMisc.y;
-  float haloK = aKind.x == 2.0 ? 0.6 : 1.0;
+  float haloK = kindV == 2.0 ? 0.6 : 1.0;
   // The halo is visually spent by ~2.7r; a tighter sprite saves fill rate at 500 points.
   float ext = max(r * 2.7 * aMisc.z * haloK, aMisc.w > 0.0 ? max(r * 2.4, r + 7.0) + 2.0 : 0.0);
   vSprite = max(ext, r * 2.4) + 2.0;
@@ -87,7 +88,8 @@ void main() {
   p.y = -p.y;
   float d = length(p);
   float R = vR;
-  float kind = vKind.x;
+  // Codes arrive as varyings: round before comparing (interpolation error broke glyphs, F-021).
+  float kind = floor(vKind.x + 0.5);
   float core = 0.0;
   float glyph = 0.0;
   float haloK = 1.0;
@@ -108,7 +110,7 @@ void main() {
     // pathway: glyph inside a ring
     float ringR = R * 1.5;
     core = stroke(d - ringR, 1.4);
-    float op = vKind.y;
+    float op = floor(vKind.y + 0.5);
     float g = R * 0.95;
     if (op == 0.0) glyph = fill(sdTri(p + vec2(g * 0.12, 0.0), g * 0.72));
     else if (op == 1.0) glyph = max(stroke(d - g * 0.62, 1.3), fill(d - g * 0.24));
@@ -123,12 +125,16 @@ void main() {
     core = max(core, glyph);
     haloK = 0.7;
   } else {
-    core = fill(d - R);
+    // Small stars stay crisp; close-up cores get a hot 0.4r centre with a soft falloff (F-027).
+    float crisp = fill(d - R);
+    float t = max(0.0, d - 0.4 * R) / (0.35 * R);
+    float soft = max(fill(d - 0.4 * R), exp(-t * t)) * step(d, R + 1.0);
+    core = mix(crisp, soft, smoothstep(6.0, 12.0, R));
   }
   // Gaussian-shaped falloff without exp/pow: (1 - x²)³ over the halo extent.
   float hx = clamp(d / (R * 2.7 * vMisc.z * haloK), 0.0, 1.0);
   float hq = 1.0 - hx * hx;
-  float halo = hq * hq * hq * (kind == 3.0 ? 0.14 : 0.42);
+  float halo = hq * hq * hq * (kind == 3.0 ? 0.14 : 0.59); // +40% so the lens tint reads (F-019)
   float ring = vMisc.w > 0.0 ? stroke(d - max(R * 2.4, R + 7.0), 1.5) * vMisc.w : 0.0;
   float b = vMisc.x;
   vec3 col = coreCol * core * b + vHalo * halo * min(b, 1.4) + vec3(0.96, 0.97, 1.0) * ring;
@@ -232,7 +238,7 @@ varying float vSprite;
 void main() {
   vCol = aCol;
   vR = aShape.x;
-  vShape = aShape.y;
+  vShape = floor(aShape.y + 0.5);
   vSprite = vShape == 0.0 || vShape == 3.0 ? vR * 3.0 + 2.0 : vR + 2.0;
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   gl_PointSize = aCol.a <= 0.001 ? 0.0 : vSprite * 2.0 * uDpr;
@@ -277,10 +283,15 @@ export class SpriteLayer {
 
   private ensure(n: number): void {
     if (this.pos.length >= n * 3) return;
+    // Growing mid-batch keeps what was already pushed this frame (F-011).
+    const [p0, c0, s0] = [this.pos, this.col, this.shape];
     this.pos = grow(this.pos, n * 3);
     const cap = this.pos.length / 3;
     this.col = new Float32Array(cap * 4);
     this.shape = new Float32Array(cap * 2);
+    this.pos.set(p0);
+    this.col.set(c0);
+    this.shape.set(s0);
     for (const [name, arr, k] of [['position', this.pos, 3], ['aCol', this.col, 4], ['aShape', this.shape, 2]] as const) {
       const a = new BufferAttribute(arr, k);
       a.setUsage(DynamicDrawUsage);
@@ -385,7 +396,8 @@ void main() {
   float aa = 1.0 - smoothstep(w - 0.6, w + 0.6, abs(vSide));
   aa *= min(1.0, vHalfW * 2.0);
   float s = vT * vLenPx;
-  float dash = vStyle.y;
+  float dash = floor(vStyle.y + 0.5);
+  float sheenKind = floor(vSheen.x + 0.5);
   if (dash == 1.0) aa *= step(mod(s, 10.0), 6.0);
   else if (dash == 2.0) aa *= 1.0 - smoothstep(0.6, 1.4, abs(mod(s, 4.0) - 1.0));
   else if (dash == 3.0) aa *= step(mod(s, 6.0), 3.0);
@@ -393,10 +405,10 @@ void main() {
   float m = 1.0 - abs(vT * 2.0 - 1.0);
   vec3 col = mix(vColA.rgb, vColM, smoothstep(0.0, 1.0, m));
   float sheen = 0.0;
-  if (uSheen > 0.5 && vSheen.x == 1.0) {
+  if (uSheen > 0.5 && sheenKind == 1.0) {
     float head = mod(uTime / 4000.0, 1.0) * (vSheen.z + 6.0) - 3.0;
     sheen = 1.0 - smoothstep(0.0, 3.0, abs(vT * vSheen.z - head));
-  } else if (uSheen > 0.5 && vSheen.x == 2.0) {
+  } else if (uSheen > 0.5 && sheenKind == 2.0) {
     float head = mod(uTime * 0.03, uRoad);
     sheen = 1.0 - smoothstep(0.0, 3.0, abs(vSheen.y + vT * vSheen.z - head));
   }
@@ -447,6 +459,8 @@ export class LineLayer {
 
   private ensure(n: number): void {
     if (this.iA.length >= n * 3) return;
+    // Growing mid-batch keeps what was already pushed this frame (F-011).
+    const old = [this.iA, this.iB, this.iColA, this.iColM, this.iStyle, this.iSheen] as const;
     this.iA = grow(this.iA, n * 3);
     const cap = this.iA.length / 3;
     this.iB = new Float32Array(cap * 3);
@@ -454,6 +468,7 @@ export class LineLayer {
     this.iColM = new Float32Array(cap * 3);
     this.iStyle = new Float32Array(cap * 4);
     this.iSheen = new Float32Array(cap * 3);
+    [this.iA, this.iB, this.iColA, this.iColM, this.iStyle, this.iSheen].forEach((a, i) => a.set(old[i]!));
     for (const [name, arr, k] of [['iA', this.iA, 3], ['iB', this.iB, 3], ['iColA', this.iColA, 4], ['iColM', this.iColM, 3], ['iStyle', this.iStyle, 4], ['iSheen', this.iSheen, 3]] as const) {
       const a = new InstancedBufferAttribute(arr, k);
       a.setUsage(DynamicDrawUsage);

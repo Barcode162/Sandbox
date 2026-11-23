@@ -89,6 +89,7 @@ export class Overlay {
       w = this.ctx.measureText(text).width;
     }
     w = Math.ceil(w + f.track * text.length + f.pad);
+    if (this.widths.size > 2000) this.widths.clear(); // bounded: chips change text every step (F-013)
     this.widths.set(key, w);
     return w;
   }
@@ -119,7 +120,8 @@ export class Overlay {
       let spot: { x: number; y: number } | null = null;
       for (const a of it.anchors) {
         const p = anchorAt(a, it.x, it.y, it.offset, w, h);
-        if (p.x < 2 || p.y < minY || p.x + w > vw - 2 || p.y + h > vh - 2) continue;
+        // Never cross the viewport edge (8 px margin, F-026).
+        if (p.x < 8 || p.y < minY || p.x + w > vw - 8 || p.y + h > vh - 8) continue;
         if (!it.force && overlaps(p.x, p.y, w, h)) continue;
         spot = p;
         break;

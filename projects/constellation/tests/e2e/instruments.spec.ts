@@ -167,8 +167,60 @@ test('[E5] import: a broken file shows the core\'s human error; a valid one open
   await page.locator('#import-file').setInputFiles({ name: 'newer.json', mimeType: 'application/json', buffer: Buffer.from('{"schema":"constellation.memory","version":3,"nodes":[]}') });
   await expect(page.locator('.toast.err').last()).toContainText('This memory is from a newer version (v3). Update the app to open it.');
   await page.locator('#import-file').setInputFiles({ name: 'my-memory.json', mimeType: 'application/json', buffer: readFileSync(new URL('../../src/seed/memory.json', import.meta.url)) });
+  // Destructive replace asks first (F-003); Cancel keeps the memory.
+  await expect(page.locator('dialog.confirm')).toContainText('Replace your memory with "my-memory.json"?');
+  await page.locator('dialog.confirm').getByRole('button', { name: 'Cancel' }).click();
+  await expect(page.locator('.toast', { hasText: 'Opened' })).toHaveCount(0);
+  await page.locator('#import-file').setInputFiles({ name: 'my-memory.json', mimeType: 'application/json', buffer: readFileSync(new URL('../../src/seed/memory.json', import.meta.url)) });
+  await page.locator('dialog.confirm').getByRole('button', { name: 'Replace' }).click();
   await expect(page.locator('.toast', { hasText: 'Opened "my-memory.json": 88 lights, 110 lines.' })).toBeVisible();
   await idle(page);
   await frames(page, 2);
   expect((await state(page)).visibleEdges).toBe(100);
+});
+
+test('[F-014] a route found after zooming in reframes the camera to show the whole race', async ({ page }) => {
+  await open(page);
+  const t = await page.evaluate(() => window.__constellation!.screenPosition(window.__constellation!.nodeIdByLabel('Temperature')!));
+  await page.mouse.click(t!.x, t!.y);
+  await idle(page);
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('r');
+  await page.getByRole('button', { name: 'Try the featured route: A → Z' }).click();
+  await page.waitForTimeout(1000);
+  await idle(page);
+  for (const l of ['A', 'F', 'X', 'Z']) {
+    const p = await page.evaluate((x) => window.__constellation!.screenPosition(window.__constellation!.nodeIdByLabel(x)!), l);
+    expect(p, `${l} in view`).not.toBeNull();
+  }
+});
+
+test('[F-006] deleting Temperature and undoing restores it with its units', async ({ page }) => {
+  await open(page);
+  const t = await page.evaluate(() => window.__constellation!.screenPosition(window.__constellation!.nodeIdByLabel('Temperature')!));
+  await page.mouse.click(t!.x, t!.y);
+  await page.locator('#inspector').getByRole('button', { name: 'Delete' }).click();
+  await page.locator('dialog.confirm').getByRole('button', { name: 'Delete' }).click();
+  expect(await page.evaluate(() => window.__constellation!.nodeIdByLabel('Temperature'))).toBeNull();
+  await page.locator('body').focus();
+  await page.keyboard.press('Control+z');
+  await page.waitForFunction(() => window.__constellation!.nodeIdByLabel('Temperature') !== null);
+  await page.locator('#search').fill('Temperature');
+  await page.locator('#drawer .rlist button', { hasText: /^Temperature$/ }).click();
+  await expect(page.locator('#inspector tr.active td')).toContainText('20 °C');
+});
+
+test('[F-001] blocked storage: no "Saved", a persistent "Not saved" state with Export', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('blocked', 'SecurityError'); } });
+  });
+  await open(page);
+  await expect(page.locator('#saved')).toHaveText('Not saved');
+  await expect(page.locator('#saved')).toHaveClass(/bad/);
+  await expect(page.locator('.toast', { hasText: "Not saved: this browser won't keep your memory" }).getByRole('button', { name: 'Export' })).toBeVisible();
+  await page.keyboard.press('n');
+  await page.getByLabel('Name').fill('Kite');
+  await page.getByRole('button', { name: 'Store it' }).click();
+  await page.waitForTimeout(800);
+  await expect(page.locator('#saved')).toHaveText('Not saved');
 });

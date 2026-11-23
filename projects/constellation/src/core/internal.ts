@@ -87,18 +87,18 @@ export function canonStep(s: PathwayStep): PathwayStep {
 }
 
 export function canonFacets(f: Partial<Record<string, Value>>): Partial<Record<string, Value>> {
-  const out: Partial<Record<string, Value>> = {};
-  for (const [k, v] of Object.entries(f)) if (v !== undefined) out[k] = v;
-  return out;
+  // Object.fromEntries defines own data properties, so an id like "__proto__" stays a key
+  // (plain assignment would set the prototype and silently drop it).
+  return Object.fromEntries(Object.entries(f).filter(([, v]) => v !== undefined));
 }
 
 export function canonUnits(u: Partial<Record<string, string>>): Partial<Record<string, string>> {
-  const out: Partial<Record<string, string>> = {};
-  for (const [k, v] of Object.entries(u)) if (v !== undefined) out[k] = v;
-  return out;
+  return Object.fromEntries(Object.entries(u).filter(([, v]) => v !== undefined));
 }
 
 export const MAX_UNIT_CHARS = 40;
+/** #rgb or #rrggbb, nothing else: accents reach CSS, so anything looser is an injection vector. */
+export const HEX_COLOUR = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
 export function canonNode(n: MemoryNode): MemoryNode {
   const out: Record<string, unknown> = { id: n.id, label: n.label, kind: n.kind, value: n.value, facets: canonFacets(n.facets) };
@@ -126,9 +126,7 @@ export function canonPerspective(p: Perspective): Perspective {
   if (p.description !== undefined) out.description = p.description;
   if (p.accent !== undefined) out.accent = p.accent;
   if (p.positions !== undefined) {
-    const pos: Partial<Record<string, Vec3>> = {};
-    for (const [k, v] of Object.entries(p.positions)) if (v) pos[k] = canonVec(v);
-    out.positions = pos;
+    out.positions = Object.fromEntries(Object.entries(p.positions).flatMap(([k, v]) => (v ? [[k, canonVec(v)]] : [])));
   }
   return out;
 }

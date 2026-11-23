@@ -6,7 +6,7 @@
 // keeps it near-linear), d²/k attraction along relations scaled by weight, a weak pull to the
 // centre, and a linearly cooling step cap. Nodes are processed in id order, so insertion order
 // never changes the result.
-import { hashString, mulberry32 } from './internal.ts';
+import { hashString, hasOwn, mulberry32 } from './internal.ts';
 import { visibleRelations } from './perspectives.ts';
 import type { ForceLayoutOptions, MemoryGraph, MemoryNode, NodeId, PerspectiveId, Relation, Vec3 } from './types.ts';
 
@@ -38,7 +38,7 @@ function compute(graph: MemoryGraph, perspective: PerspectiveId): Map<NodeId, Ve
   const authored = graph.getPerspective(perspective)?.positions ?? {};
   const fixed = new Map<NodeId, Vec3>();
   for (const n of nodes) {
-    const p = authored[n.id];
+    const p = hasOwn(authored, n.id) ? authored[n.id] : undefined;
     if (p) fixed.set(n.id, { x: p.x, y: p.y, z: p.z });
   }
   const relations = visibleRelations(graph, perspective);
@@ -171,10 +171,11 @@ function simulate(
 
   for (let it = 0; it < iterations; it++) {
     const temp = t0 * (1 - it / iterations) + 0.01;
-    // Repulsion is the hot loop. It is recomputed on even iterations and reused on odd ones: with
-    // the step cap cooling linearly, neighbours barely change between two iterations, and this
-    // halves the cost (500 nodes in < 50 ms). Still deterministic: the schedule is fixed.
-    if (it % 2 === 0) {
+    // Repulsion is the hot loop, so its forces are reused between recomputes: every 2nd iteration
+    // while the step cap is above half its start, every 4th once it has cooled below that (nodes
+    // then move ≤ t0/2 per step, so neighbourhoods barely change). This is what keeps 500 nodes well
+    // under 50 ms. The schedule is fixed, so the result stays deterministic.
+    if (it % (it < iterations / 2 ? 2 : 4) === 0) {
       rx.fill(0); ry.fill(0); rz.fill(0);
       grid.repulse(px, py, pz, rx, ry, rz, k2);
     }

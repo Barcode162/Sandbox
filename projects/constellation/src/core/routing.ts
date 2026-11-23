@@ -31,14 +31,42 @@ export function compareRoutes(graph: MemoryGraph, from: NodeId, to: NodeId, opti
  * Idempotent: if that shortcut already exists, returns it unchanged. Throws CoreError 'invalid' for hops < 2.
  */
 export function learnShortcut(graph: MemoryGraph, route: Route, weight = 0.9): Relation {
+  return learnShortcutDetailed(graph, route, weight).relation;
+}
+
+/** What learning did, so the UI can say "Learned" only when something changed, and undo exactly that. */
+export interface LearnResult {
+  relation: Relation;
+  /** 'added': a new shortcut · 'widened': an existing lens-only shortcut now shows in every lens · 'existing': nothing changed. */
+  outcome: 'added' | 'widened' | 'existing';
+  /** true unless outcome is 'existing'. */
+  learned: boolean;
+  /** For 'widened': the relation before, to restore on undo (graph.updateRelation(id, { perspectives })). */
+  previous?: Relation;
+}
+
+/**
+ * learnShortcut with its outcome. A learned shortcut is visible in every lens (§5: "added in all
+ * lenses"), so an existing shortcut that is hidden in some lens is never returned as-is: an
+ * unrestricted one is reused, else a lens-only one is widened to all lenses.
+ */
+export function learnShortcutDetailed(graph: MemoryGraph, route: Route, weight = 0.9): LearnResult {
   if (!route || route.hops < 2 || route.nodes.length < 3) throw new CoreError('invalid', 'Already one hop. Nothing shorter to learn.');
   const a = route.nodes[0]!;
   const b = route.nodes[route.nodes.length - 1]!;
   if (a === b) throw new CoreError('invalid', 'That route ends where it starts, so there is no shortcut to learn.');
-  for (const r of graph.relationsOf(a)) {
-    if (r.type === 'shortcut' && ((r.from === a && r.to === b) || (r.from === b && r.to === a))) return r;
+  const existing = graph
+    .relationsOf(a)
+    .filter((r) => r.type === 'shortcut' && ((r.from === a && r.to === b) || (r.from === b && r.to === a)))
+    .sort((p, q) => (p.id < q.id ? -1 : 1));
+  const everywhere = existing.find((r) => r.perspectives === undefined);
+  if (everywhere) return { relation: everywhere, outcome: 'existing', learned: false };
+  const hidden = existing[0];
+  if (hidden) {
+    const relation = graph.updateRelation(hidden.id, { perspectives: undefined });
+    return { relation, outcome: 'widened', learned: true, previous: hidden };
   }
-  return graph.addRelation({ from: a, to: b, type: 'shortcut', weight, directed: false });
+  return { relation: graph.addRelation({ from: a, to: b, type: 'shortcut', weight, directed: false }), outcome: 'added', learned: true };
 }
 
 // ── search ────────────────────────────────────────────────────────────────────────────────

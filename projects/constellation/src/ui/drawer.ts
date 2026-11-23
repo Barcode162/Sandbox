@@ -121,7 +121,7 @@ export class Drawer {
     if (feat && g.getNode(feat.from) && g.getNode(feat.to)) {
       const A = labelOf(g, feat.from);
       const Z = labelOf(g, feat.to);
-      const chip = h('button.chipbtn', { type: 'button', 'data-focus-key': 'try' }, `Try the Long Road: ${A} → ${Z}`);
+      const chip = h('button.chipbtn', { type: 'button', 'data-focus-key': 'try' }, `Try the featured route: ${A} → ${Z}`);
       chip.addEventListener('click', () => {
         from.value = app.routeFrom = A;
         to.value = app.routeTo = Z;
@@ -270,7 +270,13 @@ export class Drawer {
   private traceItem(s: { op: string; note: string; branch?: string; nodeId: NodeId }, i: number, cur: boolean, lens: string): HTMLElement {
     const text = this.app.stepText(s as Parameters<App['stepText']>[0], lens);
     const cls = `${cur ? 'cur ' : ''}${s.branch === 'true' ? 't-true' : s.branch === 'false' ? 't-false' : ''}`.trim();
-    return h('li', { class: cls || undefined, 'aria-current': cur ? 'step' : undefined }, h('span.i', { 'aria-hidden': 'true' }, String(i + 1)), h('span.n', {}, text));
+    // Segments never break inside (numbers stay with units); lines wrap only at " · " (F-022).
+    const n = h('span.n', {});
+    text.split(' · ').forEach((seg, k) => {
+      if (k) n.append(' · ');
+      n.append(h('span.seg', {}, seg));
+    });
+    return h('li', { class: cls || undefined, 'aria-current': cur ? 'step' : undefined }, h('span.i', { 'aria-hidden': 'true' }, String(i + 1)), n);
   }
 
   /** Called on every visit during playback (cheap: appends one row). */
@@ -318,7 +324,7 @@ export class Drawer {
     }
     const names = (d: number) => (d === 0 ? 'Matches' : d === 1 ? '1 hop' : `${d} hops`);
     const depths = [...groups.keys()].sort((a, b) => a - b);
-    this.body.append(h('p.summary', { role: 'status' }, depths.map((d) => `${names(d)} (${groups.get(d)!.length})`).join(' · ')));
+    this.body.append(h('p.summary.sr-only', { role: 'status' }, depths.map((d) => `${names(d)} (${groups.get(d)!.length})`).join(' · ')));
     for (const d of depths) {
       const ids = groups.get(d)!;
       const level = d === 0 ? 1 : d === 1 ? 1 : d === 2 ? 0.55 : 0.3;

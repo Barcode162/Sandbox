@@ -59,7 +59,7 @@ test.describe('1024×768', () => {
     expect(overlaps((await state(page)).labelRects)).toEqual([]);
     await shot('F1-idle-1024');
     await page.keyboard.press('r');
-    await page.getByRole('button', { name: 'Try the Long Road: A → Z' }).click();
+    await page.getByRole('button', { name: 'Try the featured route: A → Z' }).click();
     await page.waitForTimeout(4400);
     await expect(page.locator('#route-verdict')).toHaveText('25 hops → 3 hops · 88% shorter');
     await page.mouse.move(1000, 700);

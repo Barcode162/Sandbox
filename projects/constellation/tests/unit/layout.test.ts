@@ -106,13 +106,10 @@ test('[U-layout-9] the layout cache drops on mutation', () => {
 test('[U-layout-10] seed positions follow §6: ring formula, flowchart offsets, cluster radii, orphan at rim', () => {
   const doc = seedDoc();
   const at = (lens: string, id: string) => doc.perspectives.find((p) => p.id === lens)!.positions![id]!;
-  // Ring: A and Z exact to 0.01; Physicist ring is flat (no wobble): every stop is R from the centre in its plane.
-  const a = ringPosition('cook', 0);
-  assert.ok(dist(at('cook', 'road-a'), a) < 0.01);
-  for (let i = 0; i < 26; i++) {
-    const p = at('physicist', `road-${'abcdefghijklmnopqrstuvwxyz'[i]}`);
-    assert.ok(Math.abs(dist(p, { x: 0, y: -110, z: 0 }) - 70) < 0.02, `stop ${i}`);
-  }
+  // Ring: every stop matches ringPosition to 0.01 (the formula is tested in U-layout-11).
+  'abcdefghijklmnopqrstuvwxyz'.split('').forEach((l, i) => {
+    for (const lens of ['cook', 'physicist', 'child'] as const) assert.ok(dist(at(lens, `road-${l}`), ringPosition(lens, i)) < 0.01, `${lens} ${l}`);
+  });
   // Flowchart offsets: P4 = anchor + (0, −6); Q7 = anchor + (24, −20).
   assert.deepEqual(at('cook', 'p4'), { x: -60, y: -36, z: 50 });
   assert.deepEqual(at('child', 'q7'), { x: 134, y: -10, z: 60 });
@@ -120,4 +117,29 @@ test('[U-layout-10] seed positions follow §6: ring formula, flowchart offsets, 
   const heat = { x: 0, y: 10, z: 0 };
   for (const id of ['temperature', 'heat', 'stove', 'ice']) assert.ok(dist(at('cook', id), heat) <= 36.02, id);
   assert.ok(Math.abs(dist(at('cook', 'energy'), heat) - 36) < 0.02);
+});
+
+test('[U-layout-11] F-016: in every lens the learned A–Z line crosses the ring centre, A–F cuts the interior, laps never touch', () => {
+  const doc = seedDoc();
+  const RING = { cook: { c: { x: 0, y: -120, z: -30 }, tilt: 25, R: 70 }, physicist: { c: { x: 0, y: -110, z: 0 }, tilt: 12, R: 70 }, child: { c: { x: 40, y: -100, z: 0 }, tilt: 35, R: 55 } };
+  for (const [lens, ring] of Object.entries(RING)) {
+    const pos = doc.perspectives.find((p) => p.id === lens)!.positions!;
+    // Back into the ring's own plane (undo the tilt), centre at the origin.
+    const flat = (l: string) => { const p = pos[`road-${l}`]!; return { x: p.x - ring.c.x, z: (p.z - ring.c.z) / Math.cos((ring.tilt * Math.PI) / 180) }; };
+    const segToCentre = (a: { x: number; z: number }, b: { x: number; z: number }) => {
+      const dx = b.x - a.x, dz = b.z - a.z;
+      const u = Math.max(0, Math.min(1, -(a.x * dx + a.z * dz) / (dx * dx + dz * dz)));
+      return Math.hypot(a.x + u * dx, a.z + u * dz);
+    };
+    const A = flat('a'), F = flat('f'), Z = flat('z');
+    const angle = Math.abs(Math.atan2(A.z, A.x) - Math.atan2(Z.z, Z.x)) * (180 / Math.PI);
+    assert.ok(Math.abs(angle - 180) < 5, `${lens}: A and Z ${angle.toFixed(0)}° apart`);
+    assert.ok(segToCentre(A, Z) < 0.1 * ring.R, `${lens}: A–Z passes the centre`);
+    assert.ok(segToCentre(A, F) < 0.65 * ring.R, `${lens}: A–F crosses the interior`);
+    const L = 'abcdefghijklmnopqrstuvwxyz'.split('');
+    for (let i = 0; i < 26; i++) for (let j = i + 2; j < 26; j++) {
+      const p = flat(L[i]!), q = flat(L[j]!);
+      assert.ok(Math.hypot(p.x - q.x, p.z - q.z) > 15, `${lens}: ${L[i]} and ${L[j]} too close`);
+    }
+  }
 });

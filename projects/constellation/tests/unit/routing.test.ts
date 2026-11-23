@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CoreError, compareRoutes, createGraph, declaredPath, exportJson, importJson, learnShortcut, shortestPath } from '../../src/core/index.ts';
+import { CoreError, compareRoutes, createGraph, declaredPath, exportJson, importJson, isRelationVisible, learnShortcut, learnShortcutDetailed, shortestPath } from '../../src/core/index.ts';
 import type { MemoryGraph } from '../../src/core/index.ts';
 import { seedGraph } from './support/seed.ts';
 
@@ -117,4 +117,30 @@ test('[U-routing-9] weights matter: a heavier detour beats a weak direct line; f
   assert.ok(shortestPath(f, 'p', 'q', { excludeTypes: [] }));
   assert.equal(compareRoutes(f, 'p', 'q').savedHops, 0);
   assert.equal(shortestPath(f, 'p', 'nowhere'), null);
+});
+
+test('[U-routing-10] F-007: a lens-hidden shortcut is widened to every lens, and the outcome says what happened', () => {
+  const g = seedGraph();
+  const hidden = g.addRelation({ from: 'road-z', to: 'road-a', type: 'shortcut', weight: 0.9, perspectives: ['physicist'] });
+  const route = shortestPath(g, 'road-a', 'road-z', { perspective: 'cook' })!;
+  assert.equal(route.hops, 3, 'the physicist-only shortcut is not routed under Cook');
+  const first = learnShortcutDetailed(g, route);
+  assert.equal(first.outcome, 'widened');
+  assert.equal(first.learned, true);
+  assert.equal(first.relation.id, hidden.id, 'no duplicate line');
+  assert.equal(first.previous, hidden, 'undo can restore the lens-only line');
+  for (const lens of ['cook', 'physicist', 'child']) assert.ok(isRelationVisible(first.relation, lens), lens);
+  const again = learnShortcutDetailed(g, route);
+  assert.deepEqual([again.outcome, again.learned, again.relation.id], ['existing', false, hidden.id]);
+  assert.equal(learnShortcut(g, route), again.relation);
+  const fresh = learnShortcutDetailed(seedGraph(), route);
+  assert.deepEqual([fresh.outcome, fresh.learned, fresh.previous], ['added', true, undefined]);
+});
+
+test('[U-routing-11] F-007: learnShortcut never returns a shortcut hidden in some lens', () => {
+  const g = seedGraph();
+  g.addRelation({ id: 'lens-only', from: 'road-a', to: 'road-z', type: 'shortcut', perspectives: ['child'] });
+  const r = learnShortcut(g, shortestPath(g, 'road-a', 'road-z', { perspective: 'cook' })!);
+  assert.equal(r.perspectives, undefined);
+  assert.equal(g.relations().filter((x) => x.type === 'shortcut').length, 1);
 });

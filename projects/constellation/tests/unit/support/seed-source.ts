@@ -260,15 +260,22 @@ const RING: Record<Lens, { at: Vec3; R: number; tilt: number; wobble: number }> 
 const round2 = (n: number): number => Math.round(n * 100) / 100 + 0; // + 0 turns -0 into 0
 const r2 = (p: Vec3): Vec3 => ({ x: round2(p.x), y: round2(p.y), z: round2(p.z) });
 
+/** Turns of the Long Road: 1½, so Z ends 180° from A (polish F-016: the learned A–Z line crosses the centre). */
+export const RING_TURN_DEG = 540;
+
 /**
- * Long Road node i sits at φ = −90° + 310°·i/25 on radius R + wobble·sin(1.9i). The ring lies in the
- * ground plane (x, z) with φ = −90° nearest the camera (+z), then tilts its near edge down by `tilt`
- * so the default camera sees an open ellipse: A and Z sit 50° apart at the front, F faces X.
+ * The Long Road is a 1½-turn spiral ring in the ground plane (x, z). Stop i (0…25) sits at
+ * φ = 180° − 540°·i/25, so A is at the far left, the road circles once and then halfway again,
+ * and Z ends at the far right, opposite A. The radius grows from R − s to R + s (s = 12 + wobble/2)
+ * so the two laps never touch, plus wobble/2 · sin(1.9i). The ring then tilts its near edge down
+ * by `tilt` so the default camera sees an open ellipse. A → F is a chord across the interior, and
+ * a learned A–Z shortcut is a diameter through the centre. (Re-authored from §6 for F-016.)
  */
 export function ringPosition(lens: Lens, i: number): Vec3 {
   const ring = RING[lens];
-  const phi = ((-90 + (310 * i) / 25) * Math.PI) / 180;
-  const r = ring.R + ring.wobble * Math.sin(1.9 * i);
+  const phi = ((180 - (RING_TURN_DEG * i) / 25) * Math.PI) / 180;
+  const spread = 12 + ring.wobble / 2;
+  const r = ring.R - spread + (2 * spread * i) / 25 + (ring.wobble / 2) * Math.sin(1.9 * i);
   const gx = r * Math.cos(phi);
   const gz = -r * Math.sin(phi);
   const t = (ring.tilt * Math.PI) / 180;

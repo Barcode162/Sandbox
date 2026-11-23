@@ -36,7 +36,7 @@ import { conditionText } from '../view/renderer.ts';
 import { announce, byId } from './dom.ts';
 import { elidePath, formatValue, hops, labelOf, listJoin, times, Units, withUnits } from './format.ts';
 import { lensColor, SceneBuilder } from './scene.ts';
-import { confirmDialog, toast } from './toasts.ts';
+import { confirmDialog, dismissToast, toast } from './toasts.ts';
 
 export type DrawerTab = 'route' | 'pathways' | 'results';
 
@@ -68,6 +68,8 @@ export interface Playing {
 
 interface UndoEntry {
   label: string;
+  /** Toast after undoing; default "Undone: <label>." */
+  done?: string;
   undo: () => void;
 }
 
@@ -92,6 +94,8 @@ export class App {
   activePathway: NodeId | null = null;
   playing: Playing | null = null;
   speed: 1 | 2 = 1;
+  /** False when this browser can't keep the memory (storage blocked). */
+  persistent = true;
   reduced: boolean;
   linkSource: NodeId | null = null;
   readonly units: Units;
@@ -139,6 +143,17 @@ export class App {
   linkPicked: ((id: NodeId) => void) | null = null;
 
   // ── Derived ──────────────────────────────────────────────────────────────────────
+  /** The most connected light (ignition root, first arrow-key stop). */
+  hub(): MemoryNode | undefined {
+    let best: MemoryNode | undefined;
+    let deg = -1;
+    for (const n of this.graph.nodes()) {
+      const d = this.graph.relationsOf(n.id).length;
+      if (d > deg) ((deg = d), (best = n));
+    }
+    return best;
+  }
+
   lensLabel(id: PerspectiveId = this.lens): string {
     return this.graph.getPerspective(id)?.label ?? id;
   }
@@ -286,6 +301,10 @@ export class App {
     const r = retrieve(this.graph, query, { perspective: this.lens, decay: 0.55 });
     this.retrieval = r;
     this.renderer.setActivation(r.activations.length ? r.activations : null);
+    // If most of the answer (matches + 1 hop) is off screen, fly to fit it (F-014).
+    const near = r.activations.filter((a) => a.depth <= 1).map((a) => a.nodeId);
+    const onScreen = near.filter((id) => this.renderer.screenPosition(id)).length;
+    if (near.length && onScreen < near.length / 2) void this.extras.frameNodes(near);
     performance.mark('search-end');
     performance.measure('search', 'search-start', 'search-end');
     if (openResults && this.drawerTab !== 'results') this.openDrawer('results', false);
@@ -363,6 +382,8 @@ export class App {
       if (cmp.declared && cmp.declared.hops !== s.hops) trails.push({ route: cmp.declared, role: 'declared' });
       trails.push({ route: s, role: 'shortest' });
       this.renderer.highlightRoutes(trails);
+      // Frame both trails inside the free canvas so the race is always seen (F-014).
+      void this.extras.frameNodes([...new Set(trails.flatMap((t) => t.route.nodes))]);
     }
     this.route = { fromId, toId, cmp, verdict, note, error, learned: false };
     this.routeFrom = A;
@@ -387,9 +408,17 @@ export class App {
     const v = this.route;
     const s = v?.cmp.shortest;
     if (!v || !s || s.hops < 2) return;
+    const before = new Set(this.graph.relations().map((r) => r.id));
     const rel = learnShortcut(this.graph, s);
+    const isNew = !before.has(rel.id);
     const A = labelOf(this.graph, s.nodes[0] as NodeId);
     const Z = labelOf(this.graph, s.nodes[s.nodes.length - 1] as NodeId);
+    if (!isNew) {
+      // Already there (possibly for another lens): say so, register no undo (F-007).
+      const owners = rel.perspectives?.length ? ` It exists for ${listJoin(rel.perspectives.map((p) => 'the ' + this.lensLabel(p)))}, not the ${this.lensLabel()}.` : '';
+      toast(`${A} ↔ ${Z} is already a shortcut.${owners}`, { key: 'learn', timeout: 5000 });
+      return;
+    }
     const learnedRoute: Route = { kind: 'shortest', nodes: [rel.from, rel.to], relations: [rel.id], hops: 1, cost: 1 / rel.weight };
     this.renderer.highlightRoutes([{ route: learnedRoute, role: 'learned' }]);
     const cmp = compareRoutes(this.graph, v.fromId, v.toId, { perspective: this.lens });
@@ -398,7 +427,7 @@ export class App {
     const id = rel.id;
     this.pushUndo(`Learned ${A} ↔ ${Z}`, () => {
       if (this.graph.getRelation(id)) this.graph.removeRelation(id);
-    });
+    }, `Forgot the shortcut ${A} ↔ ${Z}.`);
     toast(`Learned: ${A} ↔ ${Z}. Next time it's one hop.`, {
       key: 'learn',
       timeout: 6000,
@@ -430,9 +459,9 @@ export class App {
     } catch {
       return step.note;
     }
-    const unitRef = refs.find((l) => this.units.bearsUnit(l));
-    if (!unitRef) return step.note;
-    const u = this.units.unitOf(lens);
+    // Units only when every operand reads the same unit (K, °C); mixed hand-feel words stay bare.
+    const u = this.units.sharedUnit(refs, lens);
+    if (!u) return step.note;
     const parts = step.note.split(' · ');
     const last = parts.pop() ?? '';
     return [...parts, withUnits(last, u)].join(' · ');
@@ -461,7 +490,22 @@ export class App {
     this.playing = playing;
     this.openDrawer('pathways', false);
     this.panels?.renderDrawer();
-    await this.extras.frameNodes([...pathwayNodes(this.graph, id)]);
+    // Frame the flowchart and what it reads, so read sparks and value chips stay in view (F-023).
+    const body = pathwayNodes(this.graph, id);
+    const sources = body.flatMap((n) => {
+      const src = this.graph.getNode(n)?.pathway?.source;
+      return src ? [src] : [];
+    });
+    const refs = body.flatMap((n) => {
+      const e = this.graph.getNode(n)?.pathway?.expr;
+      if (!e) return [];
+      try {
+        return references(parseExpr(e)).flatMap((l) => this.graph.findByLabel(l)?.id ?? []);
+      } catch {
+        return [];
+      }
+    });
+    await this.extras.frameNodes([...new Set([...body, ...sources, ...refs])]);
     if (this.playing !== playing) return;
     const done = this.renderer.playTrace(trace, {
       stepMs: this.speed === 2 ? 260 : 520,
@@ -590,7 +634,7 @@ export class App {
       this.select(id, { fly: false, open: this.inspectorOpen });
     });
     const linked = rel ? ` · linked to ${labelOf(g, rel.to)}` : '';
-    toast(`Stored "${node.label}"${linked}. Saved.`, { key: 'store', actions: [{ label: 'Undo', run: () => this.undo() }], timeout: 5000 });
+    toast(`Stored "${node.label}"${linked}.`, { key: 'store', actions: [{ label: 'Undo', run: () => this.undo() }], timeout: 5000 });
     return node;
   }
 
@@ -619,18 +663,23 @@ export class App {
       { label: 'Delete', value: 'delete', kind: 'danger' },
     ]);
     if (choice !== 'delete') return;
-    const nodeCopy: NodeInput = { id: n.id, label: n.label, kind: n.kind, value: n.value, facets: { ...n.facets }, tags: [...n.tags], notes: n.notes, file: n.file, pathway: n.pathway };
+    const nodeCopy: NodeInput = { id: n.id, label: n.label, kind: n.kind, value: n.value, facets: { ...n.facets }, units: n.units ? { ...n.units } : undefined, tags: [...n.tags], notes: n.notes, file: n.file, pathway: n.pathway };
+    const positions = Object.fromEntries(g.perspectives().map((p) => [p.id, p.positions?.[id]]));
     const relCopies: RelationInput[] = rels.map((r) => ({ id: r.id, from: r.from, to: r.to, type: r.type, weight: r.weight, directed: r.directed, branch: r.branch, label: r.label, perspectives: r.perspectives }));
     g.removeNode(id);
     this.pushUndo(`Deleted ${n.label}`, () => {
       g.addNode(nodeCopy);
+      for (const p of g.perspectives()) {
+        const pos = positions[p.id];
+        if (pos) g.updatePerspective(p.id, { positions: { ...(p.positions ?? {}), [id]: pos } });
+      }
       for (const r of relCopies) if (g.getNode(r.from) && g.getNode(r.to)) g.addRelation(r);
     });
     toast(`Deleted ${n.label}.`, { key: 'delete', actions: [{ label: 'Undo', run: () => this.undo() }] });
   }
 
-  pushUndo(label: string, undo: () => void): void {
-    this.undoStack.push({ label, undo });
+  pushUndo(label: string, undo: () => void, done?: string): void {
+    this.undoStack.push({ label, undo, done });
     if (this.undoStack.length > 50) this.undoStack.shift();
   }
 
@@ -641,7 +690,16 @@ export class App {
       return;
     }
     e.undo();
-    toast(`Undone: ${e.label}.`, { key: 'undo', timeout: 2400 });
+    dismissToast('learn');
+    // A shown route is recomputed so the drawer never describes a line that is gone (F-018).
+    if (this.route) {
+      const { fromId, toId } = this.route;
+      queueMicrotask(() => {
+        if (this.graph.getNode(fromId) && this.graph.getNode(toId)) this.findRoute(fromId, toId);
+        else this.clearRoute();
+      });
+    }
+    toast(e.done ?? `Undone: ${e.label}.`, { key: 'undo', timeout: 2400 });
   }
 
   // ── Files ────────────────────────────────────────────────────────────────────────
@@ -659,7 +717,7 @@ export class App {
     toast('Exported constellation-memory.json.', { key: 'export', timeout: 2600 });
   }
 
-  importText(name: string, text: string): boolean {
+  async importText(name: string, text: string): Promise<boolean> {
     const r = importJson(text);
     if (!r.ok) {
       const first = r.errors[0]?.message ?? 'That file could not be read.';
@@ -667,6 +725,19 @@ export class App {
       toast(`${first}${more}`, { key: 'import', error: true, timeout: 9000 });
       return false;
     }
+    // Replacing the memory is destructive: confirm, offer an export first (F-003).
+    const k = this.storedCount();
+    const lose = k ? `Your ${k} stored ${k === 1 ? 'thing' : 'things'} will be gone unless you export first.` : 'Your current memory will be gone unless you export first.';
+    let choice = '';
+    do {
+      choice = await confirmDialog(`Replace your memory with "${name}"? ${lose}`, [
+        { label: 'Cancel', value: '', kind: 'ghost' },
+        { label: 'Export first', value: 'export' },
+        { label: 'Replace', value: 'replace', kind: 'danger' },
+      ]);
+      if (choice === 'export') this.exportFile();
+    } while (choice === 'export');
+    if (choice !== 'replace') return false;
     this.graph.load(r.doc);
     const n = r.doc.nodes.length;
     const m = r.doc.relations.length;

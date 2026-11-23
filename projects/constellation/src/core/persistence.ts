@@ -9,7 +9,7 @@
 // exists"), so the autosave of that memory must still load.
 import {
   canonMeta, canonNode, canonPerspective, canonRelation, hasOwn, isValue, isVariableName, quoteLabel,
-  FLOW_BRANCHES, MAX_FILE_CONTENT, MAX_UNIT_CHARS, MAX_VALUE_CHARS, NODE_KINDS, PATHWAY_OPS, RELATION_TYPES,
+  FLOW_BRANCHES, HEX_COLOUR, MAX_FILE_CONTENT, MAX_UNIT_CHARS, MAX_VALUE_CHARS, NODE_KINDS, PATHWAY_OPS, RELATION_TYPES,
 } from './internal.ts';
 import { parseExpr } from './expr.ts';
 import { CoreError } from './errors.ts';
@@ -67,7 +67,10 @@ export function validateDoc(input: unknown): ImportResult {
     else if (perspectiveIds.has(p.id)) { err(`${at}.id`, `${name} uses the id "${p.id}", which another perspective already has.`); ok = false; }
     if (!isText(p.label) || !p.label.trim()) { err(`${at}.label`, `${name} has no label.`); ok = false; }
     if (p.description !== undefined && !isText(p.description)) { err(`${at}.description`, `${name} has a description that isn't text.`); ok = false; }
-    if (p.accent !== undefined && !isText(p.accent)) { err(`${at}.accent`, `${name} has an accent colour that isn't text.`); ok = false; }
+    if (p.accent !== undefined && (!isText(p.accent) || !HEX_COLOUR.test(p.accent))) {
+      err(`${at}.accent`, `${name} has the accent colour ${JSON.stringify(p.accent).slice(0, 40)}. Use a hex colour like "#FF9F5A" or "#f95", or leave it out.`);
+      ok = false;
+    }
     if (p.positions !== undefined && !isObj(p.positions)) { err(`${at}.positions`, `${name} has "positions" that aren't an object of node id → {x, y, z}.`); ok = false; }
     for (const key of Object.keys(p)) if (!PERSP_KEYS.includes(key)) warn(`${at}.${key}`, `"${key}" isn't part of a perspective, so it was ignored.`);
     if (isText(p.id)) perspectiveIds.add(p.id);

@@ -23,7 +23,6 @@ export class Shell implements Panels {
   private app: App;
   private card = byId('hovercard');
   private saved = byId('saved');
-  private savedTimer = 0;
   private savedHide = 0;
   private insets: Insets = { left: 0, right: 0, top: 0, bottom: 0 };
   private insetTarget: Insets = { left: 0, right: 0, top: 0, bottom: 0 };
@@ -54,7 +53,7 @@ export class Shell implements Panels {
       const f = input.files?.[0];
       input.value = '';
       if (!f) return;
-      app.importText(f.name, await f.text());
+      void app.importText(f.name, await f.text());
     });
 
     document.addEventListener('keydown', (e) => this.keydown(e));
@@ -66,7 +65,6 @@ export class Shell implements Panels {
 
     app.renderer.onHover((id) => this.hover(id));
     app.extras.onFrame((t) => this.frame(t));
-    app.graph.on(() => this.flashSaved());
 
     // Touch: a 450 ms long-press on a light starts link mode.
     const stage = byId('stage');
@@ -200,7 +198,8 @@ export class Shell implements Panels {
     if (next.left !== this.insets.left || next.right !== this.insets.right || next.bottom !== this.insets.bottom || next.top !== this.insets.top) {
       this.insets = next;
       // Top is chrome, not cover: keep the centre on the full height on desktop.
-      this.app.extras.setInsets({ ...next, top: innerWidth < 768 ? next.top : 0 });
+      // The top bar covers 56 px: framing centres on the area below it (F-023).
+      this.app.extras.setInsets(next);
     }
     // Intro choreography from the render clock.
     const it = this.intro;
@@ -238,17 +237,28 @@ export class Shell implements Panels {
         : `Welcome back. ${n} lights, as you left them.`;
       toast(text, { key: 'hint', timeout: 6000, actions: newest ? [{ label: `Show ${newest.label}`, run: () => app.select(newest.id, { fly: true, open: true }) }] : [] });
     } else if (!this.hintShown) {
-      toast('Drag to look around · click a light · press / to ask.', { key: 'hint', timeout: 5800 });
+      const touch = matchMedia('(pointer: coarse)').matches;
+      toast(touch ? 'Drag to look around · tap a light · tap search to ask.' : 'Drag to look around · click a light · press / to ask.', { key: 'hint', timeout: 5800 });
     }
   }
 
-  private flashSaved(): void {
-    window.clearTimeout(this.savedTimer);
+  /** A write the browser accepted: show "Saved" for 1.2 s (never when storage failed). */
+  savedConfirmed(): void {
+    if (this.saved.classList.contains('bad')) {
+      this.saved.classList.remove('bad');
+      this.saved.textContent = 'Saved';
+      dismissToast('storage');
+    }
     window.clearTimeout(this.savedHide);
-    this.savedTimer = window.setTimeout(() => {
-      this.saved.classList.add('on');
-      this.savedHide = window.setTimeout(() => this.saved.classList.remove('on'), 1200);
-    }, 400);
+    this.saved.classList.add('on');
+    this.savedHide = window.setTimeout(() => this.saved.classList.remove('on'), 1200);
+  }
+
+  /** Storage unavailable or failing: a persistent "Not saved" chip. */
+  notSaved(): void {
+    window.clearTimeout(this.savedHide);
+    this.saved.textContent = 'Not saved';
+    this.saved.classList.add('on', 'bad');
   }
 
   // ── Hover card ───────────────────────────────────────────────────────────────────
@@ -432,7 +442,7 @@ export class Shell implements Panels {
         e.preventDefault();
         const dir = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[key] as [number, number];
         if (!sel) {
-          const root = app.graph.findByLabel('Memory') ?? app.graph.nodes()[0];
+          const root = app.hub();
           if (root) app.select(root.id, { fly: false });
           return;
         }

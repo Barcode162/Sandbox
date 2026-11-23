@@ -5,7 +5,7 @@
 // (never autosaved) for the frame-time budget.
 import './styles/app.css';
 import seedJson from './seed/memory.json';
-import { createGraph, exportJson, loadSaved, startAutosave, validateDoc } from './core/index.ts';
+import { AUTOSAVE_KEY, createGraph, exportJson, loadSaved, startAutosave, validateDoc } from './core/index.ts';
 import type { KeyValueStorage, MemoryDoc } from './core/index.ts';
 import type { ConstellationState, ConstellationTestHook } from './view/contracts.ts';
 import { createRenderer } from './view/renderer.ts';
@@ -41,6 +41,15 @@ function hasWebGL(): boolean {
   }
 }
 
+function download(name: string, text: string): void {
+  const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+  const a = h('a', { href: url, download: name });
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 function boot(): void {
   const seed = validateDoc(seedJson);
   if (!seed.ok) throw new Error(`Seed memory is invalid: ${seed.errors.map((e) => e.message).join(' ')}`);
@@ -48,6 +57,7 @@ function boot(): void {
   let doc: MemoryDoc = seed.doc;
   let returning = false;
   let note = '';
+  let unreadable: string | null = null;
   if (stress) {
     const s = validateDoc(stressDoc(stress));
     if (s.ok) doc = s.doc;
@@ -57,7 +67,14 @@ function boot(): void {
       doc = saved.doc;
       returning = true;
     } else if (saved && !saved.ok) {
-      note = `Your saved memory couldn't be opened (${saved.errors[0]?.message ?? 'unknown problem'}), so the seed is shown. Your next change will replace the saved copy; export first if you need it.`;
+      // Keep the unreadable copy aside before autosave can overwrite it (F-004).
+      unreadable = store.getItem(AUTOSAVE_KEY);
+      try {
+        if (unreadable !== null) store.setItem(`${AUTOSAVE_KEY}.unreadable`, unreadable);
+      } catch {
+        /* quota: the download action below still has it in memory */
+      }
+      note = `Your saved memory couldn't be opened (${saved.errors[0]?.message ?? 'unknown problem'}), so the seed is shown. The unreadable copy is kept aside; download it to repair or keep it.`;
     }
   }
   const graph = createGraph(doc);
@@ -111,17 +128,55 @@ function boot(): void {
   app.renderAll();
 
   if (store) {
-    startAutosave(graph, store, {
-      onError: () =>
+    // Saved is shown only after a write the browser accepted (F-001).
+    const tracked: KeyValueStorage = {
+      getItem: (k) => store.getItem(k),
+      removeItem: (k) => store.removeItem(k),
+      setItem: (k, v) => {
+        store.setItem(k, v);
+        shell.savedConfirmed();
+      },
+    };
+    const options = {
+      onError: () => {
+        shell.notSaved();
         toast("Couldn't save to this browser (storage is full or blocked). Export a copy so nothing is lost.", {
           key: 'storage',
           error: true,
           timeout: 0,
           actions: [{ label: 'Export', run: () => app.exportFile() }],
-        }),
+        });
+      },
+    };
+    let stop = startAutosave(graph, tracked, options);
+    // Flush pending edits when the page is hidden or closed, then keep saving (F-005).
+    const flush = () => {
+      stop();
+      stop = startAutosave(graph, tracked, options);
+    };
+    addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') flush();
+    });
+  } else if (!stress) {
+    app.persistent = false;
+    shell.notSaved();
+    toast("Not saved: this browser won't keep your memory (storage is blocked). Export to keep a copy.", {
+      key: 'storage',
+      error: true,
+      timeout: 0,
+      actions: [{ label: 'Export', run: () => app.exportFile() }],
     });
   }
-  if (note) toast(note, { key: 'load', error: true, timeout: 12000 });
+  if (note) {
+    const raw = unreadable;
+    toast(note, {
+      key: 'load',
+      error: true,
+      timeout: 0,
+      actions: raw === null ? [] : [{ label: 'Download it', run: () => download('constellation-memory-unreadable.json', raw) }],
+    });
+  }
 
   const state = (): ConstellationState => {
     const pw = app.activePathway;

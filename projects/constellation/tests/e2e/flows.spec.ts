@@ -83,7 +83,7 @@ test('[E2] perspective: Cook → Physicist morphs in ≤ 1.2 s and the ghosts sh
   await expect(page.locator('#stats')).toHaveText('88 lights · 102 lines');
   await expect(page.locator('.lens-pill[aria-pressed="true"]')).toContainText('Physicist');
   // Ghost chips around Temperature read the other lenses, with units.
-  const chips = await page.locator('#stage .chip.on').allTextContents();
+  const chips = (await page.locator('#stage .chip.on').allTextContents()).map((t) => t.replace(/\u00a0/g, ' '));
   expect(chips).toContain('20 °C');
   expect(chips).toContain('293 K');
   await shot('F5-morph-settled-1440');
@@ -108,7 +108,7 @@ test('[E3] route + learn: A → Z races 25 hops against 3, learning draws a line
   await page.keyboard.press('r');
   await expect(page.locator('#drawer')).toBeVisible();
   const t0 = await pause(page);
-  await page.getByRole('button', { name: 'Try the Long Road: A → Z' }).click();
+  await page.getByRole('button', { name: 'Try the featured route: A → Z' }).click();
   await setClock(page, t0 + 600);
   let s = await state(page);
   expect(s.route).toEqual({ declared: 25, shortest: 3, chip: '25 hops → 3 hops · 88% shorter' });
@@ -126,6 +126,9 @@ test('[E3] route + learn: A → Z races 25 hops against 3, learning draws a line
   await expect(page.locator('.route-row').nth(1)).toContainText('A → B → C → … → X → Y → Z');
   const learn = page.getByRole('button', { name: 'Learn shortcut A → Z' });
   await expect(learn).toBeVisible();
+  // Waypoints are named on the ring (F-015), and the whole race is in view (F-014).
+  const named = (await state(page)).labelRects.map((r) => r.id);
+  for (const id of ['road-a', 'road-f', 'road-x', 'road-z']) expect(named).toContain(id);
   await shot('F7-route-complete-1440');
   await scan();
 
@@ -138,8 +141,23 @@ test('[E3] route + learn: A → Z races 25 hops against 3, learning draws a line
   await expect(page.locator('.toast', { hasText: "Learned: A ↔ Z. Next time it's one hop." })).toBeVisible();
   await expect(page.locator('#route-verdict')).toHaveText('25 hops → 1 hop · 96% shorter');
   await expect(page.getByRole('button', { name: 'Learn shortcut A → Z' })).toHaveAttribute('aria-disabled', 'true');
+  // The toast sits under the top bar, clear of the learned line (F-017).
+  const toastBox = (await page.locator('.toast', { hasText: 'Learned' }).boundingBox())!;
+  const a = await nodePoint(page, 'A');
+  const z = await nodePoint(page, 'Z');
+  for (const p of [a, z]) expect(p.y < toastBox.y || p.y > toastBox.y + toastBox.height || p.x < toastBox.x || p.x > toastBox.x + toastBox.width).toBe(true);
   await shot('F8-shortcut-learned-1440');
   await resume(page);
+
+  // Undo forgets the line and the drawer goes back to the 3-hop truth (F-018).
+  await page.locator('.toast', { hasText: 'Learned' }).getByRole('button', { name: 'Undo' }).click();
+  await expect(page.locator('.toast', { hasText: 'Forgot the shortcut A ↔ Z.' })).toBeVisible();
+  await expect(page.locator('#route-verdict')).toHaveText('25 hops → 3 hops · 88% shorter');
+  await expect(page.getByRole('button', { name: 'Learn shortcut A → Z' })).not.toHaveAttribute('aria-disabled', 'true');
+  await idle(page);
+  expect((await state(page)).visibleEdges).toBe(100);
+  await page.getByRole('button', { name: 'Learn shortcut A → Z' }).click();
+  await expect(page.locator('#route-verdict')).toHaveText('25 hops → 1 hop · 96% shorter');
 
   // Persisted: reload without ?seed and the line is still there.
   await page.waitForTimeout(700);
@@ -222,9 +240,16 @@ test('[E5] store + find: store Tea, link it to Temperature, reload, search finds
   await setClock(page, t0 + 900);
   const s = await state(page);
   expect(s.statsText).toBe('89 lights · 101 lines');
-  await expect(page.locator('.toast', { hasText: 'Stored "Tea" · linked to Temperature. Saved.' })).toBeVisible();
+  await expect(page.locator('.toast', { hasText: 'Stored "Tea" · linked to Temperature.' })).toBeVisible();
+  // Born clear of its link target (F-024).
+  const tea = await nodePoint(page, 'Tea');
+  const temp = await nodePoint(page, 'Temperature');
+  expect(Math.hypot(tea.x - temp.x, tea.y - temp.y)).toBeGreaterThan(24);
   await shot('F12-stored-1440');
   await resume(page);
+  // "Saved" appears only after the browser accepted the write (F-001).
+  await expect(page.locator('#saved')).toHaveClass(/on/, { timeout: 3000 });
+  await expect(page.locator('#saved')).toHaveText('Saved');
   const teaPos = await page.evaluate(async () => {
     await new Promise((r) => setTimeout(r, 700));
     const doc = JSON.parse(localStorage.getItem('constellation.memory.v1') ?? '{}');

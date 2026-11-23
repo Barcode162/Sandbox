@@ -161,6 +161,10 @@ test('[U-graph-11] perspectives: add (duplicate → error), update fires perspec
   assert.deepEqual(g.perspectives().map((x) => x.id), ['base', 'cook']);
   assert.deepEqual(events.map((e) => e.type), ['perspective-added', 'perspective-updated']);
   assert.throws(() => g.updatePerspective('cook', { label: '' }), isCode('invalid'));
+  // F-002: accents are hex colours only, in the store as on import.
+  assert.throws(() => g.updatePerspective('cook', { accent: 'red;background:url(x)' }), isCode('invalid'));
+  assert.throws(() => g.addPerspective({ id: 'odd', label: 'Odd', accent: 'blue' }), isCode('invalid'));
+  assert.throws(() => g.updatePerspective('cook', JSON.parse('{"__proto__": {"label": "x"}}')), isCode('invalid'));
 });
 
 test('[U-graph-12] load replaces everything and fires reset; unsubscribe stops events', () => {

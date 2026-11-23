@@ -4,7 +4,7 @@
 import { CoreError } from './errors.ts';
 import {
   canonMeta, canonNode, canonPerspective, canonRelation, canonStep, canonFile, canonUnits, deepFreeze, hasOwn, isValue,
-  MAX_FILE_CONTENT, MAX_UNIT_CHARS, MAX_VALUE_CHARS, NODE_KINDS, RELATION_TYPES, FLOW_BRANCHES,
+  HEX_COLOUR, MAX_FILE_CONTENT, MAX_UNIT_CHARS, MAX_VALUE_CHARS, NODE_KINDS, RELATION_TYPES, FLOW_BRANCHES,
 } from './internal.ts';
 import { SCHEMA_ID, SCHEMA_VERSION } from './types.ts';
 import type {
@@ -243,6 +243,7 @@ class Store implements MemoryGraph {
     if (patch && hasOwn(patch, 'id')) throw new CoreError('invalid', "A perspective's id can't be changed.");
     const draft: Perspective = { ...previous };
     for (const [k, v] of Object.entries(patch ?? {})) {
+      if (!['label', 'description', 'accent', 'positions'].includes(k)) throw new CoreError('invalid', `"${k}" can't be changed on a perspective.`);
       if (v === undefined) delete (draft as unknown as Record<string, unknown>)[k];
       else (draft as unknown as Record<string, unknown>)[k] = v;
     }
@@ -393,6 +394,9 @@ class Store implements MemoryGraph {
 
   #checkPerspective(p: Perspective): void {
     if (typeof p.label !== 'string' || !p.label.trim()) throw new CoreError('invalid', 'A perspective needs a name.');
+    if (p.accent !== undefined && (typeof p.accent !== 'string' || !HEX_COLOUR.test(p.accent))) {
+      throw new CoreError('invalid', 'An accent colour is a hex colour like "#FF9F5A" or "#f95".');
+    }
     for (const [id, v] of Object.entries(p.positions ?? {})) {
       if (!v || ![v.x, v.y, v.z].every((c) => typeof c === 'number' && Number.isFinite(c))) {
         throw new CoreError('invalid', `The position for "${id}" needs finite x, y and z numbers.`);

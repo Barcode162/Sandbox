@@ -581,7 +581,15 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
 
   function defaultPose() {
     const small = width < 600;
-    const { c, R } = bounding(undefined, small ? 0.45 : 1);
+    if (small) {
+      // §8: below 600 px fit what the pathways are and read (Heat + Simmer + Serve in the seed).
+      const core = new Set<NodeId>();
+      for (const n of nodes.values()) if (n.data.kind === 'pathway') core.add(n.id);
+      for (const e of edges.values()) if (e.look === 'reads' && e.removing === NEVER) core.add(e.to);
+      const { c, R } = core.size >= 3 ? bounding(core) : bounding(undefined, 0.45);
+      return { tx: c.x, ty: c.y, tz: c.z, dist: rig.fitDistance(R * 1.08), az: 0, el: (12 * Math.PI) / 180 };
+    }
+    const { c, R } = bounding();
     return { tx: c.x, ty: c.y, tz: c.z, dist: rig.fitDistance(R * 0.9), az: 0, el: (12 * Math.PI) / 180 };
   }
 
@@ -1043,7 +1051,7 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
       const kind = n.data.kind === 'pathway' ? KIND_CODE.pathway : n.road ? KIND_CODE.road : KIND_CODE[n.data.kind] ?? 0;
       const op = n.data.op ? OP_CODE[n.data.op] : 0;
       const coreCol = n.data.kind === 'pathway' ? PULSE : flash > 1.01 ? mix(STAR, n.flashColor, Math.min(1, (flash - 1) / 1.2)) : STAR;
-      const haloCol = n.data.kind === 'pathway' ? mix(PULSE, lensRgb, 0.15) : mix(STAR, lensRgb, 0.25);
+      const haloCol = n.data.kind === 'pathway' ? mix(PULSE, lensRgb, 0.15) : mix(STAR, lensRgb, 0.55); // the sky carries the lens (F-019)
       const ring = n.id === selected ? 1 : 0;
       nodeLayer.push(wx, wy, wz, n.r, coreCol, haloCol, bright, scale, haloScale, ring, kind, op);
       const minR = kind === KIND_CODE.pathway ? 4.5 : 3;
@@ -1090,7 +1098,7 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
       let to = 1;
       if (e.removing !== NEVER) {
         const u = range(now, e.removing, e.removing + 300);
-        to = 1 - easeOut(u);
+        to = 1 - easeInOut(u); // 300 ms reverse draw back to the source end (polish 13)
         if (u >= 1) {
           edges.delete(id);
           continue;
@@ -1344,6 +1352,27 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
     const selNbrs = selected ? nodes.get(selected)?.nbrs : undefined;
     const cap = width < 600 ? 18 : width >= 1920 ? 48 : 40;
     const lensCss = toCss(lensRgb);
+    // Route waypoints are named while a route is shown; road letters outrank degree (F-015).
+    const routeIds = new Set<NodeId>();
+    for (const t of trails) {
+      const ns = t.trail.route.nodes;
+      if (t.trail.role === 'declared') {
+        if (ns[0]) routeIds.add(ns[0]);
+        if (ns[ns.length - 1]) routeIds.add(ns[ns.length - 1]!);
+      } else for (const id of ns) routeIds.add(id);
+    }
+    // Ghost chips are rationed: the 8 most central disagreeing nodes, plus hover / selection; all with D (F-020).
+    const chipNodes = new Set<NodeId>();
+    if (ghostExpanded) {
+      const cx = width / 2;
+      const cy = height / 2;
+      const cands = order.filter((n) => n.onScreen && n.data.ghosts?.length && n.bright > 0.2);
+      cands.sort((a, b) => Math.hypot(a.sx - cx, a.sy - cy) - Math.hypot(b.sx - cx, b.sy - cy));
+      for (const n of ghostHeld ? cands : cands.slice(0, 8)) chipNodes.add(n.id);
+      if (selected) chipNodes.add(selected);
+      if (hovered) chipNodes.add(hovered);
+    }
+    const clip = (t: string) => (t.length > 16 ? t.slice(0, 15).trimEnd() + '…' : t);
     for (const n of order) {
       if (!n.onScreen || n.dying !== NEVER) continue;
       const ign = n.bright;
@@ -1351,13 +1380,14 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
       const depthFade = 1 - range(n.depth, 220 * kDist, 480 * kDist);
       const act = activation?.get(n.id);
       let pr = 10 + Math.min(n.degree, 30) * 0.5;
-      if (n.road) pr = 50;
-      if (selNbrs?.has(n.id)) pr = 60;
+      if (n.road) pr = trails.length ? 75 : 50;
+      if (selNbrs?.has(n.id)) pr = Math.max(pr, 60);
       if (act !== undefined && act <= 1) pr = act === 0 ? 80 : 70;
       if (n.id === hovered) pr = 90;
+      if (routeIds.has(n.id)) pr = 95;
       if (n.id === selected) pr = 100;
       if (playback && traceLit.has(n.id)) pr = Math.max(pr, 55);
-      if (n.pxR < 4 && pr < 60) continue;
+      if (n.pxR < 4 && pr < 60 && !n.road) continue;
       const op = clamp(Math.max(depthFade, pr >= 60 ? 0.9 : 0.25) * Math.min(1, ign * 1.4), 0, 1);
       items.push({
         key: 'l:' + n.id,
@@ -1374,7 +1404,7 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
         nodeId: n.id,
       });
       // Ghost chips when expanded; the active value sits on top (never as a ghost)
-      if (ghostExpanded && n.data.ghosts?.length && op > 0.2) {
+      if (chipNodes.has(n.id) && n.data.ghosts?.length) {
         const right = new Vector3();
         const up = new Vector3();
         rig.camera.matrixWorld.extractBasis(right, up, new Vector3());
@@ -1385,11 +1415,11 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
           items.push({
             key: `g:${n.id}:${g.perspective}`,
             kind: 'chip',
-            text: n.data.ghostText?.[g.perspective] ?? String(g.value ?? '—'),
+            text: clip(n.data.ghostText?.[g.perspective] ?? String(g.value ?? '—')),
             x: n.sx + Math.cos(ang) * off,
             y: n.sy - Math.sin(ang) * off,
             offset: 0,
-            anchors: [Math.cos(ang) < 0 ? 'left' : 'right', 'below', 'center'],
+            anchors: [Math.cos(ang) < 0 ? 'left' : 'right', 'below'],
             priority: 85 - i * 0.1 + (n.id === selected ? 10 : 0),
             opacity: Math.max(op, 0.85),
             color: toCss(lensOf(g.perspective)),
@@ -1399,11 +1429,11 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
           items.push({
             key: `v:${n.id}`,
             kind: 'chip',
-            text: n.data.valueText,
+            text: clip(n.data.valueText),
             x: n.sx,
             y: n.sy - (ghostR * pxPerU + 8),
             offset: 0,
-            anchors: ['above', 'center'],
+            anchors: ['above'],
             priority: 86,
             opacity: Math.max(op, 0.85),
             color: lensCss,

@@ -1,6 +1,6 @@
 import { test, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { AUTOSAVE_KEY, createGraph, exportDoc, exportJson, importJson, learnShortcut, loadSaved, shortestPath, startAutosave, validateDoc } from '../../src/core/index.ts';
+import { AUTOSAVE_KEY, createGraph, exportDoc, exportJson, importJson, layoutFor, learnShortcut, loadSaved, runPathway, shortestPath, startAutosave, validateDoc } from '../../src/core/index.ts';
 import type { KeyValueStorage, ValidationIssue } from '../../src/core/index.ts';
 import { SEED_TEXT, seedDoc, seedGraph } from './support/seed.ts';
 import { buildSeed } from './support/seed-source.ts';
@@ -75,6 +75,8 @@ const BROKEN: Array<[string, (d: any) => unknown, string, RegExp]> = [
   ['unit for unknown lens', (d) => { d.nodes[0].units.chef = '°F'; }, 'nodes[0].units.chef', /has a unit for the perspective "chef", which doesn't exist/],
   ['unit not text', (d) => { d.nodes[0].units.cook = 5; }, 'nodes[0].units.cook', /"cook" unit that isn't text\. A unit is short text like "°C"\./],
   ['units not an object', (d) => { d.nodes[1].units = ['K']; }, 'nodes[1].units', /"units" that aren't an object of perspective id → unit text/],
+  ['accent injection (F-002)', (d) => { d.perspectives[0].accent = 'red;background:url(x)'; }, 'perspectives[0].accent', /\("Cook"\) has the accent colour "red;background:url\(x\)"\. Use a hex colour like "#FF9F5A" or "#f95", or leave it out\./],
+  ['accent named colour (F-002)', (d) => { d.perspectives[1].accent = 'blue'; }, 'perspectives[1].accent', /Use a hex colour/],
   ['value too long', (d) => { d.nodes[9].value = 'x'.repeat(501); }, 'nodes[9].value', /is 501 characters long\. Values hold up to 500 characters\. Put longer text in a File\./],
 ];
 
@@ -188,4 +190,34 @@ test('[U-persistence-10] autosave surfaces quota errors through onError and keep
   } finally {
     mock.timers.reset();
   }
+});
+
+test('[U-persistence-11] F-002: accents accept #rgb and #rrggbb only', () => {
+  for (const ok of ['#f95', '#FF9F5A', '#abc', '#0a0B0c']) {
+    const d = JSON.parse(SEED_TEXT); d.perspectives[0].accent = ok;
+    assert.equal(validateDoc(d).ok, true, ok);
+  }
+  for (const bad of ['#ff', '#ff9f5a00', 'ff9f5a', '#ggg', 'rgb(1,2,3)', '#fff;x', ' #fff', 5]) {
+    const d = JSON.parse(SEED_TEXT); d.perspectives[0].accent = bad;
+    assert.equal(validateDoc(d).ok, false, String(bad));
+  }
+});
+
+test('[U-persistence-12] F-010: ids named __proto__ keep their positions, facets and units through import and export', () => {
+  const text = SEED_TEXT
+    .replaceAll('"temperature"', '"__proto__"')
+    .replace('"perspectives": [', '"perspectives": [\n    { "id": "constructor", "label": "Odd lens" },');
+  const res = importJson(text);
+  assert.ok(res.ok, JSON.stringify(!res.ok && res.errors));
+  const node = res.doc.nodes.find((n) => n.label === 'Temperature')!;
+  assert.equal(node.id, '__proto__');
+  assert.ok(Object.prototype.hasOwnProperty.call(res.doc.perspectives[1]!.positions!, '__proto__'));
+  assert.equal(Object.getPrototypeOf(res.doc.perspectives[1]!.positions!), Object.prototype, 'the prototype is untouched');
+  const g = createGraph(res.doc);
+  assert.deepEqual(layoutFor(g, 'cook').get('__proto__'), res.doc.perspectives[1]!.positions!['__proto__']);
+  assert.deepEqual(layoutFor(g, 'constructor').size, 88, 'a lens without positions lays out every node');
+  assert.equal(runPathway(g, 'p1', 'cook').result, 'Done after 2 stirs · heat 100 °C', 'read source "__proto__" still resolves');
+  const again = importJson(exportJson(g));
+  assert.ok(again.ok);
+  assert.deepEqual(again.doc, res.doc);
 });

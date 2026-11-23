@@ -45,3 +45,4 @@ export function bigGraph(count = 500): MemoryGraph {
   }
   return g;
 }
+

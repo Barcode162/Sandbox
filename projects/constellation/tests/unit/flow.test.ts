@@ -127,6 +127,14 @@ test('[U-flow-8] the max-step guard yields max-steps with the spec sentence, nev
   assert.equal(t.result, null);
   assert.equal(t.error, 'Stopped after 100 loops: the condition never became false (heat stayed 20).');
   assert.equal(runPathway(loopGraph(), 's', 'base').steps.length, 500, 'default guard is 500 steps');
+  // F-009: a guard that can't be switched off.
+  for (const bad of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, '7' as unknown as number]) {
+    const t = runPathway(loopGraph(), 's', 'base', { maxSteps: bad });
+    assert.deepEqual([t.status, t.steps.length], ['max-steps', 500], String(bad));
+  }
+  assert.equal(runPathway(loopGraph(), 's', 'base', { maxSteps: 0 }).steps.length, 1);
+  assert.equal(runPathway(loopGraph(), 's', 'base', { maxSteps: 3.9 }).steps.length, 3);
+  assert.equal(runPathway(loopGraph(), 's', 'base', { maxSteps: 1e12 }).steps.length, 100_000, 'capped');
   const withUnits = loopGraph();
   withUnits.addNode({ id: 'temp', label: 'Temp', value: 20, units: { '*': '°C' } });
   withUnits.updateNode('r', { pathway: { op: 'read', target: 'heat', source: 'temp' } });

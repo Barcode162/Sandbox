@@ -84,7 +84,6 @@ export class StoreSheet {
     const cancel = h('button.btn.ghost', { type: 'button' }, 'Cancel');
     cancel.addEventListener('click', () => this.close());
     form.append(
-      h('h2', { id: 'store-title' }, 'Store a thing'),
       h('div.field', {}, h('span', { id: 'kind-label' }, 'Kind'), seg),
       h('label.field', {}, h('span', {}, 'Name'), name),
       nameErr,
@@ -163,7 +162,7 @@ export class StoreSheet {
       e.preventDefault();
       this.close();
     });
-    dlg.append(form);
+    dlg.append(h('h2.sheet-title', { id: 'store-title' }, 'Store a thing'), form);
     document.body.append(dlg);
     this.dlg = dlg;
     dlg.showModal();
