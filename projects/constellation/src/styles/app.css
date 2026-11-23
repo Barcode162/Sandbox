@@ -375,6 +375,9 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
 /* ── Responsive (§14) ───────────────────────────────────────────────────────────────── */
 @media (max-width: 1279px) {
   :root { --drawer-w: 300px; --inspector-w: 320px; }
+  /* 300 px drawer: tabs drop their icons so the close button keeps its own space (F-025). */
+  .drawer:not(.rail) .tab svg { display: none; }
+  .drawer:not(.rail) .tab { padding: 0 8px; }
   .tagline { display: none; }
   .search { flex-basis: 200px; }
 }

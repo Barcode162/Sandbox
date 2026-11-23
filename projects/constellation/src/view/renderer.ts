@@ -1051,7 +1051,7 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
       const kind = n.data.kind === 'pathway' ? KIND_CODE.pathway : n.road ? KIND_CODE.road : KIND_CODE[n.data.kind] ?? 0;
       const op = n.data.op ? OP_CODE[n.data.op] : 0;
       const coreCol = n.data.kind === 'pathway' ? PULSE : flash > 1.01 ? mix(STAR, n.flashColor, Math.min(1, (flash - 1) / 1.2)) : STAR;
-      const haloCol = n.data.kind === 'pathway' ? mix(PULSE, lensRgb, 0.15) : mix(STAR, lensRgb, 0.55); // the sky carries the lens (F-019)
+      const haloCol = n.data.kind === 'pathway' ? mix(PULSE, lensRgb, 0.15) : mix(STAR, lensRgb, 0.85); // the sky carries the lens (F-019)
       const ring = n.id === selected ? 1 : 0;
       nodeLayer.push(wx, wy, wz, n.r, coreCol, haloCol, bright, scale, haloScale, ring, kind, op);
       const minR = kind === KIND_CODE.pathway ? 4.5 : 3;
@@ -1399,13 +1399,12 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
         x: n.sx,
         y: n.sy,
         offset: (n.id === selected ? Math.max(n.pxR * 2.4, n.pxR + 7) : n.pxR) + 6,
-        anchors: ['right', 'left', 'above', 'below'],
+        anchors: ['right', 'left', 'upright', 'downright', 'above', 'below', 'upleft', 'downleft', 'farright', 'farleft'],
         priority: pr,
         opacity: op,
         cls: n.id === selected ? 'sel' : n.road ? 'road' : undefined,
         // Single road letters still declutter but don't spend the 40-word cap (F-015).
         isLabel: !n.road,
-        overCores: pr >= 14,
         nodeId: n.id,
       });
       // Ghost chips when expanded; the active value sits on top (never as a ghost)
@@ -1424,10 +1423,11 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
             x: n.sx + Math.cos(ang) * off,
             y: n.sy - Math.sin(ang) * off,
             offset: 0,
-            anchors: [Math.cos(ang) < 0 ? 'left' : 'right', 'below'],
+            anchors: Math.cos(ang) < 0 ? ['left', 'downleft', 'upleft', 'farleft', 'below'] : ['right', 'downright', 'upright', 'farright', 'below'],
             priority: 85 - (chipRank.get(n.id) ?? 8) * 0.5 - i * 0.1 + (n.id === selected ? 10 : 0),
             opacity: Math.max(op, 0.85),
             color: toCss(lensOf(g.perspective)),
+            overCores: chipRank.get(n.id) === 0 || n.id === selected || n.id === hovered,
           });
         });
         if (n.data.valueText) {
@@ -1438,8 +1438,9 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
             x: n.sx,
             y: n.sy - (ghostR * pxPerU + 8),
             offset: 0,
-            anchors: ['above'],
+            anchors: ['above', 'upright', 'upleft', 'farright', 'farleft', 'below', 'downright', 'downleft'],
             priority: 85.2 - (chipRank.get(n.id) ?? 8) * 0.5,
+            overCores: chipRank.get(n.id) === 0 || n.id === selected || n.id === hovered,
             opacity: Math.max(op, 0.85),
             color: lensCss,
           });

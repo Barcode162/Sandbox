@@ -14,6 +14,7 @@
 // hand-feel word §5 gives each value ("2 · warm" → value 2, unit "· warm").
 import { forceLayout } from '../../../src/core/layout.ts';
 import { canonMeta, canonNode, canonPerspective, canonRelation, hashString, mulberry32 } from '../../../src/core/internal.ts';
+import { ELEVATION_DEG, screenUp } from './view.ts';
 import type { MemoryDoc, MemoryNode, NodeKind, PathwayStep, Perspective, Relation, RelationType, Value, Vec3 } from '../../../src/core/types.ts';
 
 export const SEED_TIME = Date.UTC(2026, 10, 1);
@@ -252,7 +253,7 @@ const FLOWCHARTS: Record<'simmer' | 'serve', { anchor: Record<Lens, Vec3>; offse
   },
 };
 const RING: Record<Lens, { at: Vec3; R: number; tilt: number; wobble: number }> = {
-  cook: { at: v(0, -120, -30), R: 70, tilt: 25, wobble: 6 },
+  cook: { at: v(0, -140, -30), R: 70, tilt: 25, wobble: 6 },  // §6 had y −120; lowered for F-030 so the ring clears both flowcharts
   physicist: { at: v(0, -110, 0), R: 70, tilt: 12, wobble: 0 },
   child: { at: v(40, -100, 0), R: 55, tilt: 35, wobble: 14 },
 };
@@ -282,6 +283,42 @@ export function ringPosition(lens: Lens, i: number): Vec3 {
   return { x: ring.at.x + gx, y: ring.at.y - gz * Math.sin(t), z: ring.at.z + gz * Math.cos(t) };
 }
 
+/** Authoring target for the nearest-neighbour gap on screen (the test floor is ≈ 12 u, see U-layout-12). */
+export const CLUSTER_GAP = 15;
+
+/**
+ * F-030: a force layout normalised into a sphere can knot (cores and labels on top of each other
+ * once projected). Clusters are flattened to face the camera (depth × 0.4), then pushed apart in
+ * the screen plane until every pair is ≥ CLUSTER_GAP apart, staying within 1.3 × the cluster
+ * radius. Pairs are visited in id order, so the result is deterministic.
+ */
+function spreadForView(local: Map<string, Vec3>, r: number): Map<string, Vec3> {
+  const ids = [...local.keys()].sort();
+  const cosE = Math.cos((ELEVATION_DEG * Math.PI) / 180);
+  const pts = ids.map((id) => { const p = local.get(id)!; return { x: p.x, y: p.y, z: p.z * 0.4 }; });
+  const limit = r * 1.3;
+  for (let pass = 0; pass < 500; pass++) {
+    let moved = false;
+    for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) {
+      const a = pts[i]!, b = pts[j]!;
+      let dx = b.x - a.x, dy = screenUp(b) - screenUp(a);
+      let d = Math.hypot(dx, dy);
+      if (d >= CLUSTER_GAP) continue;
+      if (d < 1e-6) { dx = Math.cos(i + j); dy = Math.sin(i + j); d = 1; }
+      const push = (CLUSTER_GAP - d) / 2 + 0.01;
+      const ux = (dx / d) * push, uy = (dy / d) * push / cosE;
+      a.x -= ux; a.y -= uy; b.x += ux; b.y += uy;
+      moved = true;
+    }
+    for (const p of pts) {
+      const len = Math.hypot(p.x, p.y, p.z);
+      if (len > limit) { p.x *= limit / len; p.y *= limit / len; p.z *= limit / len; }
+    }
+    if (!moved) break;
+  }
+  return new Map(ids.map((id, i) => [id, pts[i]!]));
+}
+
 function positionsFor(lens: Lens): Record<string, Vec3> {
   const out: Record<string, Vec3> = {};
   const visible = relations.filter((r) => !r.perspectives || r.perspectives.includes(lens));
@@ -296,10 +333,14 @@ function positionsFor(lens: Lens): Record<string, Vec3> {
       let p = local.get(n.id)!;
       if (!linked.has(n.id)) {
         // A node with no visible lines in this lens drifts to its cluster rim (§5, polish 23).
-        const rand = mulberry32(hashString(lens + n.id));
-        const z = rand() * 2 - 1, a = rand() * Math.PI * 2, s = Math.sqrt(1 - z * z);
-        p = { x: s * Math.cos(a) * r, y: s * Math.sin(a) * r, z: z * r };
+        const a = mulberry32(hashString(lens + n.id))() * Math.PI * 2;
+        p = { x: Math.cos(a) * r, y: Math.sin(a) * r, z: 0 };
       }
+      local.set(n.id, p);
+    }
+    const spread = spreadForView(local, r);
+    for (const n of members) {
+      const p = spread.get(n.id)!;
       out[n.id] = r2({ x: at.x + p.x, y: at.y + p.y, z: at.z + p.z });
     }
   }

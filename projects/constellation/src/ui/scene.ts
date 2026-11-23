@@ -87,14 +87,19 @@ export class SceneBuilder {
       const c = base ?? { x: 0, y: 0, z: 0 };
       const phase = hash01(id + p.id) * Math.PI * 2;
       const tilt = (hash01(p.id + id) - 0.5) * 0.6;
+      // Widen until the new light has clear space (≥ 12 u to every other light), F-024.
       let best: Vec3 = c;
       let bestGap = -1;
-      for (let k = 0; k < 8; k++) {
-        const a = phase + (k * Math.PI) / 4;
-        const q = { x: c.x + Math.cos(a) * Math.cos(tilt) * dist, y: c.y + Math.sin(tilt + (k % 2 ? 0.35 : -0.35)) * dist, z: c.z + Math.sin(a) * Math.cos(tilt) * dist };
-        let gap = Infinity;
-        for (const [other, o] of pos) if (other !== near) gap = Math.min(gap, Math.hypot(o.x - q.x, o.y - q.y, o.z - q.z));
-        if (gap > bestGap) ((bestGap = gap), (best = q));
+      for (const scale of [1, 1.35, 1.7, 2.1]) {
+        for (let k = 0; k < 8; k++) {
+          const a = phase + (k * Math.PI) / 4;
+          const r = dist * scale;
+          const q = { x: c.x + Math.cos(a) * Math.cos(tilt) * r, y: c.y + Math.sin(tilt + (k % 2 ? 0.35 : -0.35)) * r, z: c.z + Math.sin(a) * Math.cos(tilt) * r };
+          let gap = Infinity;
+          for (const [other, o] of pos) if (other !== near && other !== id) gap = Math.min(gap, Math.hypot(o.x - q.x, o.y - q.y, o.z - q.z));
+          if (gap > bestGap) ((bestGap = gap), (best = q));
+        }
+        if (bestGap >= 12) break;
       }
       out[p.id] = { x: round(best.x), y: round(best.y), z: round(best.z) };
     }

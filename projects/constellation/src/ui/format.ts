@@ -66,8 +66,9 @@ export function withUnits(evaluated: string, unit: string): string {
 /** A → B → C → … → X → Y → Z (elides the middle, never the end). */
 export function elidePath(labels: string[], max = 7): string {
   // No-break space before each arrow: a wrap never orphans the destination (polish 11).
+  // Breaks fall only before an arrow, and the last two hops ("X → Y → Z") never split (F-022).
   const list = labels.length <= max ? labels : [...labels.slice(0, 3), '…', ...labels.slice(-3)];
-  return list.join('\u00a0→ ');
+  return list.map((l, i) => (i === 0 ? l : `${i >= list.length - 2 ? '\u00a0' : ' '}→\u00a0${l}`)).join('');
 }
 
 export function hops(n: number): string {

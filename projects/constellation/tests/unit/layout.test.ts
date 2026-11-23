@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createGraph, forceLayout, layoutFor } from '../../src/core/index.ts';
 import { bigGraph, seedDoc, seedGraph } from './support/seed.ts';
 import { ringPosition } from './support/seed-source.ts';
+import { defaultView, LABEL_CLEARANCE, nodeRadius } from './support/view.ts';
 
 const dist = (a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
 const finite = (p: { x: number; y: number; z: number }) => [p.x, p.y, p.z].every(Number.isFinite);
@@ -113,15 +114,16 @@ test('[U-layout-10] seed positions follow §6: ring formula, flowchart offsets, 
   // Flowchart offsets: P4 = anchor + (0, −6); Q7 = anchor + (24, −20).
   assert.deepEqual(at('cook', 'p4'), { x: -60, y: -36, z: 50 });
   assert.deepEqual(at('child', 'q7'), { x: 134, y: -10, z: 60 });
-  // Heat members sit inside the cluster radius; Energy (orphan under Cook) sits on the rim.
+  // Heat members sit inside the cluster bound; Energy (orphan under Cook) sits on the rim.
   const heat = { x: 0, y: 10, z: 0 };
-  for (const id of ['temperature', 'heat', 'stove', 'ice']) assert.ok(dist(at('cook', id), heat) <= 36.02, id);
-  assert.ok(Math.abs(dist(at('cook', 'energy'), heat) - 36) < 0.02);
+  // (F-030 spreads clusters for the camera within 1.3 × the radius.)
+  for (const id of ['temperature', 'heat', 'stove', 'ice']) assert.ok(dist(at('cook', id), heat) <= 36 * 1.3 + 0.02, id);
+  assert.ok(dist(at('cook', 'energy'), heat) >= 36 * 0.9, 'Energy stays at the rim');
 });
 
 test('[U-layout-11] F-016: in every lens the learned A–Z line crosses the ring centre, A–F cuts the interior, laps never touch', () => {
   const doc = seedDoc();
-  const RING = { cook: { c: { x: 0, y: -120, z: -30 }, tilt: 25, R: 70 }, physicist: { c: { x: 0, y: -110, z: 0 }, tilt: 12, R: 70 }, child: { c: { x: 40, y: -100, z: 0 }, tilt: 35, R: 55 } };
+  const RING = { cook: { c: { x: 0, y: -140, z: -30 }, tilt: 25, R: 70 }, physicist: { c: { x: 0, y: -110, z: 0 }, tilt: 12, R: 70 }, child: { c: { x: 40, y: -100, z: 0 }, tilt: 35, R: 55 } };
   for (const [lens, ring] of Object.entries(RING)) {
     const pos = doc.perspectives.find((p) => p.id === lens)!.positions!;
     // Back into the ring's own plane (undo the tilt), centre at the origin.
@@ -140,6 +142,36 @@ test('[U-layout-11] F-016: in every lens the learned A–Z line crosses the ring
     for (let i = 0; i < 26; i++) for (let j = i + 2; j < 26; j++) {
       const p = flat(L[i]!), q = flat(L[j]!);
       assert.ok(Math.hypot(p.x - q.x, p.z - q.z) > 15, `${lens}: ${L[i]} and ${L[j]} too close`);
+    }
+  }
+});
+
+test('[U-layout-12] F-030: at the default view, Heat neighbours clear 1.6 × node radius + a label, and the ring clears both flowcharts', () => {
+  const doc = seedDoc();
+  const g = seedGraph();
+  const cluster = new Map(doc.nodes.map((n) => [n.id, n.tags[0]!]));
+  const members = (c: string) => doc.nodes.filter((n) => cluster.get(n.id) === c).map((n) => n.id);
+  const rMax = Math.max(...members('heat').map((id) => nodeRadius(g.relationsOf(id).length)));
+  const minGap = 1.6 * rMax + LABEL_CLEARANCE; // ≈ 12.1 u
+  const L = 'abcdefghijklmnopqrstuvwxyz'.split('');
+  for (const p of doc.perspectives) {
+    const v = defaultView(p.positions! as Record<string, { x: number; y: number; z: number }>);
+    const heat = members('heat');
+    for (let i = 0; i < heat.length; i++) for (let j = i + 1; j < heat.length; j++) {
+      const a = v[heat[i]!]!, b = v[heat[j]!]!;
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      assert.ok(d >= minGap, `${p.id}: ${heat[i]} and ${heat[j]} ${d.toFixed(1)} u apart (< ${minGap.toFixed(1)})`);
+    }
+    for (const chart of ['simmer', 'serve']) {
+      const pts = members(chart).map((id) => v[id]!);
+      const box = { x0: Math.min(...pts.map((q) => q.x)), x1: Math.max(...pts.map((q) => q.x)), y0: Math.min(...pts.map((q) => q.y)), y1: Math.max(...pts.map((q) => q.y)) };
+      const gap = (q: { x: number; y: number }) => Math.hypot(Math.max(box.x0 - q.x, 0, q.x - box.x1), Math.max(box.y0 - q.y, 0, q.y - box.y1));
+      // Every stop and every stretch of road between stops (sampled every 10%).
+      for (let k = 0; k < 25; k++) for (let t = 0; t <= 10; t++) {
+        const a = v[`road-${L[k]}`]!, b = v[`road-${L[k + 1]}`]!;
+        const q = { x: a.x + ((b.x - a.x) * t) / 10, y: a.y + ((b.y - a.y) * t) / 10 };
+        assert.ok(gap(q) >= 12, `${p.id}: the road ${L[k]}–${L[k + 1]} passes ${gap(q).toFixed(1)} u from the ${chart} flowchart`);
+      }
     }
   }
 });

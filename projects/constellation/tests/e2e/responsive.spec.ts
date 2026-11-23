@@ -64,6 +64,14 @@ test.describe('1024×768', () => {
     await expect(page.locator('#route-verdict')).toHaveText('25 hops → 3 hops · 88% shorter');
     await page.mouse.move(1000, 700);
     await shot('F7-route-complete-1024');
+    // F11 at 1024 too (route drawer → search reframes, F-014/F-025).
+    await page.locator('#search').fill('boil');
+    await page.waitForTimeout(1100);
+    await idle(page);
+    await page.mouse.move(1000, 700);
+    await shot('F11-search-1024');
+    await page.locator('#search').fill('');
+    await page.locator('#search').blur();
     // The route framed the ring (F-014): clear it and go home before picking Temperature.
     await page.keyboard.press('Escape');
     await page.keyboard.press('Home');

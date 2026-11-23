@@ -4,7 +4,7 @@
 // anchors and is otherwise skipped, so labels never overlap. Fade in 160 ms, out 120 ms (CSS).
 
 export type OverlayKind = 'lbl' | 'chip' | 'flowchip' | 'condchip' | 'badge' | 'trailchip' | 'readchip';
-export type Anchor = 'right' | 'left' | 'above' | 'below' | 'center';
+export type Anchor = 'right' | 'left' | 'above' | 'below' | 'center' | 'upright' | 'downright' | 'upleft' | 'downleft' | 'farright' | 'farleft';
 
 export interface OverlayItem {
   key: string;
@@ -125,7 +125,8 @@ export class Overlay {
         // Never cross the viewport edge (8 px margin, F-026).
         if (p.x < 8 || p.y < minY || p.x + w > vw - 8 || p.y + h > vh - 8) continue;
         // Ghost chips declutter against text, not against stars (they sit in dense clusters).
-        if (!it.force && overlaps(p.x, p.y, w, h, it.kind !== 'chip' && !it.overCores)) continue;
+        // Nothing sits on a star or on text (F-020, F-030): try the next anchor instead.
+        if (!it.force && overlaps(p.x, p.y, w, h, !it.overCores)) continue;
         spot = p;
         break;
       }
@@ -209,6 +210,18 @@ function anchorAt(a: Anchor, x: number, y: number, off: number, w: number, h: nu
       return { x: x + off, y: y - h / 2 };
     case 'left':
       return { x: x - off - w, y: y - h / 2 };
+    case 'upright':
+      return { x: x + off * 0.7, y: y - off * 0.7 - h };
+    case 'downright':
+      return { x: x + off * 0.7, y: y + off * 0.7 };
+    case 'upleft':
+      return { x: x - off * 0.7 - w, y: y - off * 0.7 - h };
+    case 'downleft':
+      return { x: x - off * 0.7 - w, y: y + off * 0.7 };
+    case 'farright':
+      return { x: x + off + 14, y: y - h / 2 };
+    case 'farleft':
+      return { x: x - off - 14 - w, y: y - h / 2 };
     case 'above':
       return { x: x - w / 2, y: y - off - h };
     case 'below':
