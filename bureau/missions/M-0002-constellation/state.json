@@ -5,7 +5,7 @@
   "tier": 2,
   "domain": "interactive-web",
   "output": "projects/constellation",
-  "phase": "remediation",
+  "phase": "ship-review",
   "created": "2026-11-22T19:28:56Z",
   "rounds": {
     "plan": 1,
@@ -23,7 +23,8 @@
     "architect": 1,
     "engineer": 2,
     "code-reviewer": 1,
-    "polish-critic": 2
+    "polish-critic": 2,
+    "director-vision": 1
   },
   "levers": [
     "polish"
@@ -52,7 +53,11 @@
     {
       "phase": "remediation",
       "at": "2026-11-23T01:04:15Z"
+    },
+    {
+      "phase": "ship-review",
+      "at": "2026-11-23T02:50:03Z"
     }
   ],
-  "updated": "2026-11-23T02:39:41Z"
+  "updated": "2026-11-23T02:50:03Z"
 }
