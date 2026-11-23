@@ -87,20 +87,22 @@ export class SceneBuilder {
       const c = base ?? { x: 0, y: 0, z: 0 };
       const phase = hash01(id + p.id) * Math.PI * 2;
       const tilt = (hash01(p.id + id) - 0.5) * 0.6;
-      // Widen until the new light has clear space (≥ 12 u to every other light), F-024.
+      // Widen until the new light has clear space (≥ 14 u to every other light), F-024.
+      // Gap is measured in the screen-facing x/y plane: lights in front of or behind the
+      // candidate project onto it, so a 3D gap alone let "Tea" land on top of Flame Step.
       let best: Vec3 = c;
       let bestGap = -1;
-      for (const scale of [1, 1.35, 1.7, 2.1]) {
+      for (const scale of [1, 1.35, 1.7, 2.1, 2.6, 3.2]) {
         for (let k = 0; k < 8; k++) {
           const a = phase + (k * Math.PI) / 4;
           const r = dist * scale;
           // Sectors lie in the plane facing the default camera, so the gap shows on screen.
           const q = { x: c.x + Math.cos(a) * r, y: c.y + Math.sin(a) * r, z: c.z + tilt * r * 0.3 };
           let gap = Infinity;
-          for (const [other, o] of pos) if (other !== near && other !== id) gap = Math.min(gap, Math.hypot(o.x - q.x, o.y - q.y, o.z - q.z));
+          for (const [other, o] of pos) if (other !== id) gap = Math.min(gap, Math.hypot(o.x - q.x, o.y - q.y));
           if (gap > bestGap) ((bestGap = gap), (best = q));
         }
-        if (bestGap >= 12) break;
+        if (bestGap >= 14) break;
       }
       out[p.id] = { x: round(best.x), y: round(best.y), z: round(best.z) };
     }

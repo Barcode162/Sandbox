@@ -1376,13 +1376,24 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
       if (hovered) chipNodes.add(hovered);
     }
     const clip = (t: string) => (t.length > 16 ? t.slice(0, 15).trimEnd() + '…' : t);
+    // The three most connected visible lights always get a name (F-031): they win priority among
+    // plain labels and may sit over neighbouring cores (never over text) when the cluster is dense.
+    const hubs = new Set(
+      order
+        .filter((n) => n.onScreen && n.dying === NEVER && n.bright >= 0.06 && n.data.kind !== 'pathway' && !n.road)
+        .sort((a, b) => b.degree - a.degree)
+        .slice(0, 3)
+        .map((n) => n.id),
+    );
     for (const n of order) {
       if (!n.onScreen || n.dying !== NEVER) continue;
       const ign = n.bright;
       if (ign < 0.06) continue;
       const depthFade = 1 - range(n.depth, 220 * kDist, 480 * kDist);
       const act = activation?.get(n.id);
+      const hub = hubs.has(n.id);
       let pr = 10 + Math.min(n.degree, 30) * 0.5;
+      if (hub) pr = Math.max(pr, 58);
       if (n.road) pr = trails.length ? 75 : 50;
       if (selNbrs?.has(n.id)) pr = Math.max(pr, 60);
       if (act !== undefined && act <= 1) pr = act === 0 ? 80 : 70;
@@ -1403,6 +1414,7 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
         priority: pr,
         opacity: op,
         cls: n.id === selected ? 'sel' : n.road ? 'road' : undefined,
+        overCores: hub || n.id === selected,
         // Single road letters still declutter but don't spend the 40-word cap (F-015).
         isLabel: !n.road,
         nodeId: n.id,

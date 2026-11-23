@@ -6,7 +6,7 @@ VERDICT: PASS WITH FINDINGS
 I reviewed the `projects/constellation` build (WO-003) against experience.md §7, §9, §17 and §19 and the brief's "Definition of exceptional".
 
 ## Method
-I ran `npm run build` and `vite preview`, then captured with Playwright and SwiftShader at DPR 1, using `?seed=1` and the `__constellation` clock. 62 captures, including bursts, are in `evidence/critic/`. I read every frame behind a verdict. F4 midway is `M-burst-0480.jpg`.
+I captured `vite preview` with Playwright at DPR 1 (`?seed=1`, `__constellation` clock). 62 captures, including bursts, are in `evidence/critic/`. I read every frame behind a verdict. F4 midway is `M-burst-0480.jpg`.
 
 ## Per-frame verdicts (1440 unless noted)
 | # | Verdict | Note |
@@ -32,7 +32,7 @@ I ran `npm run build` and `vite preview`, then captured with Playwright and Swif
 - **Not verified:** 4, 22, 25.
 
 ## CEO question: the missing ring letters
-They hurt. The drawer says *A → F → X → Z*; the sky shows an unlabelled yellow Z on unlabelled beads, so the transit map loses its map. Letters do render up close (O, P, Q in F9), so the problem is label priority: §7 ranks letters above degree, and the code fills the cap of 40 by degree.
+They hurt: the drawer reads *A → F → X → Z* over unlabelled beads. The cause is label priority, where §7 ranks letters above degree.
 
 It compounds F-016 (A and Z are neighbours). Filed as S2 (F-015), ranked second.
 
@@ -46,13 +46,10 @@ It compounds F-016 (A and Z are neighbours). Filed as S2 (F-015), ranked second.
 - **Second look:** fails at F8 and F5.
 - **First impression (10 s):** pass. Black sky, clear wordmark, readable clusters.
 - **Coherence:** mostly. The lens accent carries through the UI, but not the sky (F-019).
-- **Craft details:** mixed. Focus rings, the 1 px press and disabled-state reasons are good; wraps, gaps and clipping are not.
+- **Craft details:** mixed. The states are good; wraps and clipping are not.
 
 ## Top 10 changes
 In order: F-014, F-015, F-016, F-017, F-019, F-020, F-021, F-023, F-018, F-025.
-
-## Strengths worth keeping
-F10 result card, facet table, F11 hierarchy, ignition, morph, copy voice.
 
 ## Overall assessment
 The instruments work, and F2 and F10 are at flagship level. The thesis moments, the Long Road and disagreement, are not yet composed. One S1. Fix the top 5, then re-shoot F1, F5–F8 and F11 at all three widths.
@@ -77,3 +74,20 @@ I re-rendered the same moments into `evidence/critic/r1v/`.
 **New (F-030, S2):** the regenerated layout knots the Heat cluster, so labels sit on cores. The spiral ring also runs through the Simmer loop at F9.
 
 F6–F8 are now the strongest sequence. Verdict: **PASS WITH FINDINGS**, with no open S1.
+
+## r2 verification (HEAD 014699d)
+I re-rendered the frames into `evidence/critic/r2v/`.
+
+**Verified (5):**
+- **F-019:** halo chroma is now about 25/255; F1 reads amber and F5 reads ice.
+- **F-020, F-022, F-025:** fixed.
+- **F-030:** the Heat cores are spaced and the ring clears the flowcharts.
+
+**Reopened: F-024.** Tea is born on top of Flame Step.
+
+**New:**
+- **F-031 (S2):** Temperature has no label at the F1 overview.
+- **F-032 (S3):** the Physicist chips still crowd. I rated this S3 rather than S2: the values are readable, and only matching them to their nodes takes a second look.
+- **F-033 (S3):** an icon crosses the stats text.
+
+Verdict: **PASS WITH FINDINGS**. No S1 is open.

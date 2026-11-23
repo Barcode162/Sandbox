@@ -1,8 +1,11 @@
 // The five flows (plan.md WO-003 [E1]–[E5]) at 1440×900, with the experience-spec frames F1–F12.
 import { expect, test } from './support/harness.ts';
+import seed from '../../src/seed/memory.json' with { type: 'json' };
 import { frames, idle, nodePoint, open, overlaps, pause, resume, setClock, state } from './support/app.ts';
 
 test.describe.configure({ timeout: 120_000 });
+
+const seedLabels: string[] = (seed as { nodes: Array<{ label: string }> }).nodes.map((n) => n.label);
 
 test('[E1] explore: the first frame breathes, hover lights a neighbourhood, select flies and inspects (F1–F3)', async ({ page, scan, shot }) => {
   await open(page);
@@ -17,6 +20,8 @@ test('[E1] explore: the first frame breathes, hover lights a neighbourhood, sele
   expect(s.ghostState).toBe('rest');
   expect(s.nanPositions).toBe(0);
   expect(overlaps(s.labelRects)).toEqual([]);
+  // The hub every later frame is about carries its name at the overview (F-031).
+  await expect(page.locator('.lbl.on', { hasText: /^Temperature$/ })).toHaveCount(1);
   await expect(page.locator('#stats')).toHaveText('88 lights · 100 lines');
   await expect(page.locator('#stage')).toHaveAttribute('aria-label', 'Constellation memory, Cook lens, 88 lights, 100 lines.');
   await shot('F1-idle-1440');
@@ -245,6 +250,23 @@ test('[E5] store + find: store Tea, link it to Temperature, reload, search finds
   const tea = await nodePoint(page, 'Tea');
   const temp = await nodePoint(page, 'Temperature');
   expect(Math.hypot(tea.x - temp.x, tea.y - temp.y)).toBeGreaterThan(24);
+  // …and clear of every other light on screen, not only its link target (F-024 r2).
+  const nearest = await page.evaluate((labels: string[]) => {
+    const h = window.__constellation!;
+    const teaId = h.nodeIdByLabel('Tea')!;
+    const p = h.screenPosition(teaId)!;
+    let best = { d: Infinity, label: '' };
+    for (const label of labels) {
+      const id = h.nodeIdByLabel(label);
+      if (!id || id === teaId) continue;
+      const q = h.screenPosition(id);
+      if (!q) continue;
+      const d = Math.hypot(q.x - p.x, q.y - p.y);
+      if (d < best.d) best = { d, label };
+    }
+    return best;
+  }, seedLabels);
+  expect(nearest.d, `Tea is ${nearest.d.toFixed(1)} px from ${nearest.label}`).toBeGreaterThan(12);
   await shot('F12-stored-1440');
   await resume(page);
   // "Saved" appears only after the browser accepted the write (F-001).
