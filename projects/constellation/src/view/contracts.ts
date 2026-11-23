@@ -17,6 +17,8 @@ export interface SceneNode {
   op?: PathwayOp;
   /** WO-003 addition: ghost chip texts keyed by perspective (formatted values). */
   ghostText?: Partial<Record<PerspectiveId, string>>;
+  /** CEO addition (ship condition 2): one of the newest things stored after the memory began; always named. */
+  recent?: boolean;
 }
 
 /** WO-003 addition: how an edge is drawn (experience.md §7 edge table). */
@@ -129,6 +131,9 @@ export interface RenderDebugState {
   ghostState: 'rest' | 'expanded' | 'none';
   labelsShown: number;
   labelRects: Array<{ id: NodeId; x: number; y: number; w: number; h: number }>;
+  /** CEO addition (ship conditions): every placed overlay item, and the star footprints labels avoid. */
+  overlayRects?: Array<{ kind: string; id: string; x: number; y: number; w: number; h: number }>;
+  coreCircles?: Array<{ id: NodeId; x: number; y: number; r: number }>;
   hovered: NodeId | null;
   selected: NodeId | null;
   cameraDistance: number;

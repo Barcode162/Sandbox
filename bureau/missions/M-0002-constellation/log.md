@@ -131,3 +131,12 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-23T02:49:44Z` **polish-critic** — F-031 verified: Before: Temperature unlabelled at F12 900/2500/6000 ms, Stove label on its ring (evidence/critic/r2v/F12-900.jpg, evidence/critic/r2v/F12-settled-6000.jpg). After (8e80f44): 'Temperature' is labelled at 900/2500/6000 ms, left side 613-688 x 462-478, 15 px from its core, glyphs about 4 px clear of the Flame Step ring and the Pot core. It is also labelled after reload (right side). Stove's label no longer sits on Temperature. DOM audit at F1, F5 (15 chips), F12 and reload: labels over cores 0, text over text 0, chips over cores 0. evidence/critic/r2v/f031/F12-900.jpg, evidence/critic/r2v/f031/F12-900-x4.jpg, evidence/critic/r2v/f031/F12-6000.jpg, evidence/critic/r2v/f031/F12-reload.jpg, evidence/critic/r2v/f031/F1-1440.jpg, evidence/critic/r2v/f031/F5-1440.jpg
 - `2026-11-23T02:50:03Z` **ceo** — Phase remediation → **ship-review**
 - `2026-11-23T02:50:03Z` **ceo** — Convened 1× director-vision — ship vote, round 1
+- `2026-11-23T02:55:06Z` **director-vision** — ship gate r1: CONDITIONAL (8.1)
+- `2026-11-23T02:55:33Z` **director-vision** — F-032 [S2] filed: F5: Temperature, Boiling Point and Room unnamed while ghosts are expanded
+- `2026-11-23T02:55:33Z` **director-vision** — F-033 [S2] filed: A stored thing (Tea) has no name in the default overview after reload
+- `2026-11-23T02:55:33Z` **director-vision** — F-034 [S2] filed: Loop badge ×N touches P3/P4 rings
+- `2026-11-23T02:55:33Z` **ceo** — ship gate opened round 2 (earlier votes no longer count)
+- `2026-11-23T02:55:33Z` **ceo** — Phase ship-review → **remediation**
+- `2026-11-23T03:00:36Z` **ceo** — F-032 resolved: renderer: stars whose ghost chips show get label priority 86 (> chips 85) and a cores fallback. E2 asserts temperature, boiling-point, room in labelRects and no overlay overlaps. evidence/screens/F5-morph-settled-1440.jpg
+- `2026-11-23T03:00:36Z` **ceo** — F-033 resolved: scene.ts marks the ≤5 newest things stored after the memory began as recent (contracts SceneNode.recent); renderer names them first. E5 waits for Tea in labelRects after reload. evidence/screens/F12-reload-1440.jpg
+- `2026-11-23T03:00:36Z` **ceo** — F-034 resolved: overlay: forced items seek a clear spot (cores + text) before falling back; badge anchors right, above, below, left. E4 asserts coresUnder(badge) = [] at F9 and F10 (helpers fail if no badge or no footprints exposed). evidence/screens/F9-pulse-mid-loop-1440.jpg, F10-pathway-result-1440.jpg

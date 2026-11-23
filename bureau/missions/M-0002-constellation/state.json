@@ -5,11 +5,11 @@
   "tier": 2,
   "domain": "interactive-web",
   "output": "projects/constellation",
-  "phase": "ship-review",
+  "phase": "remediation",
   "created": "2026-11-22T19:28:56Z",
   "rounds": {
     "plan": 1,
-    "ship": 1
+    "ship": 2
   },
   "gates": {
     "plan": {
@@ -57,7 +57,11 @@
     {
       "phase": "ship-review",
       "at": "2026-11-23T02:50:03Z"
+    },
+    {
+      "phase": "remediation",
+      "at": "2026-11-23T02:55:33Z"
     }
   ],
-  "updated": "2026-11-23T02:50:03Z"
+  "updated": "2026-11-23T02:55:33Z"
 }

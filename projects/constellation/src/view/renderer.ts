@@ -1347,6 +1347,7 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
     }
   }
 
+  let lastCores: Array<{ x: number; y: number; r: number; id: string }> = [];
   function placeOverlay(now: number, kDist: number, ghostR: number, ghostExpanded: boolean): void {
     const items: OverlayItem[] = [];
     const selNbrs = selected ? nodes.get(selected)?.nbrs : undefined;
@@ -1384,6 +1385,9 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
       const act = activation?.get(n.id);
       let pr = 10 + Math.min(n.degree, 30) * 0.5 + (n.degree >= 8 && !n.road ? 20 : 0); // hubs name themselves first (F-031)
       if (n.road) pr = trails.length ? 75 : 50;
+      // Named first: a star whose ghost chips are showing (its chips need an owner) and a thing the
+      // Owner stored recently (ship conditions 1 and 2). Both outrank the chips themselves (85).
+      if (chipNodes.has(n.id) || n.data.recent) pr = Math.max(pr, 86);
       if (selNbrs?.has(n.id)) pr = Math.max(pr, 60);
       if (act !== undefined && act <= 1) pr = act === 0 ? 80 : 70;
       if (n.id === hovered) pr = 90;
@@ -1408,7 +1412,7 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
         // Only the selected, hovered or route-named light's label sits over other cores outright. Hubs
         // (degree ≥ 8) take a clear side when one exists and otherwise still keep their name (F-030, F-031).
         overCores: pr >= 90,
-        overCoresFallback: !n.road && n.degree >= 8,
+        overCoresFallback: !n.road && (n.degree >= 8 || chipNodes.has(n.id) || !!n.data.recent),
         nodeId: n.id,
       });
       // Ghost chips when expanded; the active value sits on top (never as a ghost)
@@ -1474,7 +1478,7 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
     }
     for (const [id, count] of loopBadges) {
       const n = nodes.get(id);
-      if (n?.onScreen && count > 0) items.push({ key: 'b:' + id, kind: 'badge', text: `×${count}`, x: n.sx, y: n.sy, offset: n.pxR * 1.6 + 8, anchors: ['above', 'right', 'below'], priority: 290, opacity: 1, force: true });
+      if (n?.onScreen && count > 0) items.push({ key: 'b:' + id, kind: 'badge', text: `×${count}`, x: n.sx, y: n.sy, offset: n.pxR * 1.6 + 8, anchors: ['right', 'above', 'below', 'left'], priority: 290, opacity: 1, force: true });
     }
     if (readSpark) {
       const n = nodes.get(readSpark.to);
@@ -1505,6 +1509,7 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
       });
     }
     const cores: Array<{ x: number; y: number; r: number; id: string }> = [];
+    lastCores = cores;
     for (const n of order) if (n.onScreen && n.bright > 0.1) cores.push({ id: n.id, x: n.sx, y: n.sy, r: (n.id === selected ? Math.max(n.pxR * 2.4, n.pxR + 7) : Math.max(3, n.pxR * (n.data.kind === 'pathway' ? 1.5 : n.data.kind === 'variable' ? 1.8 : 1))) + 1 }); // variables draw a ring at 1.8r (F-031)
     // Keep labels below the top bar (56 px; 100 px with the 375 lens row).
     overlay.place(items, cap, width, height, cores, width < 768 ? 104 : 60);
@@ -1571,6 +1576,8 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
         ghostState: [...nodes.values()].some((n) => n.data.ghosts?.length) ? (lastState.ghostExpanded ? 'expanded' : 'rest') : 'none',
         labelsShown: overlay.labelsShown,
         labelRects: overlay.placed.filter((r) => r.kind === 'lbl').map((r) => ({ id: r.nodeId ?? r.key, x: r.x, y: r.y, w: r.w, h: r.h })),
+        overlayRects: overlay.placed.map((r) => ({ kind: r.kind, id: r.nodeId ?? r.key, x: r.x, y: r.y, w: r.w, h: r.h })),
+        coreCircles: lastCores.map((c) => ({ ...c })),
         hovered,
         selected,
         cameraDistance: rig.distance,

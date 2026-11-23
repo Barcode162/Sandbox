@@ -1,6 +1,6 @@
 // The five flows (plan.md WO-003 [E1]–[E5]) at 1440×900, with the experience-spec frames F1–F12.
 import { expect, test } from './support/harness.ts';
-import { frames, idle, nodePoint, open, overlaps, pause, resume, setClock, state } from './support/app.ts';
+import { coresUnder, frames, idle, nodePoint, open, overlayOverlaps, overlaps, pause, resume, setClock, state } from './support/app.ts';
 
 test.describe.configure({ timeout: 120_000 });
 
@@ -86,6 +86,10 @@ test('[E2] perspective: Cook → Physicist morphs in ≤ 1.2 s and the ghosts sh
   const chips = (await page.locator('#stage .chip.on').allTextContents()).map((t) => t.replace(/\u00a0/g, ' '));
   expect(chips).toContain('20 °C');
   expect(chips).toContain('293 K');
+  // Ship condition 1: the disagreeing hubs are named while their chips show, and nothing overlaps.
+  const named5 = s.labelRects.map((r) => r.id);
+  for (const id of ['temperature', 'boiling-point', 'room']) expect(named5, `${id} named at F5`).toContain(id);
+  expect(overlayOverlaps(s)).toEqual([]);
   await shot('F5-morph-settled-1440');
   // Retracts after the held window.
   await setClock(page, t0 + 4000);
@@ -192,6 +196,8 @@ test('[E4] run pathway: Simmer loops twice under Cook and four times under Physi
   expect(s.loopBadge).toBe(1);
   await expect(page.locator('#stage .condchip.on')).toHaveText('60 °C < 100 °C → true');
   await expect(page.locator('#stage .badge.on')).toHaveText('×1');
+  // Ship condition 3: the loop badge touches no star core or ring.
+  expect(coresUnder(await state(page), 'badge')).toEqual([]);
   await expect(card.locator('li.cur')).toContainText('while heat < Boiling Point · 60 °C < 100 °C → true');
   await shot('F9-pulse-mid-loop-1440');
   await resume(page);
@@ -213,6 +219,7 @@ test('[E4] run pathway: Simmer loops twice under Cook and four times under Physi
   await expect(card.locator('.result .out')).toHaveText('Done after 4 stirs · heat 373 K');
   await expect(card.locator('.result .compare')).toHaveText('Cook: 2 stirs · Physicist: 4 stirs. Same pathway, different truths.');
   await expect(page.locator('#stage .badge.on')).toHaveText('×4');
+  expect(coresUnder(await state(page), 'badge')).toEqual([]);
   await shot('F10-pathway-result-1440');
   await scan();
 
@@ -268,6 +275,10 @@ test('[E5] store + find: store Tea, link it to Temperature, reload, search finds
   expect(after.id).not.toBeNull();
   expect(Math.abs(after.pos.x - teaPos.x)).toBeLessThan(0.01);
   await expect(page.locator('.toast', { hasText: 'Welcome back. 89 lights. The 1 you stored is where you left it.' })).toBeVisible({ timeout: 6000 });
+  // Ship condition 2: the stored thing is named in the default overview after reload.
+  await page.waitForFunction((id) => window.__constellation!.state!().labelRects.some((r) => r.id === id), after.id, { timeout: 6000 });
+  expect(overlaps((await state(page)).labelRects)).toEqual([]);
+  await shot('F12-reload-1440');
   await page.keyboard.press('/');
   await page.keyboard.type('tea');
   // "tea" is also inside "Steam" (substring match), so Tea is one of the depth-0 matches.

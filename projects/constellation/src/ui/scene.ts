@@ -114,6 +114,11 @@ export class SceneBuilder {
     const lensColors: Record<PerspectiveId, string> = {};
     perspectives.forEach((p, i) => (lensColors[p.id] = lensColor(p, i)));
     const nodes: SceneNode[] = g.nodes().map((n) => this.sceneNode(n, lens, perspectives, pos));
+    // The newest things stored after the memory began (at most 5) are named in the sky (ship condition 2).
+    const all = g.nodes();
+    const first = Math.min(...all.map((n) => n.created));
+    const recent = new Set(all.filter((n) => n.created > first && n.kind !== 'pathway').sort((a, b) => b.created - a.created || (a.id < b.id ? -1 : 1)).slice(0, 5).map((n) => n.id));
+    for (const sn of nodes) if (recent.has(sn.id)) sn.recent = true;
     const total = perspectives.length;
     const relations: SceneRelation[] = visibleRelations(g, lens).map((r) => ({
       id: r.id,

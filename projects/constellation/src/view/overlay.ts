@@ -134,7 +134,9 @@ export class Overlay {
           // Never cross the viewport edge (8 px margin, F-026).
           if (p.x < 8 || p.y < minY || p.x + w > vw - 8 || p.y + h > vh - 8) continue;
           // Chips and labels keep off text, and off star cores unless allowed (F-020, F-031).
-          if (!it.force && overlaps(p.x, p.y, w, h, cores, it.nodeId)) continue;
+          // Forced items (badges, the condition chip, trail chips) also look for a clear spot first;
+          // they fall back to their first anchor only when none exists (ship condition 3).
+          if (overlaps(p.x, p.y, w, h, cores, it.nodeId)) continue;
           spot = p;
           break search;
         }

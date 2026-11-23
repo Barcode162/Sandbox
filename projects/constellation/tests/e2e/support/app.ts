@@ -71,3 +71,25 @@ export function overlaps(rects: State['labelRects']): string[] {
   }
   return bad;
 }
+
+/** Every placed overlay item (labels, chips, badges…) pairwise clear of the others. */
+export function overlayOverlaps(s: State): string[] {
+  expect(s.overlayRects?.length ?? 0, 'overlay rects exposed').toBeGreaterThan(10);
+  return overlaps((s.overlayRects ?? []).map((r) => ({ id: `${r.kind}:${r.id}`, x: r.x, y: r.y, w: r.w, h: r.h })));
+}
+
+/** Star footprints (core, or pathway / variable ring) that a rectangle of the given kind touches. */
+export function coresUnder(s: State, kind: string): string[] {
+  const hit: string[] = [];
+  const items = (s.overlayRects ?? []).filter((o) => o.kind === kind);
+  expect(items.length, `a placed ${kind}`).toBeGreaterThan(0);
+  expect(s.coreCircles?.length ?? 0, 'star footprints exposed').toBeGreaterThan(10);
+  for (const r of items) {
+    for (const c of s.coreCircles ?? []) {
+      const nx = Math.max(r.x, Math.min(c.x, r.x + r.w));
+      const ny = Math.max(r.y, Math.min(c.y, r.y + r.h));
+      if (Math.hypot(c.x - nx, c.y - ny) < c.r) hit.push(`${r.id}@${c.id}`);
+    }
+  }
+  return hit;
+}
