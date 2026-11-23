@@ -18,6 +18,19 @@ import { toast } from './ui/toasts.ts';
 const params = new URLSearchParams(location.search);
 const stress = Number(params.get('stress') ?? 0) || 0;
 const freshSeed = params.has('seed') && params.get('seed') !== '0';
+// ?memory=<name> opens a personal memory bundled from src/memories/<name>.json (M-0003). It autosaves
+// to its own slot; a newer version of the file (a different stamp) replaces the browser's copy.
+const memories = import.meta.glob<unknown>('./memories/*.json', { eager: true, import: 'default' });
+const memoryName = (params.get('memory') ?? '').toLowerCase();
+const memoryFile = /^[a-z0-9-]{1,40}$/.test(memoryName) ? memories[`./memories/${memoryName}.json`] : undefined;
+
+/** A short, stable fingerprint of a memory file (FNV-1a over its JSON text). */
+function stampOf(value: unknown): string {
+  const text = JSON.stringify(value);
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 0x01000193);
+  return (h >>> 0).toString(36) + ':' + text.length.toString(36);
+}
 const motionQuery = matchMedia('(prefers-reduced-motion: reduce)');
 
 function storage(): KeyValueStorage | null {
@@ -58,9 +71,38 @@ function boot(): void {
   let returning = false;
   let note = '';
   let unreadable: string | null = null;
+  let saveKey = AUTOSAVE_KEY;
+  let personal = false;
+  if (memoryName && !stress) {
+    const file = memoryFile === undefined ? null : validateDoc(memoryFile);
+    if (file?.ok) {
+      personal = true;
+      doc = file.doc;
+      saveKey = `${AUTOSAVE_KEY}.${memoryName}`;
+      const stamp = stampOf(memoryFile);
+      try {
+        // Same file as last visit: reopen the browser's copy (with any stars stored by hand).
+        if (store && store.getItem(`${saveKey}.stamp`) === stamp) {
+          const saved = loadSaved(store, saveKey);
+          if (saved?.ok) ((doc = saved.doc), (returning = true));
+        } else if (store) {
+          store.removeItem(saveKey);
+          store.setItem(`${saveKey}.stamp`, stamp);
+        }
+      } catch {
+        /* storage blocked: the file opens, unsaved (handled below) */
+      }
+    } else {
+      note = file
+        ? `The memory "${memoryName}" couldn't be opened (${file.errors[0]?.message ?? 'unknown problem'}), so the seed is shown.`
+        : `There's no memory called "${memoryName}" here, so the seed is shown.`;
+    }
+  }
   if (stress) {
     const s = validateDoc(stressDoc(stress));
     if (s.ok) doc = s.doc;
+  } else if (personal) {
+    /* opened above */
   } else if (store && !freshSeed) {
     const saved = loadSaved(store);
     if (saved?.ok) {
@@ -99,7 +141,7 @@ function boot(): void {
       ),
     );
     byId('topbar').setAttribute('inert', '');
-    if (store && !stress) startAutosave(graph, store);
+    if (store && !stress) startAutosave(graph, store, { key: saveKey });
     window.__constellation = {
       ready: true,
       perspective: graph.meta.defaultPerspective,
@@ -138,6 +180,7 @@ function boot(): void {
       },
     };
     const options = {
+      key: saveKey,
       onError: () => {
         shell.notSaved();
         toast("Couldn't save to this browser (storage is full or blocked). Export a copy so nothing is lost.", {

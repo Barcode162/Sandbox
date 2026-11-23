@@ -1,0 +1,985 @@
+{
+  "schema": "constellation.memory",
+  "version": 1,
+  "meta": {
+    "title": "My mind",
+    "description": "Ideas from talks with Claude, seen three ways. Say “update constellations” to add more.",
+    "defaultPerspective": "me",
+    "featured": {
+      "route": {
+        "from": "d0",
+        "to": "dinf"
+      },
+      "query": "trail"
+    }
+  },
+  "perspectives": [
+    {
+      "id": "me",
+      "label": "Me",
+      "description": "How I see it.",
+      "accent": "#FFB86B"
+    },
+    {
+      "id": "church",
+      "label": "Church",
+      "description": "How a church would put it.",
+      "accent": "#C7A6FF"
+    },
+    {
+      "id": "science",
+      "label": "Science",
+      "description": "How science would name it.",
+      "accent": "#6FD3FF"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "detective-board",
+      "label": "Detective board",
+      "kind": "concept",
+      "value": "pins and string",
+      "facets": {
+        "science": "knowledge graph"
+      },
+      "tags": [
+        "seeing"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "tracing",
+      "label": "Tracing",
+      "kind": "concept",
+      "value": "joining facts",
+      "facets": {
+        "science": "inference"
+      },
+      "tags": [
+        "seeing"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "rubber-bands",
+      "label": "Rubber bands",
+      "kind": "concept",
+      "value": "links pull close",
+      "facets": {
+        "science": "force layout"
+      },
+      "tags": [
+        "seeing"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "trails",
+      "label": "Trails",
+      "kind": "concept",
+      "value": "walked paths",
+      "facets": {
+        "church": "habits of heart",
+        "science": "neural links"
+      },
+      "tags": [
+        "mind"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "walking",
+      "label": "Walking a trail",
+      "kind": "concept",
+      "value": "repeat it",
+      "facets": {
+        "church": "practice",
+        "science": "reinforcement"
+      },
+      "tags": [
+        "mind"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "forgetting",
+      "label": "Forgetting",
+      "kind": "concept",
+      "value": "grass grows back",
+      "facets": {
+        "science": "pruning"
+      },
+      "tags": [
+        "mind"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "autopilot",
+      "label": "Autopilot",
+      "kind": "concept",
+      "value": "worn trails hide",
+      "facets": {
+        "science": "habituation"
+      },
+      "tags": [
+        "mind"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "inherited",
+      "label": "Inherited paths",
+      "kind": "concept",
+      "value": "built-in trails",
+      "facets": {
+        "church": "human nature",
+        "science": "evolved instinct"
+      },
+      "tags": [
+        "mind"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "subconscious",
+      "label": "Subconscious",
+      "kind": "concept",
+      "value": "fast, picks",
+      "facets": {
+        "science": "system 1"
+      },
+      "tags": [
+        "mind"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "conscious",
+      "label": "Conscious",
+      "kind": "concept",
+      "value": "slow, adjusts",
+      "facets": {
+        "science": "system 2"
+      },
+      "tags": [
+        "mind"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "metacognition",
+      "label": "Metacognition",
+      "kind": "concept",
+      "value": "watching my mind",
+      "facets": {
+        "church": "self-examination",
+        "science": "thinking on thought"
+      },
+      "tags": [
+        "thinking"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "intuition",
+      "label": "Intuition",
+      "kind": "concept",
+      "value": "answer arrives",
+      "facets": {
+        "church": "the still voice",
+        "science": "fast thinking"
+      },
+      "tags": [
+        "thinking"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "patterns",
+      "label": "Patterns",
+      "kind": "concept",
+      "value": "stored solutions",
+      "facets": {
+        "science": "chunking"
+      },
+      "tags": [
+        "thinking"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "crux",
+      "label": "The crux",
+      "kind": "concept",
+      "value": "the one key",
+      "facets": {},
+      "tags": [
+        "thinking"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "break-it",
+      "label": "Try to break it",
+      "kind": "concept",
+      "value": "what makes it wrong",
+      "facets": {
+        "science": "falsification"
+      },
+      "tags": [
+        "thinking"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "suggestions",
+      "label": "Suggestions",
+      "kind": "concept",
+      "value": "never asserts",
+      "facets": {
+        "church": "faith",
+        "science": "hypotheses"
+      },
+      "tags": [
+        "thinking"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "d0",
+      "label": "0 m · home",
+      "kind": "concept",
+      "value": "rest",
+      "facets": {},
+      "tags": [
+        "distance"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "d1",
+      "label": "1 m · breakfast",
+      "kind": "concept",
+      "value": "daily life",
+      "facets": {},
+      "tags": [
+        "distance"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "d2",
+      "label": "2 m · focus",
+      "kind": "concept",
+      "value": "effort on one thing",
+      "facets": {},
+      "tags": [
+        "distance"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "d4",
+      "label": "4 m · a life",
+      "kind": "concept",
+      "value": "my own path",
+      "facets": {},
+      "tags": [
+        "distance"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "d8",
+      "label": "8 m · how lives work",
+      "kind": "concept",
+      "value": "patterns of people",
+      "facets": {},
+      "tags": [
+        "distance"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "d16",
+      "label": "16 m · what matters",
+      "kind": "concept",
+      "value": "importance itself",
+      "facets": {},
+      "tags": [
+        "distance"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "dinf",
+      "label": "∞ m · no ruler",
+      "kind": "concept",
+      "value": "no self left",
+      "facets": {
+        "science": "ego dissolution"
+      },
+      "tags": [
+        "distance"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "flow",
+      "label": "Flow",
+      "kind": "concept",
+      "value": "all is flow",
+      "facets": {
+        "church": "creation",
+        "science": "process"
+      },
+      "tags": [
+        "world"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "scope",
+      "label": "Scope",
+      "kind": "concept",
+      "value": "set, then dissolves",
+      "facets": {
+        "science": "frame of reference"
+      },
+      "tags": [
+        "world"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "importance",
+      "label": "Importance",
+      "kind": "concept",
+      "value": "a passing shape",
+      "facets": {
+        "church": "God's will",
+        "science": "relative value"
+      },
+      "tags": [
+        "world"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "view-from-nowhere",
+      "label": "View from nowhere",
+      "kind": "concept",
+      "value": "no centre",
+      "facets": {
+        "church": "God's eye",
+        "science": "objectivity"
+      },
+      "tags": [
+        "world"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "awareness",
+      "label": "Awareness",
+      "kind": "concept",
+      "value": "what God is",
+      "facets": {
+        "church": "the soul",
+        "science": "consciousness"
+      },
+      "tags": [
+        "god"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "god",
+      "label": "God",
+      "kind": "concept",
+      "value": "awareness itself",
+      "facets": {
+        "church": "the Creator",
+        "science": "unproven"
+      },
+      "tags": [
+        "god"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "tat-tvam-asi",
+      "label": "You are that",
+      "kind": "concept",
+      "value": "awareness is shared",
+      "facets": {
+        "church": "heresy",
+        "science": "Advaita Vedanta"
+      },
+      "tags": [
+        "god"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "beetle",
+      "label": "Beetle in a box",
+      "kind": "concept",
+      "value": "private worlds",
+      "facets": {
+        "science": "Wittgenstein"
+      },
+      "tags": [
+        "people"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "shared-words",
+      "label": "Shared words",
+      "kind": "concept",
+      "value": "rough overlap",
+      "facets": {
+        "church": "communion",
+        "science": "language games"
+      },
+      "tags": [
+        "people"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "reading-people",
+      "label": "Reading people",
+      "kind": "concept",
+      "value": "each by own rules",
+      "facets": {
+        "science": "theory of mind"
+      },
+      "tags": [
+        "people"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "chocolate-night",
+      "label": "The chocolate night",
+      "kind": "note",
+      "value": "the starting point",
+      "facets": {
+        "science": "psilocybin, 1 g"
+      },
+      "tags": [
+        "journey"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "integration",
+      "label": "Integration",
+      "kind": "concept",
+      "value": "testing sober",
+      "facets": {
+        "science": "integration"
+      },
+      "tags": [
+        "journey"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "church-day",
+      "label": "Church, Nov 23",
+      "kind": "note",
+      "value": "it all aligned",
+      "facets": {
+        "church": "the Word",
+        "science": "pattern match"
+      },
+      "tags": [
+        "journey"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    },
+    {
+      "id": "tears",
+      "label": "Tears of awe",
+      "kind": "note",
+      "value": "beauty, daily",
+      "facets": {},
+      "tags": [
+        "journey"
+      ],
+      "created": 1795392000000,
+      "updated": 1795392000000
+    }
+  ],
+  "relations": [
+    {
+      "id": "r-001",
+      "from": "detective-board",
+      "to": "tracing",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-002",
+      "from": "detective-board",
+      "to": "rubber-bands",
+      "type": "association",
+      "weight": 0.8,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-003",
+      "from": "tracing",
+      "to": "trails",
+      "type": "association",
+      "weight": 0.8,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-004",
+      "from": "walking",
+      "to": "trails",
+      "type": "causes",
+      "weight": 1,
+      "directed": true,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-005",
+      "from": "trails",
+      "to": "forgetting",
+      "type": "association",
+      "weight": 0.6,
+      "directed": false,
+      "created": 1795392000000,
+      "label": "unused →"
+    },
+    {
+      "id": "r-006",
+      "from": "trails",
+      "to": "autopilot",
+      "type": "causes",
+      "weight": 0.9,
+      "directed": true,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-007",
+      "from": "inherited",
+      "to": "trails",
+      "type": "part-of",
+      "weight": 0.7,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-008",
+      "from": "subconscious",
+      "to": "conscious",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1795392000000,
+      "label": "one system"
+    },
+    {
+      "id": "r-009",
+      "from": "subconscious",
+      "to": "autopilot",
+      "type": "association",
+      "weight": 0.8,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-010",
+      "from": "subconscious",
+      "to": "intuition",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-011",
+      "from": "conscious",
+      "to": "metacognition",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-012",
+      "from": "metacognition",
+      "to": "autopilot",
+      "type": "association",
+      "weight": 0.7,
+      "directed": false,
+      "created": 1795392000000,
+      "label": "sees past"
+    },
+    {
+      "id": "r-013",
+      "from": "metacognition",
+      "to": "walking",
+      "type": "association",
+      "weight": 0.8,
+      "directed": false,
+      "created": 1795392000000,
+      "label": "chooses"
+    },
+    {
+      "id": "r-014",
+      "from": "patterns",
+      "to": "intuition",
+      "type": "causes",
+      "weight": 1,
+      "directed": true,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-015",
+      "from": "intuition",
+      "to": "break-it",
+      "type": "association",
+      "weight": 0.8,
+      "directed": false,
+      "created": 1795392000000,
+      "label": "checked by"
+    },
+    {
+      "id": "r-016",
+      "from": "crux",
+      "to": "patterns",
+      "type": "association",
+      "weight": 0.7,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-017",
+      "from": "suggestions",
+      "to": "break-it",
+      "type": "association",
+      "weight": 0.7,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-018",
+      "from": "suggestions",
+      "to": "integration",
+      "type": "association",
+      "weight": 0.8,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-019",
+      "from": "d0",
+      "to": "d1",
+      "type": "chain",
+      "weight": 1,
+      "directed": true,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-020",
+      "from": "d1",
+      "to": "d2",
+      "type": "chain",
+      "weight": 1,
+      "directed": true,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-021",
+      "from": "d2",
+      "to": "d4",
+      "type": "chain",
+      "weight": 1,
+      "directed": true,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-022",
+      "from": "d4",
+      "to": "d8",
+      "type": "chain",
+      "weight": 1,
+      "directed": true,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-023",
+      "from": "d8",
+      "to": "d16",
+      "type": "chain",
+      "weight": 1,
+      "directed": true,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-024",
+      "from": "d16",
+      "to": "dinf",
+      "type": "chain",
+      "weight": 1,
+      "directed": true,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-025",
+      "from": "d2",
+      "to": "metacognition",
+      "type": "association",
+      "weight": 0.6,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-026",
+      "from": "d8",
+      "to": "reading-people",
+      "type": "association",
+      "weight": 0.8,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-027",
+      "from": "d16",
+      "to": "importance",
+      "type": "association",
+      "weight": 0.9,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-028",
+      "from": "d16",
+      "to": "scope",
+      "type": "association",
+      "weight": 0.9,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-029",
+      "from": "dinf",
+      "to": "chocolate-night",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-030",
+      "from": "dinf",
+      "to": "view-from-nowhere",
+      "type": "association",
+      "weight": 0.7,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-031",
+      "from": "flow",
+      "to": "scope",
+      "type": "association",
+      "weight": 0.9,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-032",
+      "from": "scope",
+      "to": "importance",
+      "type": "causes",
+      "weight": 1,
+      "directed": true,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-033",
+      "from": "flow",
+      "to": "importance",
+      "type": "association",
+      "weight": 0.7,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-034",
+      "from": "view-from-nowhere",
+      "to": "reading-people",
+      "type": "association",
+      "weight": 0.8,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-035",
+      "from": "awareness",
+      "to": "god",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1795392000000,
+      "label": "is"
+    },
+    {
+      "id": "r-036",
+      "from": "awareness",
+      "to": "tat-tvam-asi",
+      "type": "association",
+      "weight": 0.9,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-037",
+      "from": "god",
+      "to": "tat-tvam-asi",
+      "type": "association",
+      "weight": 0.9,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-038",
+      "from": "awareness",
+      "to": "view-from-nowhere",
+      "type": "association",
+      "weight": 0.6,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-039",
+      "from": "god",
+      "to": "church-day",
+      "type": "association",
+      "weight": 0.8,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-040",
+      "from": "beetle",
+      "to": "shared-words",
+      "type": "association",
+      "weight": 1,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-041",
+      "from": "shared-words",
+      "to": "reading-people",
+      "type": "association",
+      "weight": 0.7,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-042",
+      "from": "beetle",
+      "to": "awareness",
+      "type": "association",
+      "weight": 0.6,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-043",
+      "from": "chocolate-night",
+      "to": "integration",
+      "type": "causes",
+      "weight": 1,
+      "directed": true,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-044",
+      "from": "integration",
+      "to": "church-day",
+      "type": "association",
+      "weight": 0.7,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-045",
+      "from": "church-day",
+      "to": "tears",
+      "type": "causes",
+      "weight": 0.8,
+      "directed": true,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-046",
+      "from": "flow",
+      "to": "awareness",
+      "type": "association",
+      "weight": 0.6,
+      "directed": false,
+      "created": 1795392000000
+    },
+    {
+      "id": "r-047",
+      "from": "metacognition",
+      "to": "integration",
+      "type": "association",
+      "weight": 0.7,
+      "directed": false,
+      "created": 1795392000000
+    }
+  ]
+}

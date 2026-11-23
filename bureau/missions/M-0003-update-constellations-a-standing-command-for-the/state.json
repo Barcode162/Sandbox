@@ -1,0 +1,32 @@
+{
+  "id": "M-0003",
+  "title": "Update constellations: a standing command for the Owner's mind memory",
+  "slug": "update-constellations-a-standing-command-for-the",
+  "tier": 1,
+  "domain": "interactive-web",
+  "output": "projects/update-constellations-a-standing-command-for-the",
+  "phase": "review",
+  "created": "2026-11-23T05:17:18Z",
+  "rounds": {
+    "plan": 1,
+    "ship": 1
+  },
+  "gates": {},
+  "headcount": {},
+  "levers": [],
+  "history": [
+    {
+      "phase": "intake",
+      "at": "2026-11-23T05:17:18Z"
+    },
+    {
+      "phase": "build",
+      "at": "2026-11-23T05:21:37Z"
+    },
+    {
+      "phase": "review",
+      "at": "2026-11-23T05:21:37Z"
+    }
+  ],
+  "updated": "2026-11-23T05:21:37Z"
+}

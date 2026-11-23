@@ -42,7 +42,7 @@ Reduced motion is respected. Lens switches become instant, ghosts stay expanded,
 | `node scripts/probe-layout.mjs <url> [outDir]` | Against a running preview (`npx vite preview`): measures the seed's overview in each lens (Heat spacing, ring clearance, labels and chips over stars, halo colour) and saves screenshots |
 | `node tests/unit/support/write-seed.ts` | Regenerates `src/seed/memory.json` from its source (layout rules included); a unit test keeps the two identical |
 
-URL flags: `?seed=1` ignores the autosave and opens a fresh seed. `?stress=500` opens a generated 500-point memory for checking frame time; that memory is never autosaved.
+URL flags: `?memory=<name>` opens a personal memory from `src/memories/<name>.json` (for example `?memory=mind`). It autosaves to its own slot, and a newer version of the file replaces the browser's copy. Unknown names show a notice and open as normal. `?seed=1` ignores the autosave and opens a fresh seed. `?stress=500` opens a generated 500-point memory for checking frame time; that memory is never autosaved.
 
 ## Layout
 - `src/core/`: the DOM-free model (graph, perspectives, layout, routing, retrieval, expressions, flow interpreter, persistence). Public API: `src/core/index.ts`.
