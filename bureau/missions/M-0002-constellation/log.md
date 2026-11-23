@@ -81,3 +81,16 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-23T01:19:58Z` **engineer** — F-027 resolved: Close-up concept cores: hot 0.4r centre + gaussian falloff when R>6px (layers.ts NODE_FS)
 - `2026-11-23T01:19:58Z` **engineer** — F-028 resolved: Results summary is sr-only live text; headings carry counts — F11-search-1440.jpg
 - `2026-11-23T01:19:58Z` **engineer** — F-029 resolved: Store title moved out of the scrolling form (always visible), error spacing -8px/+4px, empty errors hidden — Store-validation-375.jpg
+- `2026-11-23T01:22:48Z` **code-reviewer** — F-001 verified: shell.flashSaved removed; Saved driven by tracked setItem success (main.ts tracked storage), Not saved chip+toast when storage null; 'Saved.' dropped from store toast; e2e [F-001] instruments.spec.ts:213
+- `2026-11-23T01:22:48Z` **code-reviewer** — F-002 verified: HEX_COLOUR in validateDoc + graph #checkPerspective; probe: CSS-payload accent rejected on import and updatePerspective; U-persistence-5/11, U-graph-11
+- `2026-11-23T01:22:48Z` **code-reviewer** — F-003 verified: importText validates, then confirm Cancel/Export first/Replace before graph.load (app.ts importText); e2e instruments.spec.ts:170
+- `2026-11-23T01:22:48Z` **code-reviewer** — F-004 verified: main.ts copies raw text to constellation.memory.v1.unreadable before autosave, persistent toast with 'Download it' of raw text
+- `2026-11-23T01:22:48Z` **code-reviewer** — F-005 verified: main.ts keeps the stop fn; pagehide and visibilitychange->hidden flush then restart autosave
+- `2026-11-23T01:22:48Z` **code-reviewer** — F-006 verified: nodeCopy now carries units; per-lens positions restored on undo (app.ts remove)
+- `2026-11-23T01:22:48Z` **code-reviewer** — F-007 verified: learnShortcutDetailed: lens-only shortcut widened, previous returned; probe: outcome widened, cook 3->1 hop; app.learn undo restores previous.perspectives, no undo/no 'Learned' when existing; U-routing-10/11
+- `2026-11-23T01:22:48Z` **code-reviewer** — F-008 verified: tokenizer rejects non-finite literals; probe: 'That number is too large to keep at column 1'; U-expr-2
+- `2026-11-23T01:22:48Z` **code-reviewer** — F-009 verified: maxSteps non-finite -> 500, clamp [1,100000]; probe NaN run ended normally; U-flow-8
+- `2026-11-23T01:22:48Z` **code-reviewer** — F-010 verified: canon copies use Object.fromEntries; probe3: __proto__ position kept on import and export round-trip; U-persistence-12
+- `2026-11-23T01:22:48Z` **code-reviewer** — F-011 verified: Sprite/Edge ensure() capture old arrays and .set() them into grown buffers (layers.ts:288,464)
+- `2026-11-23T01:22:49Z` **code-reviewer** — F-012 verified: copy now 'Try the featured route'; findByLabel('Memory') replaced by app.hub() (most connected); scene root removed
+- `2026-11-23T01:22:49Z` **code-reviewer** — F-013 verified: widths cleared when size > 2000 (overlay.ts:94)

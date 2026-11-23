@@ -3,7 +3,7 @@
 VERDICT: PASS WITH FINDINGS
 
 ## Scope reviewed
-`projects/constellation/src/core/*` (expr, flow, persistence, graph, internal, perspectives, routing, retrieval), `src/ui/*` (app, shell, dom, toasts, store, inspector, drawer, scene), `src/view/{layers,overlay}.ts` plus renderer setScene/dispose, `src/main.ts`, and `tests/unit/*` (the e2e specs were sampled). Read against plan.md WO-002/WO-003 acceptance.
+`projects/constellation/src/core/*`, `src/ui/*`, `src/view/{layers,overlay}.ts` plus renderer setScene/dispose, `src/main.ts`, and `tests/unit/*` (e2e sampled), read against the plan.md WO-002/WO-003 acceptance.
 
 ## Method
 - I read the priority files line by line.
@@ -14,7 +14,7 @@ VERDICT: PASS WITH FINDINGS
   - A CSS-payload `accent`: accepted.
   - A lens-hidden shortcut: `learnShortcut` returned it, and cook still routes 3 hops.
 - `npm run -s test:unit`: `# pass 80 # fail 0 # skipped 0`.
-- I scanned the tests for assertion-free cases. The only hit (U-expr-5) asserts through a helper.
+- Scanned the tests for assertion-free cases. None found.
 
 ## Findings filed
 | ID | Sev | Title | Where |
@@ -43,16 +43,18 @@ VERDICT: PASS WITH FINDINGS
 - **Renderer lifecycle.** Layers are allocated once and reused, with power-of-two growth. `dispose()` releases every geometry and material and removes the canvas and window listeners. Panel re-renders discard their old nodes, so no listeners accumulate.
 - **No fakes.** There are no TODO/FIXME/lorem hits. `notImplemented` survives only in frozen `errors.ts` and is unused. Product code holds no hard-coded seed answers. Results come from `runPathway`/`compareRoutes`.
 
-## Strengths worth keeping
-- Canonical-copy helpers make export and import deep-equal by construction.
-- Frozen snapshots in the store, and an event `previous` that never mutates.
-- Error copy that names the step and the missing thing.
-- The probe-free unit suite tests behaviour, not implementation.
-
 ## Overall assessment
-The core is careful and safe. I found no S0, no XSS, and no expression escape. The defects cluster in persistence honesty at the UI seam:
-- The UI claims "Saved" without knowing (F-001).
-- Three paths can lose a user's memory silently or by one click (F-003, F-004, F-005).
-- One hostile-import vector (F-002).
+The core is careful and safe: no S0, no XSS, no expression escape. The defects sat in save honesty and data-loss paths (F-001, F-003 to F-005), plus one hostile-import vector (F-002).
 
-Fix F-001 through F-007 before ship. The S3s are polish.
+## r1 verification (HEAD 6937c71)
+All 13 findings are **verified**. I checked them against `git diff 1df927a..6937c71`, scratchpad probes `probe2.ts`/`probe3.ts` and `npm run -s test:unit` (`# pass 85 # fail 0`).
+- **F-001:** the "Saved" chip now appears only after a write the browser accepted. Blocked storage shows "Not saved" with a toast (e2e `[F-001]`).
+- **F-002:** accents must be hex colours, both on import and in the graph. The CSS payload is now rejected (probe).
+- **F-003:** import now asks Cancel / Export first / Replace before replacing.
+- **F-004:** an unreadable save is set aside under `.unreadable` and can be downloaded.
+- **F-005:** pending edits are saved when the page is hidden or closed.
+- **F-006:** Undo of Delete restores units and positions.
+- **F-007:** a lens-only shortcut is widened to every lens, and Undo puts back its old lenses. The probe goes from 3 hops to 1 under cook.
+- **F-008/F-009:** oversized literals are rejected, and the step guard can no longer be switched off (probe).
+- **F-010:** a `__proto__` position survives import and export (probe3). My r1 probe for this was itself faulty because it wrote a duplicate key. The finding still held, and the fix is confirmed.
+- **F-011–F-013:** the layers keep their data when they grow, the seed-specific copy is gone, and the width cache is capped.
