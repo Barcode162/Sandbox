@@ -12,7 +12,9 @@
     "ship": 1
   },
   "gates": {},
-  "headcount": {},
+  "headcount": {
+    "code-reviewer": 1
+  },
   "levers": [],
   "history": [
     {
@@ -28,5 +30,5 @@
       "at": "2026-11-23T05:21:37Z"
     }
   ],
-  "updated": "2026-11-23T05:21:37Z"
+  "updated": "2026-11-23T05:21:41Z"
 }
