@@ -36,7 +36,7 @@ kbd { font: 500 var(--fs-11) / 1 var(--font-mono); color: var(--ink-dim); }
 #stage .overlay-layer { z-index: 1; contain: strict; }
 
 .lbl, .chip, .flowchip, .condchip, .badge, .trailchip, .readchip {
-  position: absolute; left: 0; top: 0; white-space: nowrap; will-change: transform, opacity;
+  position: absolute; left: 0; top: 0; white-space: nowrap;
   opacity: 0; transition: opacity 120ms linear;
 }
 .lbl.on, .chip.on, .flowchip.on, .condchip.on, .badge.on, .trailchip.on, .readchip.on { opacity: var(--o, 1); transition-duration: 160ms; }
@@ -190,6 +190,8 @@ body.show-tools .lenses, body.show-tools .tools { opacity: 1; transform: none; t
 .panel-head { display: flex; align-items: center; gap: var(--s2); padding: var(--s3) var(--s3) 0 var(--s4); }
 .panel-body { padding: var(--s4); overflow: auto; display: flex; flex-direction: column; gap: var(--s4); scrollbar-width: thin; scrollbar-color: var(--hairline-strong) transparent; }
 .panel-head .close { margin-left: auto; }
+.insp { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; }
+.drawer > .panel-body, .insp > .panel-body { min-height: 0; flex: 1 1 auto; }
 .handle { display: none; }
 
 .tabs { display: flex; gap: 2px; }

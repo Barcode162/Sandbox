@@ -245,7 +245,8 @@ test('[E5] store + find: store Tea, link it to Temperature, reload, search finds
   await expect(page.locator('.toast', { hasText: 'Welcome back. 89 lights. The 1 you stored is where you left it.' })).toBeVisible({ timeout: 6000 });
   await page.keyboard.press('/');
   await page.keyboard.type('tea');
-  await page.waitForFunction(() => window.__constellation!.state!().activationCounts?.[0] === 1);
+  // "tea" is also inside "Steam" (substring match), so Tea is one of the depth-0 matches.
+  await page.waitForFunction(() => (window.__constellation!.state!().activationCounts?.[0] ?? 0) >= 1);
   await expect(page.locator('#drawer .rlist button', { hasText: /^Tea$/ })).toBeVisible();
   await page.locator('#drawer .rlist button', { hasText: /^Tea$/ }).click();
   await expect(page.locator('#inspector h2')).toHaveText('Tea');

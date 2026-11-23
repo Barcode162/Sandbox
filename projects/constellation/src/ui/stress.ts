@@ -42,16 +42,34 @@ export function stressDoc(count: number): MemoryDoc {
     add(i, sameCluster);
     if (rnd() < 0.5) add(i, Math.floor(rnd() * n), rnd() < 0.3 ? ['b'] : undefined);
   }
+  // Authored positions at the seed's scale: eight cluster islands per lens, so 500 points read
+  // as a sky (and measure the renderer), not a packed hairball.
+  const positions = (spread: number) => {
+    const out: Record<string, { x: number; y: number; z: number }> = {};
+    for (let i = 0; i < n; i++) {
+      const c = i % clusters;
+      const a = (c / clusters) * Math.PI * 2 + spread;
+      const anchor = { x: Math.cos(a) * 170, y: Math.sin(a * 1.7) * 70, z: Math.sin(a) * 120 };
+      const u = rnd() * 2 - 1;
+      const th = rnd() * Math.PI * 2;
+      const rr = 42 * Math.cbrt(rnd());
+      const k = Math.sqrt(1 - u * u);
+      out[`s${i}`] = { x: round(anchor.x + Math.cos(th) * k * rr), y: round(anchor.y + u * rr), z: round(anchor.z + Math.sin(th) * k * rr) };
+    }
+    return out;
+  };
   return {
     schema: SCHEMA_ID,
     version: SCHEMA_VERSION,
     meta: { title: `Stress: ${n} points`, defaultPerspective: 'a' },
     perspectives: [
-      { id: 'a', label: 'Lens A', accent: '#FF9F5A' },
-      { id: 'b', label: 'Lens B', accent: '#6FD3FF' },
-      { id: 'c', label: 'Lens C', accent: '#FF7EC8' },
+      { id: 'a', label: 'Lens A', accent: '#FF9F5A', positions: positions(0) },
+      { id: 'b', label: 'Lens B', accent: '#6FD3FF', positions: positions(0.6) },
+      { id: 'c', label: 'Lens C', accent: '#FF7EC8', positions: positions(1.2) },
     ],
     nodes,
     relations,
   };
 }
+
+const round = (v: number) => Math.round(v * 100) / 100;

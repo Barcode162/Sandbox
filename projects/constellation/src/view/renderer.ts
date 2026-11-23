@@ -22,9 +22,15 @@ import { clamp, createClock, easeBack, easeInOut, easeOut, easeSine, hash01, ler
 import { Overlay, type OverlayItem } from './overlay.ts';
 
 type RGB = [number, number, number];
+/** sRGB 0..1 straight from the token (three's Color would convert to linear; our shaders output sRGB as-is). */
 const hex = (h: string): RGB => {
-  const c = new Color(h);
-  return [c.r, c.g, c.b];
+  const m = /^#?([0-9a-f]{6})$/i.exec(h.trim());
+  if (!m) {
+    const c = new Color().setStyle(h);
+    return [c.r, c.g, c.b];
+  }
+  const n = parseInt(m[1]!, 16);
+  return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
 };
 const mix = (a: RGB, b: RGB, u: number): RGB => [lerp(a[0], b[0], u), lerp(a[1], b[1], u), lerp(a[2], b[2], u)];
 const toCss = (c: RGB) => `rgb(${Math.round(c[0] * 255)}, ${Math.round(c[1] * 255)}, ${Math.round(c[2] * 255)})`;
@@ -151,7 +157,8 @@ interface Playback {
 }
 
 export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => {
-  const gl = new WebGLRenderer({ antialias: true, powerPreference: 'high-performance', alpha: false });
+  // SDF shaders anti-alias themselves; MSAA would only cost fill rate.
+  const gl = new WebGLRenderer({ antialias: false, powerPreference: 'high-performance', alpha: false });
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   gl.setPixelRatio(dpr);
   gl.setClearColor(new Color(0x000000), 1);
@@ -1105,7 +1112,8 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
         const lit = da !== undefined && db !== undefined ? Math.max(0.3, Math.pow(0.55, Math.max(da, db))) * 2.2 : 0.04 / Math.max(0.01, st.alpha);
         alpha *= lerp(1, Math.min(lit, 3), activationFade);
       }
-      if (routeMix > 0) alpha *= lerp(1, 0.25, routeMix);
+      // Lines on the lit route (and the freshly learned shortcut) stay bright; the rest of the sky dims.
+      if (routeMix > 0 && !(trailNodes.has(e.from) && trailNodes.has(e.to))) alpha *= lerp(1, 0.25, routeMix);
       if (hovered && hoverMix > 0) {
         const touches = e.from === hovered || e.to === hovered;
         alpha = touches ? lerp(alpha, 0.5, hoverMix) : alpha * lerp(1, 0.55, hoverMix);
@@ -1363,7 +1371,7 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
             offset: 0,
             anchors: [Math.cos(ang) < 0 ? 'left' : 'right', 'below', 'center'],
             priority: 85 - i * 0.1 + (n.id === selected ? 10 : 0),
-            opacity: op,
+            opacity: Math.max(op, 0.85),
             color: toCss(lensOf(g.perspective)),
           });
         });
@@ -1377,7 +1385,7 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
             offset: 0,
             anchors: ['above', 'center'],
             priority: 86,
-            opacity: op,
+            opacity: Math.max(op, 0.85),
             color: lensCss,
           });
         }
@@ -1431,7 +1439,8 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
     }
     const cores: Array<{ x: number; y: number; r: number }> = [];
     for (const n of order) if (n.onScreen && n.bright > 0.1) cores.push({ x: n.sx, y: n.sy, r: (n.id === selected ? Math.max(n.pxR * 2.4, n.pxR + 7) : Math.max(3, n.pxR * (n.data.kind === 'pathway' ? 1.5 : 1))) + 1 });
-    overlay.place(items, cap, width, height, cores);
+    // Keep labels below the top bar (56 px; 100 px with the 375 lens row).
+    overlay.place(items, cap, width, height, cores, width < 768 ? 104 : 60);
   }
 
   // ── Public surface ───────────────────────────────────────────────────────────────

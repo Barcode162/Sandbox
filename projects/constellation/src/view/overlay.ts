@@ -94,7 +94,7 @@ export class Overlay {
   }
 
   /** Greedy placement; `labelCap` limits items with isLabel. `obstacles` (node cores) block labels too. */
-  place(items: OverlayItem[], labelCap: number, vw: number, vh: number, obstacles: Array<{ x: number; y: number; r: number }> = []): void {
+  place(items: OverlayItem[], labelCap: number, vw: number, vh: number, obstacles: Array<{ x: number; y: number; r: number }> = [], minY = 2): void {
     this.frame++;
     items.sort((a, b) => b.priority - a.priority);
     const placed: PlacedRect[] = [];
@@ -119,7 +119,7 @@ export class Overlay {
       let spot: { x: number; y: number } | null = null;
       for (const a of it.anchors) {
         const p = anchorAt(a, it.x, it.y, it.offset, w, h);
-        if (p.x < 2 || p.y < 2 || p.x + w > vw - 2 || p.y + h > vh - 2) continue;
+        if (p.x < 2 || p.y < minY || p.x + w > vw - 2 || p.y + h > vh - 2) continue;
         if (!it.force && overlaps(p.x, p.y, w, h)) continue;
         spot = p;
         break;
