@@ -87,8 +87,8 @@ export const CRYSTALS = [
     care: 'Keep out of strong sunlight. Rinse with water.',
     prices: { bag: 1400, big: 3600, jar: 8500 },
     photos: ['rose-quartz', 'rose-quartz-2'],
-    focus: '40% 60%',
-    zoom: 1.15,
+    focus: '55% 62%',
+    zoom: 1.5,
     alt: 'A rough chunk of soft pink rose quartz',
   },
   {
@@ -132,8 +132,8 @@ export const CRYSTALS = [
     care: 'Brush off dust with a dry cloth; it can be brittle along its lines.',
     prices: { bag: 1500, big: 3800, jar: 9000 },
     photos: ['black-tourmaline'],
-    focus: '50% 80%',
-    zoom: 1.9,
+    focus: '55% 66%',
+    zoom: 2.4,
     alt: 'A black tourmaline crystal set in grey rock',
   },
   {
@@ -207,8 +207,8 @@ export const CRYSTALS = [
     care: 'Wipe with a dry or barely damp cloth; avoid soaking.',
     prices: { bag: 2200, big: 7500, jar: 16000 },
     photos: ['lapis-lazuli', 'lapis-lazuli-2'],
-    focus: '60% 55%',
-    zoom: 1.2,
+    focus: '60% 60%',
+    zoom: 1.3,
     alt: 'Deep blue lapis lazuli flecked with gold',
   },
   {
@@ -239,7 +239,7 @@ export function img(id, size = 480) {
 
 /** Crop style for a crystal's photo: where to centre it, and how far to zoom in. */
 export function photoStyle(c) {
-  return `object-position:${c.focus};--zoom:${c.zoom ?? 1}`;
+  return `object-position:${c.focus};transform-origin:${c.focus};--zoom:${c.zoom ?? 1}`;
 }
 
 export function fromPrice(c) {
