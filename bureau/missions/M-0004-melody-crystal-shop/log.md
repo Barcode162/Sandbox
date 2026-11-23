@@ -7,3 +7,5 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-23T22:42:16Z` **ceo** — Convened 1× experience-designer
 - `2026-11-23T23:14:31Z` **ceo** — Build done by CEO (assets: 23 Commons photos; site; verify green: static + 8 unit + 43 e2e incl. axe). Photo-filled SVG scenes for bag/jar formats.
 - `2026-11-23T23:14:31Z` **ceo** — Phase intake → **review**
+- `2026-11-23T23:14:53Z` **ceo** — Convened 1× code-reviewer
+- `2026-11-23T23:14:53Z` **ceo** — Convened 1× polish-critic

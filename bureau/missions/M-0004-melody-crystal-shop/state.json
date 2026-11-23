@@ -13,7 +13,9 @@
   },
   "gates": {},
   "headcount": {
-    "experience-designer": 1
+    "experience-designer": 1,
+    "code-reviewer": 1,
+    "polish-critic": 1
   },
   "levers": [
     "polish"
@@ -28,5 +30,5 @@
       "at": "2026-11-23T23:14:31Z"
     }
   ],
-  "updated": "2026-11-23T23:14:31Z"
+  "updated": "2026-11-23T23:14:53Z"
 }
