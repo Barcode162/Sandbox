@@ -17,13 +17,9 @@ I checked dcab0bf from a clean `git archive` export on port 4197, using frame bu
 | F-013 | **REOPENED** for (b) only | 04 |
 | F-014 | VERIFIED. 4.7 KB gzip is under the brief's 10 KB | wc |
 
-**F-009.** It is one pass now, about 350 ms, but two problems remain:
-- The leavers vanish with no 120 ms fade, so Amethyst sits alone for about 50 ms.
-- Newcomers fade into column 2 while Amethyst is still sliding through it. Smoky Quartz overlaps it at 234 ms at 1440, and at 375 the names and prices print over each other at 114 ms.
+**F-009.** Leavers vanish unfaded, and newcomers fade into column 2 while Amethyst still slides through it; at 375 the names print over each other at 114 ms.
 
-Fix: delay newcomers about 200 ms, give movers z-index 1, and restore the leaver fade.
-
-**F-013.** (a) cooldown, (c) ring, (d) undo slide and (e) feathered veil are fixed. (b) is not: the badge reads "1" at 4 ms and only the bump waits for landing at 625 ms, because `bag:change` repaints the count before `flying` is set.
+**F-013.** Four of five fixed. (b) is not: the badge reads "1" at 4 ms, before landing.
 
 ## New (S3)
 - **F-016.** An instant jump to the grid batches the head, chips and cards together. Because the 8-item cap is global, the cards get no stagger and all 8 glint at once. Count the cap per `[data-stagger]` parent.
@@ -34,3 +30,12 @@ Fix: delay newcomers about 200 ms, give movers z-index 1, and restore the leaver
 
 ## Judgement
 Motion now plays where it should, and it feels premium and calm. What remains: the Sleep collision (worth fixing before the Board), the early badge number, and the instant-jump flash.
+
+## Round 3 (ac7df20)
+All four fixes verified:
+- **F-009:** no overlap at 375; at 1440 a diagonal slider crosses a corner for about 100 ms at z-index 1, which reads as intended (r3-01, r3-02).
+- **F-013:** the badge waits for landing, at 627 ms (r3-03).
+- **F-016:** per-group stagger, 0–420 ms.
+- **F-017:** the 375 chip row is fully visible.
+
+Nothing is open from polish-critic.

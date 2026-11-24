@@ -62,3 +62,10 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-24T04:23:27Z` **ceo** — F-013 resolved: flying is set before bag.add, so the bag:change paint is skipped; the count appears at landing; e2e asserts .bag-count hidden while .flyer is in the air
 - `2026-11-24T04:23:27Z` **ceo** — F-016 resolved: flush() indexes and caps the stagger per [data-stagger] parent; an instant jump ripples each group from 0
 - `2026-11-24T04:23:27Z` **ceo** — F-017 resolved: chip row reveals as one unit (data-reveal on .chips, no per-chip stagger), so off-screen chips are never hidden
+- `2026-11-24T04:24:52Z` **polish-critic** — F-009 verified: ac7df20: 375 is clean. Leavers fade by 192 ms, Amethyst slides to col 1, and Smoky Quartz rises at 361–431 ms with no overlap. At 1440, Smoky Quartz slides diagonally over Amethyst's corner for ~100 ms at z-index 1, which reads as a card passing over, not a collision. bureau/missions/M-0005-melody-motion/evidence/polish-r2/02-sleep-flip-375.jpg -> bureau/missions/M-0005-melody-motion/evidence/polish-r2/r3-02-sleep-375.jpg; bureau/missions/M-0005-melody-motion/evidence/polish-r2/r3-01-sleep-1440.jpg
+- `2026-11-24T04:24:52Z` **polish-critic** — F-013 verified: (b) fixed: the badge is hidden at 2 ms and shows '1' with its bump at 627 ms, on landing (probe p14). Frames: icon bare at 25–262 ms, clone over the bag at 412 ms. bureau/missions/M-0005-melody-motion/evidence/polish-r2/r3-03-badge-landing-1440.jpg
+- `2026-11-24T04:24:52Z` **polish-critic** — F-016 verified: Instant jump to the grid: the 8 cards get --d 0..420 ms in one flush (was all 0 ms), so the glint ripples instead of flashing. Probe p12.
+- `2026-11-24T04:24:52Z` **polish-critic** — F-017 verified: 375: all 11 chips are visible (opacity 1, row revealed as one unit); Sleep opacity 1 before and through the filter. Probe p17.
+- `2026-11-24T04:25:07Z` **ceo** — Phase review → **remediation**
+- `2026-11-24T04:25:07Z` **ceo** — Phase remediation → **ship-review**
+- `2026-11-24T04:25:07Z` **ceo** — Convened 1× director-vision — resumed M-0004 director
