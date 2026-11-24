@@ -558,6 +558,7 @@ html.motion-ready .footer-grid > .footer-small { opacity: 1; transform: none; }
   background: linear-gradient(105deg, rgba(255,246,228,0) 0%, rgba(255,246,228,0) 18%, rgba(255,246,228,.10) 32%, rgba(255,250,240,.55) 48%, rgba(255,255,255,.75) 50%, rgba(255,250,240,.55) 52%, rgba(255,246,228,.10) 68%, rgba(255,246,228,0) 82%, rgba(255,246,228,0) 100%); }
 :root[data-theme='dark'] .glint { filter: opacity(.8); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .glint { filter: opacity(.8); } }
+.frame[data-pale] .glint { mix-blend-mode: normal; filter: drop-shadow(0 0 6px rgba(255,255,255,.6)); background: linear-gradient(105deg, rgba(255,255,255,0) 18%, rgba(255,255,255,.35) 40%, rgba(255,255,255,.95) 50%, rgba(255,255,255,.35) 60%, rgba(255,255,255,0) 82%); }
 .seal-wrap { position: relative; display: inline-grid; place-items: center; overflow: visible; }
 .seal-wrap .glint { border-radius: 50%; }
 .seal-clip { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; }

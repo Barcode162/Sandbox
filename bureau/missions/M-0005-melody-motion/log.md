@@ -69,3 +69,8 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-24T04:25:07Z` **ceo** — Phase review → **remediation**
 - `2026-11-24T04:25:07Z` **ceo** — Phase remediation → **ship-review**
 - `2026-11-24T04:25:07Z` **ceo** — Convened 1× director-vision — resumed M-0004 director
+- `2026-11-24T04:28:17Z` **director-vision** — ship gate r1: APPROVE (8.5)
+- `2026-11-24T04:30:12Z` **ceo** — ship gate PASSED (round 1)
+- `2026-11-24T04:30:12Z` **ceo** — Ship PASS (director-vision APPROVE 8.5). Conditions applied: pale-stone glint (data-pale, normal blend), noscript line in #shop, README test count 69 + Motion section.
+- `2026-11-24T04:30:12Z` **ceo** — Phase ship-review → **delivery**
+- `2026-11-24T04:30:13Z` **ceo** — Phase delivery → **retro**

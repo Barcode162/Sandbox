@@ -22,7 +22,7 @@ Node 22+ is only needed for the dev server and tests. The site itself is plain H
 
 ```bash
 npm install
-npm run verify       # catalogue check + 9 unit tests + 50 Playwright tests (flows, axe a11y, 375–1920 px)
+npm run verify       # catalogue check + 9 unit tests + 69 Playwright tests (flows, motion, axe a11y, 375–1920 px)
 ```
 
 ## Pages
@@ -35,6 +35,17 @@ npm run verify       # catalogue check + 9 unit tests + 50 Playwright tests (flo
 | `credits.html` | Photographer and licence for every photo |
 
 The bag slides out from every page and is saved in the browser. Light and dark themes, keyboard support, and reduced motion are all handled.
+
+## Motion
+
+Everything moves, gently (mission M-0005):
+- **Light catches the crystal:** a warm streak of light sweeps each photo when it appears, on hover, when you pick a format, and across the order seal. The hero photos shimmer softly every 7 seconds.
+- Sections, cards and rows **rise into view** as you scroll, once. Content is never hidden: without JavaScript, if the observer fails (3 s failsafe), or at the end of the page.
+- **Add to bag:** the photo flies to the bag, the drawer slides in, and the badge bumps when it lands. Prices, quantities and totals **roll** to their new values.
+- Checkout steps rise in, step numbers turn brass when complete, mistakes **shake once**, and the confirmation ends with a small **sparkle**.
+- Everything respects the visitor's **reduced motion** setting (instant, no flights, glints or sparkles).
+
+All of it lives in `site/js/motion.js` (no dependencies) and the "Motion" section of `site/css/styles.css`.
 
 ## Changing prices, stones and copy
 

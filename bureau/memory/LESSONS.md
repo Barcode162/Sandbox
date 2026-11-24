@@ -48,3 +48,7 @@ Assertion helpers must fail when their inputs are missing (no badge, no rects ex
 ## L-0010 · 2026-11-23 · M-0004 · tags: interactive-web, assets, ceo
 
 Wikimedia Commons rate-limits cloud IPs: batch metadata in one API call (titles=A|B|… up to 50) and download thumbnails only at standard widths (330/500/960/1280); non-standard sizes or small originals trigger 429s with 600 s waits. Never let a drawn stand-in replace real photography in a product's main frame; put it in a small inset.
+
+## L-0011 · 2026-11-24 · M-0005 · tags: interactive-web, motion
+
+Scroll-reveal systems: make the failsafe conditional on the observer never firing; reveal everything when the page end is reached, because a negative bottom rootMargin leaves a dead zone; never stage honesty or legal copy; test reveal after the failsafe window and at page end at two viewports; when animating label bodies over visually hidden inputs, give the inputs a z-index.

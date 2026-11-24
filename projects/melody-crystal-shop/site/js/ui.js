@@ -117,7 +117,7 @@ export function formatScene(formatId, photoUrl, colour = '#b08a4a') {
 
 /** A photo inside the shared mat-and-frame treatment, with a named fallback. */
 export function framedPhoto(c, { size = 480, photo = c.photos[0], eager = false, cls = '' } = {}) {
-  return `<div class="frame ${cls}">
+  return `<div class="frame ${cls}"${c.pale ? ' data-pale' : ''}>
     <img src="${img(photo, size)}" alt="${esc(c.alt)}" style="${photoStyle(c)}" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async" width="${size}" height="${Math.round(size * 1.25)}">
     <span class="fallback" aria-hidden="true">${ICON.gem}${esc(c.name)}</span>
   </div>`;
