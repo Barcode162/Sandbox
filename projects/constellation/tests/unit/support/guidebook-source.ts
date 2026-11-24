@@ -70,7 +70,7 @@ note('g-search', 'Try: ask by a word', 'guide',
 note('g-neighbours', 'Try: ask by neighbourhood', 'guide',
   'Click a light and look at what is lit around it. Click Sam to see everything Sam touches: the project, a meeting, a birthday, a client. Click Files to see every file in this memory. Neighbourhood answers "what goes with this?" when you do not know what to search for.');
 note('g-route', 'Try: find how two things connect', 'guide',
-  'Press R and route from Idea to Launch. The declared timeline walks all 13 steps; today the memory finds a 3-step shortcut through Garden app and its client, the Riverside Co-op. Press 2 and try again: last year there was no client, so the best route is much longer. Then try Passport to Trip to Lisbon, or Bug #42 to Weekly users. A route answers "how is this related to that?" Learn shortcut keeps the short way as a new line.');
+  'Press R and route from Idea to Launch. The declared timeline walks all 13 steps; today the memory finds a 3-step shortcut through Garden app and its client, the Riverside Co-op. Press 2 and try again: last year there was no client, so the best route is much longer. Then try Sam to Tax return (the money trail runs through an invoice), or Work laptop to Trip to Lisbon (the handbook decides the leave days). A route answers "how is this related to that?" Learn shortcut keeps the short way as a new line.');
 note('g-lens', 'Try: look from another time', 'guide',
   'Press 1 (Today), 2 (Last year), 3 (Next year). Rent, savings, the tax rate, the project status and who Sam is all change. Lights that disagree across time show small ghosts with the other values. Some lines only exist in some years: last year Sam had not met the Riverside Co-op yet, so the Idea → Launch route is longer.');
 note('g-path', 'Try: compute an answer', 'guide',
@@ -78,7 +78,7 @@ note('g-path', 'Try: compute an answer', 'guide',
 note('g-store', 'Try: store your own', 'guide',
   'Press N. Give it a name, a value, maybe a different value per lens, and link it to something already here. Useful first things to store: where you keep a document, a person and how you know them, a project and its next step, a file path, a number you keep looking up. Never store a password itself — store where it lives.');
 note('g-questions', 'Questions this memory can answer', 'guide',
-  'Where is my lease? (search lease) · What costs me money every month? (search monthly, or click Money) · Who is involved in Garden app? (click Garden app) · What was the tax rate last year? (press 2, search tax) · What do I need before the trip? (route Passport → Trip to Lisbon) · What breaks if taxPct changes? (click taxPct, look at checkout) · What should I do about Bug #42? (click it; read its neighbours)');
+  'Where is my lease? (search lease) · What costs me money every month? (search monthly, or click Money) · Who is involved in Garden app? (click Garden app) · What was the tax rate last year? (press 2, search tax) · What do I need before the trip? (click Trip to Lisbon; read its neighbours) · How does my job affect the trip? (route Work laptop → Trip to Lisbon) · What breaks if taxPct changes? (click taxPct, look at checkout) · What should I do about Bug #42? (click it; read its neighbours)');
 note('g-patterns', 'Five ways to get things back', 'guide',
   '1 By word: search. 2 By neighbourhood: click and look around. 3 By connection: route between two things. 4 By time or viewpoint: switch the lens and watch values change. 5 By computing: run a pathway that reads values and decides. Most real questions mix two of these.');
 for (const g of ['g-search', 'g-neighbours', 'g-route', 'g-lens', 'g-path', 'g-store', 'g-questions', 'g-patterns']) rel('guide', 'g-start', g, 'part-of');
@@ -147,7 +147,7 @@ thing('domain', 'gardenapp domain', 'project', 'Renews every Oct', { tags: ['gar
 file('checkout-js', 'checkout.js', 'code', { path: 'Projects/Garden/src/checkout.js', mime: 'text/javascript', content: 'total = cartTotal - cartTotal * discountPct / 100;\ntotal += total * taxPct / 100;\nif (!isMember) total += shippingFee;' }, 'Computes the order total', { tags: ['code', 'garden'] });
 variable('cart-total', 'cartTotal', 'code', 80, { facets: [80, 60, 100], units: { '*': 'USD' }, tags: ['code'] });
 variable('discount', 'discountPct', 'code', 10, { facets: [10, 0, 20], units: { '*': '%' }, tags: ['code', 'money'] });
-variable('tax-pct', 'taxPct', 'code', 5, { facets: [5, 5, 8], units: { '*': '%' }, notes: 'Changes by law; next year it goes up.', tags: ['code', 'tax', 'money'] });
+variable('tax-pct', 'taxPct', 'code', 5, { facets: [5, 4, 8], units: { '*': '%' }, notes: 'Changes by law; next year it goes up.', tags: ['code', 'tax', 'money'] });
 variable('is-member', 'isMember', 'code', true, { facets: [true, false, true], tags: ['code'] });
 variable('shipping', 'shippingFee', 'code', 7, { facets: [7, 7, 5], units: { '*': 'USD' }, tags: ['code', 'money'] });
 file('config-json', 'config.json', 'code', { path: 'Projects/Garden/config.json', mime: 'application/json', content: '{ "taxPct": 5, "shippingFee": 7, "currency": "USD" }' }, 'Shop settings', { tags: ['code'] });
@@ -241,15 +241,17 @@ step('c7', 'end: add shipping', 'checkout', { op: 'end', expr: '"Guest pays " + 
 
 // ── Relations ───────────────────────────────────────────────────────────────────────────
 // Guide → the things each "Try" points at
-rel('guide', 'g-search', 'tax-return', 'references');
-rel('guide', 'g-neighbours', 'sam', 'references');
-rel('guide', 'g-neighbours', 'files', 'references');
-rel('guide', 'g-route', 't-idea', 'references');
-rel('guide', 'g-lens', 'rent', 'references');
-rel('guide', 'g-path', 'a1', 'references');
-rel('guide', 'g-store', 'home', 'references');
-rel('guide', 'g-questions', 'lease', 'references');
-rel('guide', 'g-patterns', 'money', 'references');
+// Guide pointers are weak (cost 4 per hop) so routes go through real things, not the guide.
+const GUIDE_W = 0.25;
+rel('guide', 'g-search', 'tax-return', 'references', undefined, GUIDE_W);
+rel('guide', 'g-neighbours', 'sam', 'references', undefined, GUIDE_W);
+rel('guide', 'g-neighbours', 'files', 'references', undefined, GUIDE_W);
+rel('guide', 'g-route', 't-idea', 'references', undefined, GUIDE_W);
+rel('guide', 'g-lens', 'rent', 'references', undefined, GUIDE_W);
+rel('guide', 'g-path', 'a1', 'references', undefined, GUIDE_W);
+rel('guide', 'g-store', 'home', 'references', undefined, GUIDE_W);
+rel('guide', 'g-questions', 'lease', 'references', undefined, GUIDE_W);
+rel('guide', 'g-patterns', 'money', 'references', undefined, GUIDE_W);
 // Home
 for (const id of ['rent', 'lease', 'internet', 'wifi', 'spare-key', 'basil', 'groceries', 'desk-drawer']) rel('home', id, 'home', 'part-of');
 rel('home', 'lease', 'rent', 'relates');
@@ -370,7 +372,8 @@ rel('travel', 'alfama', 'mom', 'relates');
 rel('travel', 'phrase', 'portuguese', 'part-of');
 rel('travel', 'phrase', 'itinerary', 'relates');
 // Files hub: every file is-a File
-for (const n of nodes) if (n.kind === 'file') rel('file', n.id, 'files', 'is-a');
+// The Files hub gathers every file for neighbourhood browsing; weak, so it is not a route shortcut.
+for (const n of nodes) if (n.kind === 'file') rel('file', n.id, 'files', 'is-a', undefined, 0.25);
 // Timeline: 13 declared hops, then the shortcuts that make it short
 for (let i = 0; i < TIMELINE.length - 1; i++) rel('road', TIMELINE[i]![0], TIMELINE[i + 1]![0], 'next');
 rel('road', 't-idea', 'garden', 'relates');
@@ -425,11 +428,14 @@ function positionsFor(lens: Lens): Record<string, Vec3> {
   // Islands: a sunflower disc in the screen plane, slight depth jitter. The hub sits at the centre.
   const HUB: Partial<Record<Cluster, string>> = { guide: 'g-start', home: 'home', money: 'money', project: 'garden', code: 'checkout-js', files: 'files', people: 'birthdays', job: 'job', learning: 'learning', health: 'health', travel: 'itinerary' };
   for (const c of Object.keys(ISLANDS) as Array<keyof typeof ISLANDS>) {
-    const at = ISLANDS[c][lens];
+    // Island centres are spread ×1.4 around the middle so each cluster reads as its own island (M-0003 F-002).
+    const raw = ISLANDS[c][lens];
+    const at = { x: r1(raw.x * 1.4), y: r1(raw.y * 1.4), z: raw.z };
     const members = nodes.filter((n) => clusterOf.get(n.id) === c && n.id !== HUB[c]);
     const hub = HUB[c];
-    if (hub) out[hub] = at;
     const R = RADIUS[c];
+    // The hub crowns its island (just above the disc), so its name has open sky (M-0003 F-002).
+    if (hub) out[hub] = R ? { x: at.x, y: r1(at.y + R * 0.82 + 9), z: at.z } : at;
     members.forEach((n, i) => {
       const t = (i + 0.7) / members.length;
       const a = i * 2.39996 + hash(c + lens) * 6.28;
@@ -441,19 +447,20 @@ function positionsFor(lens: Lens): Record<string, Vec3> {
   const tilt = lens === 'last-year' ? 18 : lens === 'next-year' ? 6 : 10;
   TIMELINE.forEach(([id], i) => {
     const a = Math.PI * (1.08 + (0.84 * i) / (TIMELINE.length - 1));
-    out[id] = { x: r1(10 + Math.cos(a) * 92), y: r1(-112 - Math.sin(a) * 26), z: r1(Math.sin(a) * tilt) };
+    out[id] = { x: r1(10 + Math.cos(a) * 125), y: r1(-150 - Math.sin(a) * 34), z: r1(Math.sin(a) * tilt) };
   });
   // Pathways: vertical flowcharts, left to right under the money and project islands.
+  // Flowcharts sit 1.4× further out too, keeping their 11-unit step spacing.
   const column = (ids: string[], x: number, y: number, side: Record<string, number> = {}) =>
-    ids.forEach((id, i) => (out[id] = { x: x + (side[id] ?? 0), y: y - i * 11, z: 6 }));
+    ids.forEach((id, i) => (out[id] = { x: x * 1.4 + (side[id] ?? 0), y: y * 1.4 - i * 11, z: 6 }));
   column(['a1', 'a2', 'a3', 'a4', 'a5'], -128, -38, { a5: -14 });
-  out['a6'] = { x: -114, y: -82, z: 6 };
+  out['a6'] = { x: -128 * 1.4 + 14, y: -38 * 1.4 - 44, z: 6 };
   column(['m1', 'm2', 'm3', 'm4', 'm5', 'm6'], -86, -46, { m5: 14, m6: 14 });
-  out['m6'] = { x: -72, y: -101, z: 6 };
-  out['m5'] = { x: -72, y: -79, z: 6 };
-  out['m7'] = { x: -100, y: -101, z: 6 };
+  out['m6'] = { x: -86 * 1.4 + 14, y: -46 * 1.4 - 55, z: 6 };
+  out['m5'] = { x: -86 * 1.4 + 14, y: -46 * 1.4 - 33, z: 6 };
+  out['m7'] = { x: -86 * 1.4 - 14, y: -46 * 1.4 - 55, z: 6 };
   column(['c1', 'c2', 'c3', 'c4', 'c5', 'c6'], 128, -10, { c6: -14 });
-  out['c7'] = { x: 142, y: -65, z: 6 };
+  out['c7'] = { x: 128 * 1.4 + 14, y: -10 * 1.4 - 55, z: 6 };
   return out;
 }
 

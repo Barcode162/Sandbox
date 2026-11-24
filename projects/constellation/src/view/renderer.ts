@@ -586,6 +586,12 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
       const core = new Set<NodeId>();
       for (const n of nodes.values()) if (n.data.kind === 'pathway') core.add(n.id);
       for (const e of edges.values()) if (e.look === 'reads' && e.removing === NEVER) core.add(e.to);
+      // A large, many-island memory (the Guidebook: > 120 lights) shows every island instead, so no
+      // cluster starts off-screen; pinch or click to go close (M-0003 F-001).
+      if (nodes.size > 120) {
+        const all = bounding();
+        return { tx: all.c.x, ty: all.c.y, tz: all.c.z, dist: rig.fitDistance(all.R * 1.06), az: 0, el: (12 * Math.PI) / 180 };
+      }
       const { c, R } = core.size >= 3 ? bounding(core) : bounding(undefined, 0.45);
       return { tx: c.x, ty: c.y, tz: c.z, dist: rig.fitDistance(R * 1.08), az: 0, el: (12 * Math.PI) / 180 };
     }
@@ -1376,12 +1382,13 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
       if (hovered) chipNodes.add(hovered);
     }
     const clip = (t: string) => (t.length > 16 ? t.slice(0, 15).trimEnd() + '…' : t);
-    // The three most connected visible lights always get a name (F-031): they win priority among
-    // plain labels and may sit over neighbouring cores (never over text) when the cluster is dense.
+    // The most connected visible lights win priority among plain labels (F-031): the top 3, plus up
+    // to 10 when the memory has many islands (M-0003 F-002), so each island's hub is named. Only
+    // the top hub may, as a last resort, sit over a neighbouring core (never over text).
     const hubList = order
         .filter((n) => n.onScreen && n.dying === NEVER && n.bright >= 0.06 && n.data.kind !== 'pathway' && !n.road)
         .sort((a, b) => b.degree - a.degree)
-        .slice(0, 3)
+        .slice(0, order.length > 120 ? 10 : 3)
         .map((n) => n.id);
     const hubs = new Set(hubList);
     // Only the top hub may, as a last resort, cover a neighbouring core; the others drop out instead.

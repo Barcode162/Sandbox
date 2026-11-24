@@ -61,7 +61,7 @@ test('[U-guidebook-4] one rule, three truths: each pathway answers differently i
     'Book it: 3700 USD left after the trip.',
   ]);
   assert.deepEqual(run('m1'), ['Ready in 2 months, with 4900 USD saved.', 'Ready in 10 months, with 5100 USD saved.', 'Ready in 0 months, with 7000 USD saved.']);
-  assert.deepEqual(run('c1'), ['Member pays 75.6 USD, free shipping.', 'Guest pays 70 USD with shipping.', 'Member pays 86.4 USD, free shipping.']);
+  assert.deepEqual(run('c1'), ['Member pays 75.6 USD, free shipping.', 'Guest pays 69.4 USD with shipping.', 'Member pays 86.4 USD, free shipping.']);
 });
 
 test('[U-guidebook-5] every word the "Try: ask by a word" note suggests finds something, in every lens', () => {
@@ -78,13 +78,22 @@ test('[U-guidebook-5] every word the "Try: ask by a word" note suggests finds so
   }
 });
 
+test('[U-guidebook-7] the example routes the guide names go through real things, never through the guide or the Files hub', () => {
+  const g = graph();
+  for (const lens of GUIDE_LENSES) for (const [a, b] of [['sam', 'tax-return'], ['laptop', 'trip'], ['t-idea', 't-launch']] as const) {
+    const r = compareRoutes(g, a, b, { perspective: lens });
+    assert.ok(r.shortest && r.shortest.hops >= 3, `${a}→${b}@${lens}: ${r.shortest?.hops}`);
+    assert.ok(!r.shortest.nodes.some((id) => id.startsWith('g-') || id === 'files'), `${a}→${b}@${lens}: ${r.shortest.nodes.join(',')}`);
+  }
+});
+
 test('[U-guidebook-6] the time lenses disagree where the guide says they do', () => {
   const g = graph();
   const at = (id: string) => GUIDE_LENSES.map((l) => g.getNode(id)!.facets[l]);
   assert.deepEqual(at('rent'), [1200, 1150, 1260]);
   assert.deepEqual(at('sam'), ['Teammate on Garden app', 'Classmate from the night course', 'Co-founder']);
   assert.deepEqual(at('garden'), ['Prototype', 'Idea on a napkin', 'Launched to 3 co-ops']);
-  assert.deepEqual(at('tax-pct'), [5, 5, 8]);
+  assert.deepEqual(at('tax-pct'), [5, 4, 8]);
   // No secrets are stored: anything about passwords points to where they live instead.
   for (const n of g.nodes()) assert.ok(!/password\s*[:=]/i.test(`${n.value ?? ''} ${n.notes ?? ''}`), n.id);
 });

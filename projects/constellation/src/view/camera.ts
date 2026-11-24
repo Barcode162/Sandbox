@@ -6,7 +6,8 @@ import type { Insets } from './contracts.ts';
 import { clamp, easeInOut, lerp, range } from './motion.ts';
 
 export const MIN_DIST = 25;
-export const MAX_DIST = 520;
+// 1600 lets a narrow phone fit a many-island memory (the Guidebook) whole (M-0003 F-001).
+export const MAX_DIST = 1600;
 const VFOV = 45;
 const DEG = Math.PI / 180;
 

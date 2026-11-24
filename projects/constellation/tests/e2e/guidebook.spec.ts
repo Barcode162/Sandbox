@@ -60,3 +60,32 @@ test('[E8] Guidebook: open from the menu, read Start here, look from Last year, 
   await page.waitForTimeout(2600);
   await shot('G4-guidebook-route-1440');
 });
+
+test('[E8b] Guidebook at 375: Home frames every island, so no cluster starts off-screen (M-0003 F-001)', async ({ page, shot }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await open(page);
+  await page.locator('#menu-open').click();
+  await page.getByRole('menuitem', { name: 'Open the Guidebook example' }).click();
+  await page.locator('dialog.confirm').getByRole('button', { name: 'Replace' }).click();
+  await idle(page);
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  await page.keyboard.press('Home');
+  await idle(page);
+  await page.waitForTimeout(1200);
+  await frames(page, 3);
+  await shot('G5-guidebook-375');
+  // Every island hub is on screen.
+  for (const label of ['Health', 'Day job', 'checkout.js', 'Learning', 'Home', 'Money', 'Garden app', 'Launch']) {
+    const p = await page.evaluate((l) => {
+      const h = window.__constellation!;
+      return h.screenPosition(h.nodeIdByLabel(l)!);
+    }, label);
+    expect(p, label).not.toBeNull();
+    expect(p!.x, label).toBeGreaterThanOrEqual(0);
+    expect(p!.x, label).toBeLessThanOrEqual(375);
+    expect(p!.y, label).toBeGreaterThanOrEqual(0);
+    expect(p!.y, label).toBeLessThanOrEqual(812);
+  }
+  await shot('G5-guidebook-375');
+});
