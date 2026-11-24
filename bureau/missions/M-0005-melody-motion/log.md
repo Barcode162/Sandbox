@@ -8,3 +8,5 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-24T00:13:17Z` **ceo** — Intake: tier 2 + polish. CEO builds on frozen site (M-0004 precedent). Republish pre-approved by Owner for this site.
 - `2026-11-24T00:37:12Z` **ceo** — Phase design → **review**
 - `2026-11-24T00:37:12Z` **ceo** — Build done by CEO: js/motion.js + CSS motion section + wiring on all 4 pages; 12 new motion tests (62 e2e total) green.
+- `2026-11-24T00:37:15Z` **ceo** — Convened 1× code-reviewer — resumed M-0004 reviewer (did not build)
+- `2026-11-24T00:37:15Z` **ceo** — Convened 1× polish-critic — resumed M-0004 critic (did not build)
