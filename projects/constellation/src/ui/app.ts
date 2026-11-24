@@ -746,6 +746,18 @@ export class App {
     return true;
   }
 
+  /**
+   * Opens the Guidebook example (M-0003): an everyday memory built to teach retrieval. It is
+   * loaded on demand (its own chunk) and goes through the same confirm-and-validate path as Import.
+   */
+  async openGuidebook(): Promise<boolean> {
+    const mod = await import('../seed/guidebook.json');
+    const opened = await this.importText('the Guidebook', JSON.stringify(mod.default));
+    // Land on "Start here" with its notes open: the guide reads itself.
+    if (opened && this.graph.getNode('g-start')) queueMicrotask(() => this.select('g-start', { fly: true, open: true }));
+    return opened;
+  }
+
   async resetToSeed(): Promise<void> {
     const k = this.storedCount();
     const msg = k

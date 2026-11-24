@@ -12,6 +12,21 @@ A spatial memory. Every thing you store is a point of light in a black 3D void, 
 
 Everything autosaves to this browser (localStorage) and can be exported or imported as JSON. The file format is in [`docs/memory-format.md`](docs/memory-format.md).
 
+## The Guidebook example: learn retrieval on everyday data
+If you are not sure yet what to store, open **••• → Open the Guidebook example**. It replaces the current memory after asking (you can export first). It is about 150 everyday things: a home, money, people, a day job, learning, health, a Lisbon trip, a side project called *Garden app*, the checkout code of its shop, and the files that go with all of them. Its three lenses are three moments in time: **Today**, **Last year** and **Next year**.
+
+It opens on **Start here**. Each "Try" light around it is one way of getting something back out:
+
+| Way to ask | Try this | What you learn |
+|---|---|---|
+| By a word | `/` then `tax`, `Sam`, `renew`, `pdf`, `Lisbon` | Search reads names, values, tags, file paths and notes, so a half-remembered word is enough. Things 1, 2 and 3 hops away light up too. |
+| By neighbourhood | Click *Sam*, *Files* or *Money* | What goes with this, without knowing what to search for. |
+| By connection | `R`, then *Try the featured route* (Idea → Launch) | 13 declared steps, or 3 through *Garden app* and its client. Press `2` and route again: last year there was no client, so it takes 7. |
+| By time | `1` `2` `3` | Rent, savings, the project status and who Sam is all change; lights that disagree show ghosts. |
+| By computing | `P`, run *Can I afford the trip?* in each lens | One rule, three answers: "Not yet: 400 USD short" today, "2300 USD short" last year, "Book it" next year. *Months until the trip?* is a `while` loop; *What will checkout charge?* flows values through the code variables. |
+
+The Guidebook stores no secrets: where a password matters it records where the password lives. Its source is `tests/unit/support/guidebook-source.ts` (regenerate `src/seed/guidebook.json` with `node tests/unit/support/write-guidebook.ts`); `tests/unit/guidebook.test.ts` checks every answer above, and it loads on demand, so it does not slow the first paint.
+
 ## Controls
 | Input | Action |
 |---|---|

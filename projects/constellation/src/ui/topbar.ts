@@ -92,6 +92,7 @@ export class Topbar {
     this.menu.append(
       item('Import…', () => this.onImport()),
       item('Export', () => app.exportFile(), 'Ctrl E'),
+      item('Open the Guidebook example', () => void app.openGuidebook()),
       item('Reset to seed', () => void app.resetToSeed()),
       h('hr', { role: 'separator' }),
       sound,

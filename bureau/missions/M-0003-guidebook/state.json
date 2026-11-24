@@ -1,0 +1,28 @@
+{
+  "id": "M-0003",
+  "title": "Guidebook memory: example data that teaches retrieval",
+  "slug": "guidebook",
+  "tier": 1,
+  "domain": "interactive-web",
+  "output": "projects/constellation",
+  "phase": "build",
+  "created": "2026-11-24T05:11:02Z",
+  "rounds": {
+    "plan": 1,
+    "ship": 1
+  },
+  "gates": {},
+  "headcount": {},
+  "levers": [],
+  "history": [
+    {
+      "phase": "intake",
+      "at": "2026-11-24T05:11:02Z"
+    },
+    {
+      "phase": "build",
+      "at": "2026-11-24T05:24:28Z"
+    }
+  ],
+  "updated": "2026-11-24T05:24:28Z"
+}
