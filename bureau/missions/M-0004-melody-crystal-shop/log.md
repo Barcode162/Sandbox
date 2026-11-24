@@ -112,3 +112,4 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-23T23:47:15Z` **ceo** — Phase ship-review → **delivery**
 - `2026-11-23T23:47:16Z` **ceo** — Ship gate PASS (director-vision APPROVE 8.6). 4/8 agents. README conditions applied. Retro written.
 - `2026-11-23T23:47:16Z` **ceo** — Phase delivery → **retro**
+- `2026-11-24T00:04:00Z` **ceo** — Owner approved publishing (2026-11-24). Published site/ to gh-pages /melody-crystals/ (abc3df9); live check: 12 cards, 0 broken images, checkout works, 0 console errors.
