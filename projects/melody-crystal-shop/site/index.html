@@ -19,7 +19,7 @@
   <main id="main">
     <section class="hero" aria-labelledby="hero-title">
       <div class="container hero-grid">
-        <div class="hero-copy">
+        <div class="hero-copy" data-motion="hero-copy">
           <p class="eyebrow rise" style="--i:0">Small-batch · Hand-picked</p>
           <hr class="rule rise" style="--i:0">
           <h1 id="hero-title" class="rise" style="--i:1">Crystals, chosen by hand and explained simply.</h1>
@@ -28,66 +28,66 @@
             <a class="btn btn-primary btn-lg" href="#shop">Shop crystals</a>
             <a class="btn btn-ghost btn-lg" href="#meanings">What do they mean?</a>
           </div>
-          <ul class="trust-row rise" style="--i:4" aria-label="Good to know">
+          <ul class="trust-row rise" data-motion="trust" style="--i:4" aria-label="Good to know">
             <li data-icon="leaf">Cleansed &amp; wrapped</li>
             <li data-icon="truck">Local delivery</li>
             <li data-icon="pin">Pickup welcome</li>
           </ul>
         </div>
-        <div class="trio" data-trio></div>
+        <div class="trio" data-motion="trio" data-trio></div>
       </div>
     </section>
 
     <section class="section meanings" id="meanings" aria-labelledby="meanings-title">
       <div class="container">
-        <div class="section-head">
-          <div>
+        <div class="section-head" data-motion="section-head">
+          <div data-stagger="60">
             <p class="eyebrow">The stones</p>
             <h2 id="meanings-title">What each stone is known for</h2>
             <p>For centuries people have kept stones close for comfort and focus. Here’s what each is traditionally associated with. Think of it as folklore, not medicine.</p>
           </div>
         </div>
-        <ul class="meaning-list" data-meanings></ul>
+        <ul class="meaning-list" data-motion="meaning-row" data-stagger="40" data-meanings></ul>
       </div>
     </section>
 
     <section class="section" id="shop" aria-labelledby="shop-title">
       <div class="container">
-        <div class="section-head">
-          <div>
+        <div class="section-head" data-motion="section-head">
+          <div data-stagger="60">
             <p class="eyebrow">The shop</p>
             <h2 id="shop-title">Shop crystals</h2>
             <p>Every stone comes three ways: a tumbled bag, one big crystal, or a jar full of big ones. Tap any stone to see all three.</p>
           </div>
         </div>
-        <div class="chips" role="group" aria-label="Filter by intention" data-chips></div>
-        <p class="grid-status" aria-live="polite" data-status></p>
-        <ul class="product-grid" data-grid></ul>
+        <div class="chips" data-motion="chips" data-stagger="30" role="group" aria-label="Filter by intention" data-chips></div>
+        <p class="grid-status" data-motion="grid-status" aria-live="polite" data-status></p>
+        <ul class="product-grid" data-motion="filter" data-stagger="60" data-grid></ul>
       </div>
     </section>
 
     <section class="section meanings" id="how" aria-labelledby="how-title">
       <div class="container">
-        <div class="section-head">
-          <div>
+        <div class="section-head" data-motion="section-head">
+          <div data-stagger="60">
             <p class="eyebrow">How it works</p>
             <h2 id="how-title">How buying works</h2>
           </div>
         </div>
-        <ol class="steps">
+        <ol class="steps" data-motion="steps" data-stagger="100">
           <li><span class="num" aria-hidden="true">01</span><h3>Pick your stone</h3><p>Tumbled bag, one big crystal, or a whole jar.</p></li>
           <li><span class="num" aria-hidden="true">02</span><h3>Choose how it reaches you</h3><p>Local delivery, shipping, or pick up from me.</p></li>
           <li><span class="num" aria-hidden="true">03</span><h3>Pay your way</h3><p>Credit, debit, gift card or in person. Pay in full, or in 4 payments.</p></li>
         </ol>
-        <div class="formats-strip" data-formats></div>
+        <div class="formats-strip" data-motion="formats" data-stagger="80" data-formats></div>
       </div>
     </section>
 
     <section class="section" id="faq" aria-labelledby="faq-title">
       <div class="container faq-wrap">
-        <p class="eyebrow">Questions</p>
-        <h2 id="faq-title" style="margin-bottom:16px">Good to know</h2>
-        <div class="faq">
+        <p class="eyebrow" data-reveal>Questions</p>
+        <h2 id="faq-title" data-reveal style="margin-bottom:16px">Good to know</h2>
+        <div class="faq" data-motion="faq" data-stagger="40">
           <details><summary>Do crystals actually heal?<span data-icon="down"></span></summary><p>I share what stones are traditionally associated with. They’re no substitute for medical care, and I make no health claims. Many people simply find them beautiful and grounding to have around.</p></details>
           <details><summary>What’s in a tumbled bag?<span data-icon="down"></span></summary><p>8–10 polished stones, about 2–3 cm each, in a cotton drawstring pouch. Perfect for a pocket, a desk, or sharing.</p></details>
           <details><summary>What size is a big crystal, and a jar?<span data-icon="down"></span></summary><p>A big crystal is one hand-picked piece, about 6–9 cm. A jar is a 500 ml glass jar filled with about 6 chunky pieces, 3–5 cm each.</p></details>

@@ -1,0 +1,36 @@
+{
+  "id": "M-0005",
+  "title": "Melody's Crystals: motion",
+  "slug": "melody-motion",
+  "tier": 2,
+  "domain": "interactive-web",
+  "output": "projects/melody-crystal-shop",
+  "phase": "review",
+  "created": "2026-11-24T00:12:47Z",
+  "rounds": {
+    "plan": 1,
+    "ship": 1
+  },
+  "gates": {},
+  "headcount": {
+    "experience-designer": 1
+  },
+  "levers": [
+    "polish"
+  ],
+  "history": [
+    {
+      "phase": "intake",
+      "at": "2026-11-24T00:12:47Z"
+    },
+    {
+      "phase": "design",
+      "at": "2026-11-24T00:13:17Z"
+    },
+    {
+      "phase": "review",
+      "at": "2026-11-24T00:37:12Z"
+    }
+  ],
+  "updated": "2026-11-24T00:37:12Z"
+}

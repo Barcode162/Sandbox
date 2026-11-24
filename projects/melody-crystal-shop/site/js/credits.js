@@ -2,6 +2,7 @@
 import { CREDITS } from '../data/credits.js';
 import { CRYSTALS, img } from '../data/crystals.js';
 import { mount, esc } from './ui.js';
+import { reveal } from './motion.js';
 
 mount('');
 const owner = (id) => CRYSTALS.find((c) => c.photos.includes(id));
@@ -13,3 +14,4 @@ document.querySelector('[data-credits]').innerHTML = CREDITS.filter((cr) => owne
     <span><b>${esc(c.name)}</b>Photo by ${esc(cr.author)} · ${lic} · ${esc(cr.modified)} ·
     <a href="${esc(safeUrl(cr.source))}" rel="noopener" target="_blank">source<span class="visually-hidden"> for ${esc(c.name)} photo (opens in a new tab)</span></a></span></li>`;
 }).join('');
+reveal(document);

@@ -3,6 +3,7 @@ import { CRYSTALS, FORMATS, bySlug, img, photoStyle } from '../data/crystals.js'
 import { fmt } from './money.js';
 import * as bag from './bag.js';
 import { mount, ICON, esc, framedPhoto, formatScene, addAndShow, card, reducedMotion } from './ui.js';
+import * as motion from './motion.js';
 
 mount('shop');
 const main = document.querySelector('[data-product]');
@@ -11,7 +12,7 @@ const c = bySlug(slug);
 
 if (!c) {
   document.title = 'Crystal not found · Melody’s Crystals';
-  main.innerHTML = `<div class="not-found">${ICON.gem}<h1 style="font-size:2.25rem">We couldn’t find that crystal.</h1>
+  main.innerHTML = `<div class="not-found" data-motion="not-found">${ICON.gem}<h1 style="font-size:2.25rem">We couldn’t find that crystal.</h1>
     <p class="muted">It may have sold out or the link may be mistyped.</p><a class="btn btn-primary" href="index.html#shop">Back to the shop</a></div>`;
 } else {
   render(c);
@@ -36,24 +37,24 @@ function render(c) {
     .map((r) => r.x);
 
   main.innerHTML = `
-  <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="index.html#shop">Shop</a></li><li aria-current="page">${esc(c.name)}</li></ol></nav>
+  <nav class="crumbs" data-motion="crumbs" aria-label="Breadcrumb"><ol><li><a href="index.html#shop">Shop</a></li><li aria-current="page">${esc(c.name)}</li></ol></nav>
   <div class="pdp">
     <section class="gallery${slides.length > 1 ? '' : ' is-single'}" aria-label="${esc(c.name)} pictures">
-      <div class="main mat">
+      <div class="main mat" data-motion="gallery">
         <div class="slide-host">${framedPhoto(c, { size: 1200, eager: true })}</div>
       </div>
-      ${slides.length > 1 ? `<ul class="thumbs">${slides.map((s, i) => `<li><button type="button" data-slide="${i}" aria-current="${i === 0}" aria-label="Show photo ${i + 1} of ${slides.length}">
+      ${slides.length > 1 ? `<ul class="thumbs" data-motion="thumbs">${slides.map((s, i) => `<li><button type="button" data-slide="${i}" aria-current="${i === 0}" aria-label="Show photo ${i + 1} of ${slides.length}">
         <img src="${img(s.photo, 480)}" alt="" style="${photoStyle(c)}" loading="lazy"></button></li>`).join('')}</ul>` : ''}
     </section>
 
-    <section class="buybox" aria-labelledby="pdp-title">
+    <section class="buybox" data-motion="buybox" aria-labelledby="pdp-title">
       <div>
         <p class="eyebrow">${esc(c.tags.join(' · '))}</p>
         <h1 id="pdp-title" style="margin-top:8px">${esc(c.name)}</h1>
         <p class="meaning-line">${esc(c.meaning)}</p>
       </div>
       <div class="buy-price" aria-live="polite">
-        <span class="price" data-price></span><span class="per" data-per></span>
+        <span class="price" data-motion="price" data-price></span><span class="per" data-motion="per" data-per></span>
       </div>
       <ul class="trust">
         <li>${ICON.hand}Hand-picked by Melody</li>
@@ -64,29 +65,29 @@ function render(c) {
         <fieldset>
           <legend>Choose your format</legend>
           <div class="tiles">
-            ${FORMATS.map((f, i) => `<label class="tile"><input type="radio" name="format" value="${f.id}" ${i === 0 ? 'checked' : ''}>
+            ${FORMATS.map((f, i) => `<label class="tile" data-motion="tile"><input type="radio" name="format" value="${f.id}" ${i === 0 ? 'checked' : ''}>
               <span class="tile-body"><span class="t-name">${esc(f.name)}${ICON.check.replace('<svg', '<svg class="check"')}</span><span class="t-size">${esc(f.size)}</span><span class="price">${fmt(c.prices[f.id], { whole: true })}</span></span></label>`).join('')}
           </div>
         </fieldset>
-        <div class="wyg" aria-live="polite"><div class="wyg-art" data-wyg-art></div><p><strong>What you get</strong><span data-wyg-text></span></p></div>
+        <div class="wyg" data-motion="wyg" aria-live="polite"><div class="wyg-art" data-wyg-art></div><p><strong>What you get</strong><span data-wyg-text></span></p></div>
         <div class="qty-row" style="margin-top:20px">
           <span class="label" id="qty-label" style="font-weight:600">Quantity</span>
-          <div class="stepper" role="group" aria-labelledby="qty-label">
+          <div class="stepper" data-motion="stepper" role="group" aria-labelledby="qty-label">
             <button type="button" data-q="-1" aria-label="Decrease quantity">${ICON.minus}</button>
             <output class="val" data-qty aria-live="polite">1</output>
             <button type="button" data-q="1" aria-label="Increase quantity">${ICON.plus}</button>
           </div>
-          <span class="qty-note" data-qty-note></span>
+          <span class="qty-note" data-motion="qty-note" data-qty-note></span>
         </div>
         <div class="buy-actions" style="margin-top:20px">
-          <button class="btn btn-primary btn-lg btn-block" type="submit" data-add>Add to bag</button>
-          <button class="btn btn-ghost btn-lg btn-block" type="button" data-buy>Buy now</button>
+          <button class="btn btn-primary btn-lg btn-block" type="submit" data-motion="add" data-add>Add to bag</button>
+          <button class="btn btn-ghost btn-lg btn-block" type="button" data-motion="buynow" data-buy>Buy now</button>
         </div>
       </form>
     </section>
   </div>
 
-  <div class="details-sections">
+  <div class="details-sections" data-motion="details" data-stagger="100">
     <div class="prose">
       <h2>What it means</h2>
       <p>${esc(c.meaning)} In crystal tradition, ${esc(c.name)} is associated with ${listOf(c.tags.map((t) => t.toLowerCase()))}, and with the ${esc(c.chakra.toLowerCase())} chakra.</p>
@@ -105,10 +106,10 @@ function render(c) {
     </aside>
   </div>
 
-  ${related.length ? `<section class="related" aria-labelledby="rel-title"><h2 id="rel-title">You might also like</h2>
-    <ul class="product-grid">${related.map((x) => card(x, 3)).join('')}</ul></section>` : ''}
+  ${related.length ? `<section class="related" aria-labelledby="rel-title"><h2 id="rel-title" data-reveal>You might also like</h2>
+    <ul class="product-grid" data-stagger="60">${related.map((x) => card(x, 3)).join('')}</ul></section>` : ''}
 
-  <div class="mobile-bar" aria-hidden="true" inert>
+  <div class="mobile-bar" data-motion="mobile-bar" aria-hidden="true" inert>
     <div><div class="mb-name">${esc(c.name)}</div><div class="mb-sub" data-mb-sub></div></div>
     <button class="btn btn-primary" type="button" data-mb-add>Add to bag</button>
   </div>`;
@@ -135,7 +136,10 @@ function wire(c, slides) {
   let wygFor = '';
   function paintWyg(id) {
     if (id === wygFor) return;
+    const first = wygFor === '';
     wygFor = id;
+    if (first) wygArt.dataset.ready = '1';
+    if (wygFor !== '' && wygArt.innerHTML) motion.pop(wygArt, { from: 0.9 });
     wygArt.innerHTML = id === 'big'
       ? `<img src="${img(c.photos[0], 480)}" alt="" style="${photoStyle(c)}">`
       : formatScene(id, img(c.photos[0], 480), c.colour);
@@ -149,6 +153,7 @@ function wire(c, slides) {
     shownPrice = to;
     if (from === to || reducedMotion()) { el.textContent = fmt(to, { whole: true }); return; }
     cancelAnimationFrame(countRaf);
+    el.classList.add('is-rolling');
     let t0 = null;
     const step = (t) => {
       t0 ??= t;
@@ -156,7 +161,7 @@ function wire(c, slides) {
       const e = 1 - (1 - k) ** 3;
       el.textContent = fmt(Math.round((from + (to - from) * e) / 100) * 100, { whole: true });
       if (k < 1) countRaf = requestAnimationFrame(step);
-      else el.textContent = fmt(to, { whole: true });
+      else { el.textContent = fmt(to, { whole: true }); el.classList.remove('is-rolling'); }
     };
     countRaf = requestAnimationFrame(step);
   }
@@ -167,12 +172,16 @@ function wire(c, slides) {
     countTo(priceEl, unit);
     paintWyg(f.id);
     const per = Math.round(unit / f.pieces);
-    perEl.textContent = f.pieces > 1 ? `About ${fmt(per)} ${f.perLabel}` : 'One statement piece';
-    qtyEl.textContent = String(qty);
+    motion.roll(perEl, f.pieces > 1 ? `About ${fmt(per)} ${f.perLabel}` : 'One statement piece');
+    motion.roll(qtyEl, String(qty), { dir: qty >= Number(qtyEl.textContent || 1) ? 1 : -1 });
     dec.disabled = qty <= 1;
     inc.disabled = qty >= bag.MAX_QTY;
     noteEl.textContent = qty >= bag.MAX_QTY ? 'Need more? Message Melody.' : '';
-    if (!addBtn.dataset.busy) addBtn.textContent = `Add to bag · ${fmt(unit * qty, { whole: true })}`;
+    const label = `Add to bag · ${fmt(unit * qty, { whole: true })}`;
+    if (!addBtn.dataset.busy && addBtn.textContent !== label) {
+      if (motion.reduced() || !addBtn.textContent) addBtn.textContent = label;
+      else addBtn.innerHTML = `<span class="label-in">${label}</span>`;
+    }
     mbSub.textContent = `${f.name} · ${fmt(unit * qty, { whole: true })}`;
   }
 
@@ -184,9 +193,15 @@ function wire(c, slides) {
     current = i;
     const s = slides[i];
     main.querySelectorAll('.thumbs button').forEach((b) => b.setAttribute('aria-current', String(Number(b.dataset.slide) === i)));
-    const swap = () => { host.innerHTML = framedPhoto(c, { size: 1200, photo: s.photo, eager: true }); };
-    const el = host.querySelector('img');
-    if (el && !reducedMotion()) { el.style.transition = 'opacity 160ms'; el.style.opacity = '0'; setTimeout(swap, 160); } else swap();
+    const swap = () => {
+      host.innerHTML = framedPhoto(c, { size: 1200, photo: s.photo, eager: true });
+      if (reducedMotion()) return;
+      host.firstElementChild.animate([{ opacity: 0, transform: 'scale(1.015)' }, { opacity: 1, transform: 'none' }], { duration: 220, easing: motion.EASE.out });
+      setTimeout(() => motion.glint(host.querySelector('.frame')), 120);
+    };
+    const el = host.firstElementChild;
+    if (el && !reducedMotion()) el.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(.985)' }], { duration: 120, easing: motion.EASE.in, fill: 'forwards' }).finished.then(swap, swap);
+    else swap();
   }
   main.querySelector('.thumbs')?.addEventListener('click', (e) => {
     const b = e.target.closest('[data-slide]');
@@ -196,12 +211,13 @@ function wire(c, slides) {
   form.addEventListener('change', (e) => {
     if (e.target.name !== 'format') return;
     update();
+    setTimeout(() => motion.glint(host.querySelector('.frame')), 120);
   });
   dec.addEventListener('click', () => { qty = Math.max(1, qty - 1); update(); });
   inc.addEventListener('click', () => { qty = Math.min(bag.MAX_QTY, qty + 1); update(); });
 
   function add(from) {
-    addAndShow(c.slug, form.format.value, qty, from);
+    addAndShow(c.slug, form.format.value, qty, from, host.querySelector('img'));
     addBtn.dataset.busy = '1';
     addBtn.innerHTML = `<span class="added">${ICON.check.replace('<svg', '<svg width="18" height="18"')}Added</span>`;
     clearTimeout(addedTimer);
@@ -224,4 +240,6 @@ function wire(c, slides) {
   }).observe(addBtn);
 
   update();
+  setTimeout(() => motion.glint(host.querySelector('.frame')), 720);
+  motion.reveal(main);
 }

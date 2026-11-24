@@ -90,8 +90,8 @@ button { cursor: pointer; }
 ::selection { background: color-mix(in srgb, var(--clay) 25%, transparent); }
 .visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .container { width: 100%; max-width: calc(var(--container) + 2 * var(--gutter)); margin-inline: auto; padding-inline: var(--gutter); }
-.skip-link { position: absolute; left: 12px; top: -60px; z-index: 100; background: var(--ink); color: var(--paper); padding: 10px 16px; border-radius: var(--r-input); text-decoration: none; transition: top var(--fast) var(--ease-out); }
-.skip-link:focus { top: 12px; color: var(--paper); }
+.skip-link { position: absolute; left: 12px; top: 12px; z-index: 100; background: var(--ink); color: var(--paper); padding: 10px 16px; border-radius: var(--r-input); text-decoration: none; transform: translateY(-80px); transition: transform var(--fast) var(--ease-out); }
+.skip-link:focus { transform: none; color: var(--paper); }
 .eyebrow { font: 600 0.8125rem/1.2 var(--font-ui); letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-soft); }
 .rule { width: 64px; height: 1px; background: var(--brass); border: 0; margin: var(--s4) 0 var(--s5); }
 .price { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--clay); }
@@ -112,7 +112,6 @@ button { cursor: pointer; }
   transition: background-color var(--fast) var(--ease-out), color var(--fast), border-color var(--fast), transform 90ms var(--ease-out);
   -webkit-tap-highlight-color: transparent;
 }
-.btn:active:not(:disabled) { transform: translateY(1px); }
 .btn:disabled, .btn[aria-disabled='true'] { opacity: .5; cursor: not-allowed; }
 .btn-primary { background: var(--clay); color: var(--clay-ink); }
 .btn-primary:hover:not(:disabled) { background: var(--clay-hover); color: var(--clay-ink); }
@@ -348,7 +347,7 @@ legend { padding: 0; font: 600 0.8125rem/1.2 var(--font-ui); letter-spacing: 0.1
 .tiles { display: grid; gap: var(--s2); }
 @media (min-width: 768px) and (max-width: 1023px), (min-width: 1200px) { .tiles { grid-template-columns: repeat(3, 1fr); } }
 .tile { position: relative; display: block; cursor: pointer; }
-.tile input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.tile input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; z-index: 2; }
 .tile .tile-body { display: grid; gap: 2px; grid-template-rows: auto 1fr auto; height: 100%; padding: 14px 16px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--card); transition: border-color var(--fast), background-color var(--fast), box-shadow var(--fast); }
 @media (max-width: 767px), (min-width: 1024px) and (max-width: 1199px) { .tile .tile-body { grid-template-columns: 1fr auto; grid-template-rows: auto auto; align-items: center; column-gap: var(--s3); } .tile .tile-body .price { grid-row: 1 / 3; grid-column: 2; margin-top: 0; align-self: center; } }
 .tile:hover .tile-body { border-color: var(--ink-soft); }
@@ -466,7 +465,7 @@ legend { padding: 0; font: 600 0.8125rem/1.2 var(--font-ui); letter-spacing: 0.1
 .choice-list { display: grid; gap: var(--s2); }
 .choice-list.cols { grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
 .choice { position: relative; display: block; cursor: pointer; }
-.choice input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.choice input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; z-index: 2; }
 .choice input:disabled { cursor: not-allowed; }
 .choice-body { display: grid; grid-template-columns: 22px 1fr auto; gap: 2px var(--s3); align-items: start; align-content: start; padding: 14px 16px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--paper); transition: border-color var(--fast), background-color var(--fast); height: 100%; }
 .choice-body .dot { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--ink) 40%, transparent); margin-top: 1px; display: grid; place-items: center; transition: border-color var(--fast); }
@@ -541,8 +540,163 @@ legend { padding: 0; font: 600 0.8125rem/1.2 var(--font-ui); letter-spacing: 0.1
 .rise { animation: rise var(--slow) var(--ease-out) backwards; animation-delay: calc(var(--i, 0) * 60ms); }
 @keyframes rise { from { opacity: 0; transform: translateY(8px) rotate(var(--rot, 0deg)); } to { opacity: 1; transform: rotate(var(--rot, 0deg)); } }
 
+/* ═══ Motion (M-0005) — spec: bureau/missions/M-0005-melody-motion/design/experience.md ═══ */
+:root { --d-press: 90ms; --d-reveal: 520ms; --d-glint: 600ms; --ease-in: cubic-bezier(.5,0,.75,0); --ease-inout: cubic-bezier(.65,0,.35,1); }
+
+/* Reveal on scroll: hidden only after motion.js has armed the observer (html.motion-ready). */
+html.motion-ready [data-reveal]:not(.is-in),
+html.motion-ready [data-stagger] > :not(.is-in) { opacity: 0; transform: translateY(16px); }
+html.motion-ready [data-reveal='card']:not(.is-in),
+html.motion-ready [data-stagger='60'].product-grid > :not(.is-in) { transform: translateY(16px) scale(.98); }
+[data-reveal].is-in, [data-stagger] > .is-in { opacity: 1; transform: none; transition: opacity var(--d-reveal) var(--ease-out) var(--d, 0ms), transform var(--d-reveal) var(--ease-out) var(--d, 0ms); }
+
+/* Signature glint: a warm streak of light across the stone. */
+.glint { position: absolute; top: -10%; bottom: -10%; left: 0; width: 45%; z-index: 1; pointer-events: none; opacity: 0; mix-blend-mode: screen; transform: translateX(-120%) skewX(-15deg);
+  background: linear-gradient(105deg, rgba(255,246,228,0) 0%, rgba(255,246,228,.10) 30%, rgba(255,250,240,.55) 48%, rgba(255,255,255,.75) 50%, rgba(255,250,240,.55) 52%, rgba(255,246,228,.10) 70%, rgba(255,246,228,0) 100%); }
+:root[data-theme='dark'] .glint { filter: opacity(.8); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .glint { filter: opacity(.8); } }
+.seal-wrap { position: relative; display: inline-grid; place-items: center; overflow: visible; }
+.seal-wrap .glint { border-radius: 50%; }
+.seal-clip { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; }
+.burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; pointer-events: none; }
+.burst svg { position: absolute; left: 0; top: 0; }
+.flyer { position: fixed; z-index: 70; border-radius: 14px; object-fit: cover; pointer-events: none; box-shadow: var(--sh-2); }
+
+/* Header, nav, icons */
+.site-header { animation: drop var(--base) var(--ease-out) both; }
+@keyframes drop { from { opacity: 0; transform: translateY(-8px); } }
+.nav a, .footer-nav a { position: relative; }
+.nav a::after, .footer-nav a::after { content: ''; position: absolute; left: 14px; right: 14px; bottom: 6px; height: 1.5px; background: var(--clay); transform: scaleX(0); transform-origin: left; transition: transform var(--base) var(--ease-out); }
+.footer-nav a::after { left: 0; right: 0; bottom: 8px; }
+.nav a:hover::after, .nav a:focus-visible::after, .footer-nav a:hover::after, .footer-nav a:focus-visible::after { transform: scaleX(1); }
+.icon-btn { transition: background-color var(--fast), transform var(--fast) var(--ease-out); }
+.icon-btn:hover { transform: scale(1.06); }
+.icon-btn:active { transform: scale(.94); transition-duration: var(--d-press); }
+.wordmark { transition: transform var(--fast) var(--ease-out); }
+.wordmark:hover { transform: translateX(2px); }
+.theme-btn svg.spin-in { animation: spin-in var(--base) var(--ease-spring); }
+@keyframes spin-in { from { transform: rotate(-90deg) scale(.6); opacity: 0; } }
+.menu-sheet:not([hidden]) { animation: drop var(--base) var(--ease-out); }
+.menu-sheet:not([hidden]) a { animation: rise-sm 380ms var(--ease-out) backwards; }
+.menu-sheet a:nth-child(2) { animation-delay: 40ms !important; } .menu-sheet a:nth-child(3) { animation-delay: 80ms !important; } .menu-sheet a:nth-child(4) { animation-delay: 120ms !important; }
+@keyframes rise-sm { from { opacity: 0; transform: translateY(8px); } }
+@keyframes rise-xs { from { opacity: 0; transform: translateY(4px); } }
+@keyframes pop-in { 0% { opacity: 0; transform: scale(.6); } 60% { opacity: 1; transform: scale(1.06); } 100% { transform: scale(1); } }
+
+/* Buttons: press and release */
+.btn { transition: background-color var(--fast) var(--ease-out), color var(--fast), border-color var(--fast), transform var(--base) var(--ease-spring), box-shadow var(--base) var(--ease-out); }
+.btn:hover:not(:disabled) { transform: translateY(-1px); }
+.btn-primary:hover:not(:disabled) { box-shadow: 0 6px 18px -8px color-mix(in srgb, var(--clay) 70%, transparent); }
+.btn:active:not(:disabled) { transform: scale(.97) translateY(1px); transition-duration: var(--d-press); }
+.btn .added { animation: label-up var(--base) var(--ease-out); }
+.btn .label-in { display: inline-block; animation: label-up var(--base) var(--ease-out); }
+@keyframes label-up { from { opacity: 0; transform: translateY(60%); } }
+
+/* Hero */
+.hero .rule.rise { transform-origin: left; animation-name: draw; animation-duration: var(--d-reveal); }
+@keyframes draw { from { transform: scaleX(0); } }
+.trust-row li svg { animation: pop-in 380ms var(--ease-out) backwards; }
+.trust-row li:nth-child(1) svg { animation-delay: 360ms; } .trust-row li:nth-child(2) svg { animation-delay: 420ms; } .trust-row li:nth-child(3) svg { animation-delay: 480ms; }
+.trio .mat.rise { animation: set-down 600ms var(--ease-spring) backwards; animation-delay: calc(120ms + (var(--i, 1) - 1) * 120ms); }
+@keyframes set-down { from { opacity: 0; transform: translateY(24px) rotate(0deg); } }
+.trio .mat:hover { transform: translateY(-4px) rotate(0deg); }
+
+/* Meanings, chips, cards */
+.meaning-row .thumb { transition: transform var(--fast) var(--ease-out); }
+.meaning-row:hover .thumb, .meaning-row:focus-visible .thumb { transform: scale(1.06); }
+.chip { transition: background-color var(--fast), border-color var(--fast), color var(--fast), transform var(--fast) var(--ease-out); }
+.chip:active { transform: scale(.95); }
+.chip[aria-pressed='true'] .n { display: inline-block; animation: pop-in 300ms var(--ease-out); }
+.grid-status.is-changing { animation: rise-xs var(--base) var(--ease-out); }
+.card .mat { transition: transform var(--base) var(--ease-out), box-shadow var(--base) var(--ease-out); }
+.card:hover .mat { transform: translateY(-3px); }
+.card .view { display: inline-block; transition: transform var(--fast) var(--ease-out), color var(--fast); }
+.card:hover .view { transform: translateX(3px); }
+.card .tag { display: inline-block; transition: transform var(--fast) var(--ease-out); }
+.card:hover .tag { transform: translateY(-1px); }
+.product-grid > li.is-leaving { opacity: 0; transform: scale(.96); transition: opacity var(--fast) var(--ease-in), transform var(--fast) var(--ease-in); }
+.wyg-art { transition: transform var(--base) var(--ease-out); }
+.format-card:hover .wyg-art { transform: translateY(-4px); }
+.faq details[open] p { animation: rise-faq var(--base) var(--ease-out); }
+@keyframes rise-faq { from { opacity: 0; transform: translateY(-6px); } }
+.footer-grid { transition: none; }
+
+/* Product */
+.crumbs { animation: fade-in var(--base) var(--ease-out) both; }
+@keyframes fade-in { from { opacity: 0; } }
+.gallery .main { animation: settle var(--d-reveal) var(--ease-out) both; }
+@keyframes settle { from { opacity: 0; transform: scale(1.02); } }
+.thumbs li { animation: rise-sm 380ms var(--ease-out) backwards; }
+.thumbs li:nth-child(2) { animation-delay: 50ms; } .thumbs li:nth-child(3) { animation-delay: 100ms; } .thumbs li:nth-child(4) { animation-delay: 150ms; }
+.thumbs button { transition: border-color var(--fast), transform var(--fast) var(--ease-out); }
+.thumbs button:hover { transform: scale(1.04); }
+.buybox > * { animation: rise-sm 380ms var(--ease-out) backwards; }
+.buybox > :nth-child(1) { animation-delay: 80ms; } .buybox > :nth-child(2) { animation-delay: 130ms; } .buybox > :nth-child(3) { animation-delay: 180ms; } .buybox > :nth-child(4) { animation-delay: 230ms; }
+.buy-price .price, .buy-price .per { display: inline-block; }
+.buy-price .price { transition: transform var(--base) var(--ease-spring); transform-origin: left bottom; }
+.buy-price .price.is-rolling { transform: scale(1.06); }
+.buy-price .per { transition: opacity var(--fast) var(--ease-out); }
+.tile .tile-body { transition: border-color var(--fast), background-color var(--fast), box-shadow var(--fast), transform var(--base) var(--ease-out); }
+.tile:hover .tile-body { transform: translateY(-2px); }
+.tile input:checked + .tile-body { animation: select-spring var(--slow) var(--ease-spring); }
+@keyframes select-spring { from { transform: scale(.98); } }
+.tile .check { transform: scale(0) rotate(-20deg); transition: opacity var(--fast), transform var(--base) var(--ease-spring); }
+.tile input:checked + .tile-body .check { transform: none; }
+.stepper button { transition: background-color var(--fast), transform var(--d-press) var(--ease-out); }
+.stepper button:active:not(:disabled) { transform: scale(.9); }
+.stepper .val, .stepper output { display: inline-block; }
+.qty-note:not(:empty) { animation: rise-xs var(--base) var(--ease-out); }
+.not-found .gem-glyph, .empty .gem-glyph { animation: pop-in 420ms var(--ease-spring) both; }
+.empty > :not(svg) { animation: rise-sm 380ms var(--ease-out) backwards; }
+.empty > :nth-child(2) { animation-delay: 80ms; } .empty > :nth-child(3) { animation-delay: 140ms; } .empty > :nth-child(4) { animation-delay: 200ms; }
+
+/* Drawer, lines, undo, toast */
+.drawer:not(.is-open) { transition: transform 260ms var(--ease-in); }
+.scrim:not(.is-open) { transition-duration: var(--fast); }
+.line.is-new { animation: slide-in-x 420ms var(--ease-out); }
+@keyframes slide-in-x { from { transform: translateX(12px); } }
+.undo-row { animation: rise-sm var(--base) var(--ease-out); }
+
+/* Checkout */
+.notice { animation: rise-sm 380ms var(--ease-out) backwards; }
+.notice svg { animation: pop-in 420ms var(--ease-spring) 120ms backwards; }
+.co-form > * { animation: rise-sm 420ms var(--ease-out) backwards; }
+.co-form > :nth-child(2) { animation-delay: 80ms; } .co-form > :nth-child(3) { animation-delay: 160ms; } .co-form > :nth-child(4) { animation-delay: 240ms; } .co-form > :nth-child(5) { animation-delay: 320ms; }
+.summary-col { animation: rise-sm 420ms var(--ease-out) 120ms backwards; }
+.choice-body { transition: border-color var(--fast), background-color var(--fast), transform var(--fast) var(--ease-out); }
+.choice:hover input:not(:disabled) + .choice-body { transform: translateY(-1px); }
+.choice-body .dot::after { transition: transform var(--base) var(--ease-spring); }
+.choice input:checked + .choice-body { animation: select-spring var(--slow) var(--ease-spring); }
+.choice input:disabled + .choice-body .reason { animation: rise-xs var(--base) var(--ease-out); }
+.reveal:not([hidden]) > *, .reveal:not([hidden]) > div > * { animation: rise-sm 380ms var(--ease-out) backwards; }
+.reveal > :nth-child(2), .reveal > div > :nth-child(2) { animation-delay: 40ms; } .reveal > :nth-child(3), .reveal > div > :nth-child(3) { animation-delay: 80ms; } .reveal > :nth-child(4) { animation-delay: 120ms; }
+.info-line:not([hidden]) { animation: rise-xs var(--base) var(--ease-out); }
+.brand-badge:not([hidden]) { animation: pop-in 300ms var(--ease-spring); }
+.field-error:not([hidden]) { animation: rise-xs 180ms var(--ease-out); }
+.error-summary { animation: drop var(--base) var(--ease-out); }
+.plan-schedule > div { animation: rise-sm 380ms var(--ease-out) backwards; }
+.plan-schedule > div:nth-child(2) { animation-delay: 60ms; } .plan-schedule > div:nth-child(3) { animation-delay: 120ms; } .plan-schedule > div:nth-child(4) { animation-delay: 180ms; }
+.sum-rows dd, .drawer-foot .row span:last-child, .line .lt { display: inline-block; }
+.free s { text-decoration: none; position: relative; display: inline-block; }
+.free s::after { content: ''; position: absolute; left: -1px; right: -1px; top: 52%; height: 1px; background: currentColor; transform-origin: left; animation: strike 320ms var(--ease-out) 120ms backwards; }
+@keyframes strike { from { transform: scaleX(0); } }
+.summary-toggle svg { transition: transform var(--base) var(--ease-out); }
+.summary[data-collapsible] { animation: none; }
+.summary-toggle[aria-expanded='true'] + .summary { animation: rise-sm var(--base) var(--ease-out); }
+.step-num.done { background: var(--brass); color: var(--paper); border-color: var(--brass); transition: background-color var(--base), color var(--base); }
+.confirm > * { animation: rise-sm 420ms var(--ease-out) backwards; }
+.confirm > :nth-child(2) { animation-delay: 200ms; } .confirm > :nth-child(3) { animation-delay: 260ms; } .confirm > :nth-child(4) { animation-delay: 320ms; } .confirm > :nth-child(5) { animation-delay: 380ms; } .confirm > :nth-child(6) { animation-delay: 440ms; } .confirm > :nth-child(7) { animation-delay: 500ms; }
+.order-no .ch { display: inline-block; animation: rise-xs 300ms var(--ease-out) backwards; }
+.confirm > .seal-wrap { animation: seal-in 520ms var(--ease-spring) backwards; }
+@keyframes seal-in { from { opacity: 0; transform: scale(.6); } }
+.credits-list .thumb { transition: transform var(--fast) var(--ease-out); }
+.credits-list li:hover .thumb { transform: scale(1.06); }
+.credits-list .thumb { position: relative; isolation: isolate; }
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: var(--fast) !important; transition-property: opacity, background-color, border-color, color !important; }
   .rise { animation: none; }
+  .glint, .burst, .flyer { display: none !important; }
+  html.motion-ready [data-reveal]:not(.is-in), html.motion-ready [data-stagger] > :not(.is-in) { opacity: 1; transform: none; }
 }
