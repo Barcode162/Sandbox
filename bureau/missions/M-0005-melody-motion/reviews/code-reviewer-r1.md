@@ -51,17 +51,17 @@ Key evidence:
 - **Reduced motion.** No WAAPI animations, glints, bursts or flights run. JS checks `reduced()` at every entry point.
 - **Leaks.** Burst hosts and flight clones remove themselves, glint spans are reused, and the shimmer is one timer gated on visibility.
 - **Inputs at z-index 2.** Focus rings still drawn (styles.css:355, 481); axe passes.
-- **Performance.** `flip()` batches reads; hot loops write text only.
+- **Perf.** Reads batched; hot loops write text only.
 
 ## Strengths worth keeping
-A single dependency-free `motion.js` where every helper returns early under reduced motion, and consistent cancel-on-new-input.
+One dependency-free `motion.js`; every helper honours reduced motion.
 
 ## Overall assessment
 The motion layer is well built and does not regress M-0004 money, focus or bag behaviour. It fails this round for two reasons:
 - **The gate is red (F-006).** Success criterion 1 requires `npm run verify` to pass, and the inventory test is the brief's own proof of "every component moves".
 - **The signature scroll choreography switches itself off after 3 s (F-001).**
 
-F-002 should land in the same pass; the S3s can ride along.
+F-002 should land in the same pass.
 
 ## Round 2 (6b79b8f)
 VERDICT: PASS WITH FINDINGS. `PORT=4196 npm run verify` exits 0 with 68 passed.
@@ -76,3 +76,6 @@ VERDICT: PASS WITH FINDINGS. `PORT=4196 npm run verify` exits 0 with 68 passed.
 | F-006 | verified | Gate green. The new qty-note, grid-status and bag-count transitions mostly satisfy the detector (taste) |
 
 New: F-015 (S2). With the failsafe gone, the footer disclaimer can sit in the −8% rootMargin dead zone at maximum scroll. Seen once in 9 runs. Fix: reveal everything still hidden when the page reaches the end.
+
+## Round 3 (fb60de6)
+F-015 verified: 18 runs, nothing hidden; 69 passed.
