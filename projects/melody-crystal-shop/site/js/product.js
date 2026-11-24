@@ -53,7 +53,7 @@ function render(c) {
         <h1 id="pdp-title" style="margin-top:8px">${esc(c.name)}</h1>
         <p class="meaning-line">${esc(c.meaning)}</p>
       </div>
-      <div class="buy-price" aria-live="polite">
+      <div class="buy-price">
         <span class="price" data-motion="price" data-price></span><span class="per" data-motion="per" data-per></span>
       </div>
       <ul class="trust">
@@ -69,12 +69,12 @@ function render(c) {
               <span class="tile-body"><span class="t-name">${esc(f.name)}${ICON.check.replace('<svg', '<svg class="check"')}</span><span class="t-size">${esc(f.size)}</span><span class="price">${fmt(c.prices[f.id], { whole: true })}</span></span></label>`).join('')}
           </div>
         </fieldset>
-        <div class="wyg" data-motion="wyg" aria-live="polite"><div class="wyg-art" data-wyg-art></div><p><strong>What you get</strong><span data-wyg-text></span></p></div>
+        <div class="wyg" data-motion="wyg"><div class="wyg-art" data-wyg-art></div><p><strong>What you get</strong><span data-wyg-text></span></p></div>
         <div class="qty-row" style="margin-top:20px">
           <span class="label" id="qty-label" style="font-weight:600">Quantity</span>
           <div class="stepper" data-motion="stepper" role="group" aria-labelledby="qty-label">
             <button type="button" data-q="-1" aria-label="Decrease quantity">${ICON.minus}</button>
-            <output class="val" data-qty aria-live="polite">1</output>
+            <output class="val" data-qty>1</output>
             <button type="button" data-q="1" aria-label="Increase quantity">${ICON.plus}</button>
           </div>
           <span class="qty-note" data-motion="qty-note" data-qty-note></span>
@@ -84,6 +84,7 @@ function render(c) {
           <button class="btn btn-ghost btn-lg btn-block" type="button" data-motion="buynow" data-buy>Buy now</button>
         </div>
       </form>
+      <p class="visually-hidden" aria-live="polite" data-announce></p>
     </section>
   </div>
 
@@ -183,6 +184,13 @@ function wire(c, slides) {
       else addBtn.innerHTML = `<span class="label-in">${label}</span>`;
     }
     mbSub.textContent = `${f.name} · ${fmt(unit * qty, { whole: true })}`;
+    // One announcement per change, after the numbers have settled.
+    clearTimeout(update.t);
+    update.t = setTimeout(() => {
+      const say = `${f.name}, ${fmt(unit, { whole: true })}${qty > 1 ? `, quantity ${qty}, ${fmt(unit * qty, { whole: true })} in total` : ''}.`;
+      const live = main.querySelector('[data-announce]');
+      if (live.dataset.said !== say) { live.dataset.said = say; live.textContent = say; }
+    }, 400);
   }
 
   // Gallery

@@ -18,6 +18,7 @@ const MAX_BATCH = 8;
 // Elements with [data-reveal] start hidden only once <html> has .motion-ready (set here, after the
 // observer exists). Children of [data-stagger] reveal one after another. A failsafe shows all.
 let io = null;
+let ioAlive = false;
 let pending = [];
 let flushTimer = 0;
 
@@ -44,6 +45,7 @@ export function reveal(root = document) {
   }
   if (!io) {
     io = new IntersectionObserver((entries) => {
+      ioAlive = true;
       for (const en of entries) {
         if (!en.isIntersecting) continue;
         io.unobserve(en.target);
@@ -54,7 +56,7 @@ export function reveal(root = document) {
     }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
     document.documentElement.classList.add('motion-ready');
     const all = () => document.querySelectorAll('[data-reveal]:not(.is-in), [data-stagger] > :not(.is-in)').forEach((el) => el.classList.add('is-in'));
-    setTimeout(all, 3000); // failsafe: nothing stays hidden if the observer never fires
+    setTimeout(() => { if (!ioAlive) all(); }, 3000); // failsafe for a dead observer only
     addEventListener('beforeprint', all);
   }
   els.forEach((el) => io.observe(el));
@@ -116,8 +118,14 @@ export function shimmer(frames) {
 export function roll(el, text, { dir = 1 } = {}) {
   if (!el || el.textContent === text) return;
   if (reduced() || !el.isConnected) { el.textContent = text; return; }
-  el.getAnimations().forEach((a) => a.cancel());
   el.textContent = text;
+  animateIn(el, dir);
+}
+
+/** The roll-in half on its own, for text that has already been updated. */
+export function animateIn(el, dir = 1) {
+  if (!el || reduced()) return;
+  el.getAnimations().forEach((a) => a.cancel());
   el.animate([
     { transform: `translateY(${dir * 0.55}em)`, opacity: 0 },
     { transform: 'none', opacity: 1 },
@@ -134,11 +142,7 @@ export function rollChanged(root, before) {
   if (!root || !before?.size) return;
   root.querySelectorAll('[data-roll]').forEach((el) => {
     const was = before.get(el.dataset.roll);
-    if (was !== undefined && was !== el.textContent) {
-      const now = el.textContent;
-      el.textContent = was;
-      roll(el, now);
-    }
+    if (was !== undefined && was !== el.textContent) animateIn(el);
   });
 }
 
@@ -184,7 +188,7 @@ export function flyToBag(img) {
   if (!img || !bagBtn || reduced()) return Promise.resolve();
   const a = img.getBoundingClientRect();
   const b = bagBtn.getBoundingClientRect();
-  if (!a.width || b.bottom < 0 || b.top > innerHeight) return Promise.resolve();
+  if (!a.width || a.bottom < 0 || a.top > innerHeight || b.bottom < 0 || b.top > innerHeight) return Promise.resolve();
   const size = 72;
   const clone = document.createElement('img');
   clone.src = img.currentSrc || img.src;

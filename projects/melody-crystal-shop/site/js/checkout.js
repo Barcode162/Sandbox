@@ -170,6 +170,15 @@ function start() {
     return t;
   }
 
+  // A step's number turns brass and pops the moment that step is complete.
+  function paintSteps() {
+    const done = [RULES.name() === '' && RULES.email() === '', !!state.ful, !!state.pay, true];
+    form.querySelectorAll('.co-step > legend .step-num').forEach((n, i) => {
+      if (done[i] && !n.classList.contains('done')) { n.classList.add('done'); motion.pop(n, { from: 0.8 }); }
+      else if (!done[i]) n.classList.remove('done');
+    });
+  }
+
   function renderMoney() {
     const t = renderSummary();
     const sub = t.subtotal;
@@ -187,12 +196,7 @@ function start() {
     const dates = schedule(new Date());
     $('[data-schedule-list]').innerHTML = over.parts.map((p, i) => `<div><dt>${i === 0 ? cap(firstDue()) : SHORT_DATE.format(dates[i])}</dt><dd>${fmt(p)}</dd></div>`).join('');
     $('[data-schedule]').hidden = state.plan !== 'over-time';
-    // A step's number turns brass and pops the moment that step is complete.
-    const done = [RULES.name() === '' && RULES.email() === '', !!state.ful, !!state.pay, true];
-    form.querySelectorAll('.co-step > legend .step-num').forEach((n, i) => {
-      if (done[i] && !n.classList.contains('done')) { n.classList.add('done'); motion.pop(n, { from: 0.8 }); }
-      else if (!done[i]) n.classList.remove('done');
-    });
+    paintSteps();
     const btn = $('[data-place]');
     if (!btn.dataset.busy) btn.textContent = state.pay === 'person'
       ? `Place order · pay ${fmt(t.dueToday)} ${firstDue()}`
@@ -322,7 +326,7 @@ function start() {
   });
   form.addEventListener('input', (e) => {
     const id = e.target.id;
-    if (id === 'name' || id === 'email') renderMoney();
+    if (id === 'name' || id === 'email') paintSteps();
     if (RULES[id] && (touched.has(id) || submitted)) validate(id);
   });
 
@@ -400,7 +404,7 @@ function showConfirmation(o) {
   main.innerHTML = `<section class="confirm" data-motion="confirm" aria-labelledby="thanks" tabindex="-1">
     <span class="seal-wrap"><span class="seal-clip"></span>${ICON.seal}</span>
     <h1 id="thanks">Thank you, ${esc(first)}!</h1>
-    <p class="order-no">Order ${[...o.no].map((ch, i) => `<span class="ch" style="animation-delay:${300 + i * 25}ms">${ch}</span>`).join('')}</p>
+    <p class="order-no" aria-label="Order ${o.no}"><span aria-hidden="true">Order ${[...o.no].map((ch, i) => `<span class="ch" style="animation-delay:${300 + i * 25}ms">${ch}</span>`).join('')}</span></p>
     <p class="muted" style="max-width:52ch">This was a preview, so nothing was charged. Melody will be in touch at <strong>${esc(o.email)}</strong>.</p>
     <div class="recap">
       <dl class="recap-facts">

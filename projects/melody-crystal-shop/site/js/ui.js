@@ -368,9 +368,11 @@ function wireDrawerKeys(d) {
 function paintCount(bump = false) {
   const n = bag.count();
   document.querySelectorAll('.bag-count').forEach((el) => {
-    el.textContent = n > 99 ? '99+' : String(n);
+    const next = n > 99 ? '99+' : String(n);
+    const changed = el.textContent !== next;
+    el.textContent = next;
     el.hidden = n === 0;
-    if (bump && !reducedMotion()) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); motion.roll(el, el.textContent); }
+    if (bump && !reducedMotion()) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); if (changed) motion.animateIn(el); }
   });
   document.querySelectorAll('.bag-btn').forEach((b) => b.setAttribute('aria-label', n ? `Bag, ${n} item${n === 1 ? '' : 's'}` : 'Bag, empty'));
 }

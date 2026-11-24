@@ -152,6 +152,7 @@ button { cursor: pointer; }
   transform-origin: center;
 }
 .bag-count[hidden] { display: none; }
+.bag-count { transition: transform var(--fast) var(--ease-out); }
 .bag-count.bump { animation: bump var(--slow) var(--ease-spring); }
 @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.25); } 100% { transform: scale(1); } }
 .menu-btn { display: inline-grid; }
@@ -607,7 +608,7 @@ html.motion-ready [data-stagger='60'].product-grid > :not(.is-in) { transform: t
 .chip { transition: background-color var(--fast), border-color var(--fast), color var(--fast), transform var(--fast) var(--ease-out); }
 .chip:active { transform: scale(.95); }
 .chip[aria-pressed='true'] .n { display: inline-block; animation: pop-in 300ms var(--ease-out); }
-.grid-status.is-changing { animation: rise-xs var(--base) var(--ease-out); }
+.grid-status { transition: opacity var(--fast) var(--ease-out); }
 .card .mat { transition: transform var(--base) var(--ease-out), box-shadow var(--base) var(--ease-out); }
 .card:hover .mat { transform: translateY(-3px); }
 .card .view { display: inline-block; transition: transform var(--fast) var(--ease-out), color var(--fast); }
@@ -645,6 +646,7 @@ html.motion-ready [data-stagger='60'].product-grid > :not(.is-in) { transform: t
 .stepper button { transition: background-color var(--fast), transform var(--d-press) var(--ease-out); }
 .stepper button:active:not(:disabled) { transform: scale(.9); }
 .stepper .val, .stepper output { display: inline-block; }
+.qty-note { display: inline-block; transition: opacity var(--fast) var(--ease-out); }
 .qty-note:not(:empty) { animation: rise-xs var(--base) var(--ease-out); }
 .not-found .gem-glyph, .empty .gem-glyph { animation: pop-in 420ms var(--ease-spring) both; }
 .empty > :not(svg) { animation: rise-sm 380ms var(--ease-out) backwards; }
@@ -695,7 +697,7 @@ html.motion-ready [data-stagger='60'].product-grid > :not(.is-in) { transform: t
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: var(--fast) !important; transition-property: opacity, background-color, border-color, color !important; }
+  *, *::before, *::after { animation-duration: 1ms !important; animation-delay: 0s !important; transition-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: var(--fast) !important; transition-property: opacity, background-color, border-color, color !important; }
   .rise { animation: none; }
   .glint, .burst, .flyer { display: none !important; }
   html.motion-ready [data-reveal]:not(.is-in), html.motion-ready [data-stagger] > :not(.is-in) { opacity: 1; transform: none; }

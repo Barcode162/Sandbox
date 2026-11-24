@@ -13,12 +13,12 @@ const INVENTORY = {
 };
 
 /** True if el or a descendant has a CSS animation or a transition on transform/opacity/all. */
-const moves = (el) => [el, ...el.querySelectorAll('*')].slice(0, 80).some((n) => {
-  const cs = getComputedStyle(n);
+const moves = (el) => [el, ...el.querySelectorAll('*')].slice(0, 80).some((n) => [null, '::before', '::after'].some((pseudo) => {
+  const cs = getComputedStyle(n, pseudo);
   const anim = cs.animationName !== 'none' && parseFloat(cs.animationDuration) > 0;
   const tr = parseFloat(cs.transitionDuration) > 0 && /transform|opacity|all/.test(cs.transitionProperty);
-  return anim || tr || n.dataset.reveal !== undefined || n.parentElement?.dataset.stagger !== undefined;
-});
+  return anim || tr || (!pseudo && (n.dataset.reveal !== undefined || n.parentElement?.dataset.stagger !== undefined));
+}));
 
 for (const [url, ids] of Object.entries(INVENTORY)) {
   test(`coverage: every component on ${url} carries motion`, async ({ page }) => {
@@ -56,6 +56,32 @@ test('reveal failsafe: if the observer never fires, everything shows within 3 s'
   await page.waitForTimeout(3300);
   const hidden = await page.evaluate(() => [...document.querySelectorAll('[data-reveal], [data-stagger] > *')].filter((el) => getComputedStyle(el).opacity === '0').length);
   expect(hidden).toBe(0);
+});
+
+test('F-001: sections further down still animate in after the first 3 s', async ({ page }) => {
+  await page.goto('/');
+  await page.waitForTimeout(3500);
+  const footerKid = page.locator('.footer-grid > *').first();
+  await expect(footerKid).not.toHaveClass(/is-in/);
+  await page.locator('.site-footer').scrollIntoViewIfNeeded();
+  await expect(footerKid).toHaveClass(/is-in/);
+});
+
+test('F-002: one screen-reader announcement per format change', async ({ page }) => {
+  await page.goto('/product.html?c=amethyst');
+  await page.waitForTimeout(600);
+  const n = await page.evaluate(async () => {
+    let count = 0;
+    const live = [...document.querySelectorAll('[aria-live]')].filter((el) => el.closest('.buybox'));
+    const mo = new MutationObserver((m) => { count += m.length; });
+    live.forEach((el) => mo.observe(el, { childList: true, characterData: true, subtree: true }));
+    const r = document.querySelector('input[name=format][value=jar]'); r.checked = true; r.dispatchEvent(new Event('change', { bubbles: true }));
+    await new Promise((f) => setTimeout(f, 900));
+    mo.disconnect();
+    return count;
+  });
+  expect(n).toBeLessThanOrEqual(2);
+  await expect(page.locator('[data-announce]')).toHaveText('Jar of big crystals, $95.');
 });
 
 test('reduced motion: nothing is hidden, no glint, no flight, no burst', async ({ page }) => {
