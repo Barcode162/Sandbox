@@ -49,19 +49,30 @@ Key evidence:
 - **Content without JS.** With JS disabled, nothing is hidden on home or credits. Pre-reveal CSS is gated on `html.motion-ready`.
 - **Dead observer.** With an IntersectionObserver that never fires, 10 elements are hidden at 0.5 s and 0 at 3.5 s, so the failsafe works for its intended case.
 - **Reduced motion.** No WAAPI animations, glints, bursts or flights run. JS checks `reduced()` at every entry point.
-- **Leaks.** The burst host removes itself, the flight clone is removed on finish and on cancel, glint spans are reused per frame, and the shimmer is a single timer chain gated on visibility and `document.hidden`. Nothing grows without bound.
-- **Rapid thumbnails.** `aria-current` and the shown photo agree, there is one `.frame`, and opacity is 1.
-- **Inputs at z-index 2.** Focus rings are still drawn through `input:focus-visible + .tile-body/.choice-body` (styles.css:355, 481). The axe scans pass.
-- **Performance.** `flip()` batches all reads before the mutation, the hover glint uses `closest()` only, and hot loops write text only.
+- **Leaks.** Burst hosts and flight clones remove themselves, glint spans are reused, and the shimmer is one timer gated on visibility.
+- **Inputs at z-index 2.** Focus rings still drawn (styles.css:355, 481); axe passes.
+- **Performance.** `flip()` batches reads; hot loops write text only.
 
 ## Strengths worth keeping
-- A single dependency-free `motion.js` (about 8 KB, no deps), where every helper returns early under reduced motion.
-- Cancel-on-new-input is applied consistently: the flight, shake, roll and count-up raf.
-- The seeded burst means each order number has a stable look.
+A single dependency-free `motion.js` where every helper returns early under reduced motion, and consistent cancel-on-new-input.
 
 ## Overall assessment
 The motion layer is well built and does not regress M-0004 money, focus or bag behaviour. It fails this round for two reasons:
 - **The gate is red (F-006).** Success criterion 1 requires `npm run verify` to pass, and the inventory test is the brief's own proof of "every component moves".
-- **The signature scroll choreography switches itself off after 3 s (F-001).** It needs a one-line fix.
+- **The signature scroll choreography switches itself off after 3 s (F-001).**
 
-F-002 should land in the same pass, because a screen-reader customer hears every frame of the price count-up. The S3s can ride along.
+F-002 should land in the same pass; the S3s can ride along.
+
+## Round 2 (6b79b8f)
+VERDICT: PASS WITH FINDINGS. `PORT=4196 npm run verify` exits 0 with 68 passed.
+
+| ID | Result | Evidence |
+|---|---|---|
+| F-001 | verified | At 3.5 s: 60 below-fold, 0 in. A dead IO still reveals everything |
+| F-002 | verified | 1 live mutation for jar, +, + |
+| F-003 | verified | 0 hidden elements 30 ms after a reduced-motion confirmation |
+| F-004 | verified | 0 summary mutations while typing |
+| F-005 | verified | Badge roll fires; no off-screen flyer; order number has an aria-label |
+| F-006 | verified | Gate green. The new qty-note, grid-status and bag-count transitions mostly satisfy the detector (taste) |
+
+New: F-015 (S2). With the failsafe gone, the footer disclaimer can sit in the −8% rootMargin dead zone at maximum scroll. Seen once in 9 runs. Fix: reveal everything still hidden when the page reaches the end.

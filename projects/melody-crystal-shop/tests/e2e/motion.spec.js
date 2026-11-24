@@ -82,6 +82,13 @@ for (const [w, h] of [[1440, 900], [375, 812]]) {
   });
 }
 
+test('F-015: the medical-advice line is visible at once, even on an instant jump to the bottom', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
+  await page.waitForTimeout(50);
+  expect(await page.locator('.footer-small').evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
+});
+
 test('F-002: one screen-reader announcement per format change', async ({ page }) => {
   await page.goto('/product.html?c=amethyst');
   await page.waitForTimeout(600);

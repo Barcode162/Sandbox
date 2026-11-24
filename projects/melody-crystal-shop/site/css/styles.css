@@ -549,6 +549,8 @@ html.motion-ready [data-reveal]:not(.is-in),
 html.motion-ready [data-stagger] > :not(.is-in) { opacity: 0; transform: translateY(16px); }
 html.motion-ready [data-reveal='card']:not(.is-in),
 html.motion-ready [data-stagger='60'].product-grid > :not(.is-in) { transform: translateY(16px) scale(.98); }
+/* The honesty line is never hidden, even for a moment. */
+html.motion-ready .footer-grid > .footer-small { opacity: 1; transform: none; }
 [data-reveal].is-in, [data-stagger] > .is-in { opacity: 1; transform: none; transition: opacity var(--d-reveal) var(--ease-out) var(--d, 0ms), transform var(--d-reveal) var(--ease-out) var(--d, 0ms); }
 
 /* Signature glint: a warm streak of light across the stone. */
