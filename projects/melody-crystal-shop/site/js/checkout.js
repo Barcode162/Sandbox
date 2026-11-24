@@ -341,10 +341,11 @@ function start() {
       errorsBox.innerHTML = `<div class="error-summary" data-motion="err-sum" role="alert"><h2>Please fix ${problems.length === 1 ? '1 thing' : `${problems.length} things`} before placing your order</h2>
         <ul>${problems.map(([id, m]) => `<li><a href="#${id === 'ful' || id === 'pay' ? `${id}-first` : id}" data-target="${id}">${esc(LABEL[id])}: ${esc(m)}</a></li>`).join('')}</ul></div>`;
       errorsBox.focus();
-      problems.forEach(([id], n) => {
-        const el = id === 'ful' || id === 'pay' ? form.querySelector(`[data-field="${id}"] .choice-list`) : $(`#${id}`);
-        setTimeout(() => motion.shake(el), n * 60);
-      });
+      problems
+        .map(([id]) => (id === 'ful' || id === 'pay' ? form.querySelector(`[data-field="${id}"] .choice-list`) : $(`#${id}`)))
+        .filter((el) => { const r = el?.getBoundingClientRect(); return r && r.bottom > 0 && r.top < innerHeight; })
+        .slice(0, 4)
+        .forEach((el, n) => setTimeout(() => motion.shake(el), n * 60));
       return;
     }
     errorsBox.innerHTML = '';

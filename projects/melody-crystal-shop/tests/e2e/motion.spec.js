@@ -67,6 +67,21 @@ test('F-001: sections further down still animate in after the first 3 s', async 
   await expect(footerKid).toHaveClass(/is-in/);
 });
 
+for (const [w, h] of [[1440, 900], [375, 812]]) {
+  test(`F-008: at the end of every page, everything has revealed (${w}px)`, async ({ page }) => {
+    await page.setViewportSize({ width: w, height: h });
+    for (const url of ['/', '/product.html?c=amethyst', '/credits.html']) {
+      await page.goto(url);
+      await page.waitForLoadState('networkidle');
+      await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+      await page.waitForTimeout(1200);
+      const hidden = await page.evaluate(() => [...document.querySelectorAll('[data-reveal], [data-stagger] > *')].filter((el) => getComputedStyle(el).opacity !== '1').map((el) => el.className || el.tagName));
+      expect(hidden, `${url} still hidden: ${hidden.join(', ')}`).toEqual([]);
+      await expect(page.locator('.footer-small')).toBeVisible();
+    }
+  });
+}
+
 test('F-002: one screen-reader announcement per format change', async ({ page }) => {
   await page.goto('/product.html?c=amethyst');
   await page.waitForTimeout(600);

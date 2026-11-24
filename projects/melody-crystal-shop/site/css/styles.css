@@ -553,7 +553,7 @@ html.motion-ready [data-stagger='60'].product-grid > :not(.is-in) { transform: t
 
 /* Signature glint: a warm streak of light across the stone. */
 .glint { position: absolute; top: -10%; bottom: -10%; left: 0; width: 45%; z-index: 1; pointer-events: none; opacity: 0; mix-blend-mode: screen; transform: translateX(-120%) skewX(-15deg);
-  background: linear-gradient(105deg, rgba(255,246,228,0) 0%, rgba(255,246,228,.10) 30%, rgba(255,250,240,.55) 48%, rgba(255,255,255,.75) 50%, rgba(255,250,240,.55) 52%, rgba(255,246,228,.10) 70%, rgba(255,246,228,0) 100%); }
+  background: linear-gradient(105deg, rgba(255,246,228,0) 0%, rgba(255,246,228,0) 18%, rgba(255,246,228,.10) 32%, rgba(255,250,240,.55) 48%, rgba(255,255,255,.75) 50%, rgba(255,250,240,.55) 52%, rgba(255,246,228,.10) 68%, rgba(255,246,228,0) 82%, rgba(255,246,228,0) 100%); }
 :root[data-theme='dark'] .glint { filter: opacity(.8); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .glint { filter: opacity(.8); } }
 .seal-wrap { position: relative; display: inline-grid; place-items: center; overflow: visible; }
@@ -561,7 +561,7 @@ html.motion-ready [data-stagger='60'].product-grid > :not(.is-in) { transform: t
 .seal-clip { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; }
 .burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; pointer-events: none; }
 .burst svg { position: absolute; left: 0; top: 0; }
-.flyer { position: fixed; z-index: 70; border-radius: 14px; object-fit: cover; pointer-events: none; box-shadow: var(--sh-2); }
+.flyer { position: fixed; z-index: 70; border-radius: 14px; object-fit: cover; pointer-events: none; box-shadow: 0 0 0 3px var(--paper), 0 8px 24px -8px #2a242066; }
 
 /* Header, nav, icons */
 .site-header { animation: drop var(--base) var(--ease-out) both; }
@@ -634,7 +634,7 @@ html.motion-ready [data-stagger='60'].product-grid > :not(.is-in) { transform: t
 .buybox > * { animation: rise-sm 380ms var(--ease-out) backwards; }
 .buybox > :nth-child(1) { animation-delay: 80ms; } .buybox > :nth-child(2) { animation-delay: 130ms; } .buybox > :nth-child(3) { animation-delay: 180ms; } .buybox > :nth-child(4) { animation-delay: 230ms; }
 .buy-price .price, .buy-price .per { display: inline-block; }
-.buy-price .price { transition: transform var(--base) var(--ease-spring); transform-origin: left bottom; }
+.buy-price .price { min-width: 4ch; font-variant-numeric: tabular-nums; transition: transform var(--base) var(--ease-spring); transform-origin: left bottom; }
 .buy-price .price.is-rolling { transform: scale(1.06); }
 .buy-price .per { transition: opacity var(--fast) var(--ease-out); }
 .tile .tile-body { transition: border-color var(--fast), background-color var(--fast), box-shadow var(--fast), transform var(--base) var(--ease-out); }

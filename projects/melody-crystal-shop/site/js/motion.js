@@ -32,7 +32,7 @@ function flush() {
     el.classList.add('is-in');
     el.dispatchEvent(new CustomEvent('revealed'));
     if ((el.matches('.frame') || el.querySelector('.frame')) && el.dataset.glint !== 'off') {
-      setTimeout(() => glint(el.querySelector('.frame') || el), (i < MAX_BATCH ? i * step : 0) + 520 + 200);
+      setTimeout(() => glint(el.querySelector('.frame') || el, { cooldown: 1200 }), (i < MAX_BATCH ? i * step : 0) + 520 + 200);
     }
   });
 }
@@ -57,6 +57,10 @@ export function reveal(root = document) {
     document.documentElement.classList.add('motion-ready');
     const all = () => document.querySelectorAll('[data-reveal]:not(.is-in), [data-stagger] > :not(.is-in)').forEach((el) => el.classList.add('is-in'));
     setTimeout(() => { if (!ioAlive) all(); }, 3000); // failsafe for a dead observer only
+    // The last few pixels of a page sit in the observer's bottom margin; reveal them at the end of the page.
+    const atEnd = () => { if (scrollY + innerHeight >= document.documentElement.scrollHeight - 4) all(); };
+    addEventListener('scroll', atEnd, { passive: true });
+    setTimeout(atEnd, 600);
     addEventListener('beforeprint', all);
   }
   els.forEach((el) => io.observe(el));
@@ -182,12 +186,13 @@ export function wiggle(el) {
 
 let flight = null;
 /** Fly a small clone of `img` into the bag button. Resolves when it lands (or at once if it can't fly). */
-export function flyToBag(img) {
+export function flyToBag(img, fromEl = null) {
   const bagBtn = document.querySelector('.bag-btn');
   flight?.cancel();
   if (!img || !bagBtn || reduced()) return Promise.resolve();
-  const a = img.getBoundingClientRect();
+  let a = img.getBoundingClientRect();
   const b = bagBtn.getBoundingClientRect();
+  if ((a.bottom < 0 || a.top > innerHeight) && fromEl) a = fromEl.getBoundingClientRect();
   if (!a.width || a.bottom < 0 || a.top > innerHeight || b.bottom < 0 || b.top > innerHeight) return Promise.resolve();
   const size = 72;
   const clone = document.createElement('img');

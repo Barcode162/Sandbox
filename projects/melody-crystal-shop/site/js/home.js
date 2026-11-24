@@ -55,11 +55,20 @@ function applyFilter(intent, { animate = true } = {}) {
     return i;
   }
   motion.roll(status, text);
-  // Leavers fade and shrink (120 ms), then survivors slide to their new slots and newcomers rise.
-  const leaving = items.filter((li) => !li.hidden && !keep(li));
-  leaving.forEach((li) => li.classList.add('is-leaving'));
-  clearTimeout(applyFilter.t);
-  applyFilter.t = setTimeout(() => motion.flip(items, mutate), leaving.length ? 120 : 0);
+  // One continuous rearrangement: short moves slide (FLIP), long moves and newcomers fade-rise into place.
+  const before = new Map(items.map((li) => [li, li.hidden ? null : li.getBoundingClientRect()]));
+  mutate();
+  for (const li of items) {
+    if (li.hidden) continue;
+    li.getAnimations().forEach((a) => a.cancel());
+    const a = before.get(li), b = li.getBoundingClientRect();
+    const dx = a ? a.left - b.left : 0, dy = a ? a.top - b.top : 0;
+    if (!a || Math.abs(dy) > b.height * 1.2) {
+      li.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 260, delay: 40, easing: motion.EASE.out, fill: 'backwards' });
+    } else if (dx || dy) {
+      li.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 320, easing: motion.EASE.inout });
+    }
+  }
   return i;
 }
 

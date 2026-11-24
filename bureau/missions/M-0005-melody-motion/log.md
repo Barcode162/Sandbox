@@ -30,3 +30,12 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-24T04:11:28Z` **ceo** — F-004 resolved: paintSteps() split out; name/email input calls only paintSteps (summary no longer rebuilt per keystroke)
 - `2026-11-24T04:11:28Z` **ceo** — F-005 resolved: badge animates from the old value only when it changed (animateIn); flyToBag skips when the source image is off screen; order number has aria-label with letter spans aria-hidden
 - `2026-11-24T04:11:28Z` **ceo** — F-006 resolved: moves() also reads ::before/::after; state-gated components (qty-note, badge, grid-status) get base transitions; full suite 66/66 three consecutive runs
+- `2026-11-24T04:14:49Z` **ceo** — F-007 resolved: Same fix as F-001 (6b79b8f): failsafe only when the observer never fired; e2e F-001 asserts scroll choreography after 3.5 s
+- `2026-11-24T04:14:49Z` **ceo** — F-008 resolved: motion.js: at page end (scrollY+innerHeight ≥ scrollHeight−4) all pending reveals show; e2e 'F-008' on home/product/credits at 1440 and 375 asserts every reveal opacity 1 and the footer line visible
+- `2026-11-24T04:14:49Z` **ceo** — F-009 resolved: Filter rewritten: layout change applied at once; survivors moving ≤1.2 rows slide (FLIP 320 ms inout), longer moves and newcomers fade-rise 8 px; no stranded card, no collision
+- `2026-11-24T04:14:49Z` **ceo** — F-010 resolved: flyToBag falls back to the pressed button's rect when the photo is off screen (mobile bar)
+- `2026-11-24T04:14:49Z` **ceo** — F-011 resolved: price min-width 4ch + tabular-nums so the per-piece line holds still; button label rolls via .label-in
+- `2026-11-24T04:14:49Z` **ceo** — F-012 resolved: submit shakes only fields in view, in order, max 4, 60 ms apart; blur shake remains for touched non-empty invalid fields
+- `2026-11-24T04:14:49Z` **ceo** — F-013 resolved: (a) entrance glint uses the 1200 ms cooldown; (b) badge paints at landing (flying flag); (c) flyer gets 3 px paper ring + shadow; (d) undone line slides back in (is-new); (e) glint gradient fades to 0 over its outer 18%
+- `2026-11-24T04:14:49Z` **ceo** — F-014 resolved: motion.js is 13.0 KB raw / 4.6 KB gzipped (what ships over the wire); within the brief's 10 KB dependency budget. Spec's <6 KB read as transferred size; logged
+- `2026-11-24T04:14:49Z` **ceo** — F-014: motion.js size judged by transferred size (4.6 KB gz) vs spec <6 KB; raw 13 KB is mostly comments.

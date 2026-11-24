@@ -186,6 +186,7 @@ function footer() {
 // ── Drawer ───────────────────────────────────────────────────────────────
 let opener = null;
 let lastAdded = null;
+let flying = false; // while a thumbnail is in the air, the badge waits for it to land
 let undo = null; // { name, restore, timer } — the last removal, offered inside the drawer for 5 s
 let undoTimer = 0;
 
@@ -316,6 +317,7 @@ function wireDrawer() {
       const u = undo;
       clearTimeout(u?.timer);
       undo = null;
+      if (u) lastAdded = u.key;
       u?.restore();
       d.querySelector('.line [data-remove], [data-close]')?.focus();
       return;
@@ -342,7 +344,7 @@ function wireDrawer() {
 function removeLine(d, key, l) {
   const fromRects = new Map([...d.querySelectorAll('.line')].map((li) => [li.dataset.key, li.getBoundingClientRect()]));
   clearTimeout(undo?.timer);
-  undo = { name: l.crystal.name, restore: bag.remove(key) };
+  undo = { name: l.crystal.name, key, restore: bag.remove(key) };
   undo.timer = setTimeout(() => {
     const hadFocus = !!document.activeElement?.closest('.undo-row');
     undo = null;
@@ -385,7 +387,8 @@ export function addAndShow(slug, format, qty, from, flyFrom = null) {
     openDrawer(from);
     return;
   }
-  motion.flyToBag(flyFrom).then(() => paintCount(true));
+  flying = true;
+  motion.flyToBag(flyFrom, from).then(() => { flying = false; paintCount(true); });
   setTimeout(() => { if (document.getElementById('bag-drawer').hidden) openDrawer(from); }, 450);
 }
 
@@ -426,7 +429,7 @@ export function mount(active = '') {
   document.querySelector('.bag-btn').addEventListener('click', (e) => openDrawer(e.currentTarget));
   wireDrawer();
   paintCount();
-  document.addEventListener('bag:change', () => { paintCount(); if (!document.getElementById('bag-drawer').hidden) renderDrawer(); });
+  document.addEventListener('bag:change', () => { if (!flying) paintCount(); if (!document.getElementById('bag-drawer').hidden) renderDrawer(); });
   motion.hoverGlints(document);
   motion.reveal(document);
   addEventListener('storage', (e) => { if (e.key === 'mc.bag.v1' || e.key === null) document.dispatchEvent(new CustomEvent('bag:change')); });
