@@ -5,6 +5,7 @@ import * as bag from './bag.js';
 import { fmt, totals, schedule, SHORT_DATE, FULFILMENT, fulfilmentFee } from './money.js';
 import { checkCardNumber, cardBrand, BRAND_LABEL, cvcLength, formatCardNumber, caretAfterFormat, digits, formatExpiry, checkExpiry, formatGiftCode, orderNumber } from './payment.js';
 import { mount, ICON, esc, lineItem, emptyBag, openDrawer } from './ui.js';
+import * as motion from './motion.js';
 
 mount('');
 const main = document.querySelector('[data-checkout]');
@@ -32,24 +33,24 @@ const field = (id, label, { type = 'text', ac, hint = '', attrs = '', badge = fa
   </div>`;
 
 const choice = (name, value, title, sub, right = '', extra = '') => `
-  <label class="choice"><input type="radio" name="${name}" value="${value}" ${extra}>
+  <label class="choice" data-motion="choice"><input type="radio" name="${name}" value="${value}" ${extra}>
     <span class="choice-body"><span class="dot"></span><span class="c-title">${title}</span><span class="c-price">${right}</span><span class="c-sub">${sub}</span>${name === 'pay' && value === 'person' ? '<span class="reason" id="person-reason">Not available for shipped orders</span>' : ''}</span>
   </label>`;
 
 function page() {
   return `
   <h1>Checkout</h1>
-  <div class="notice" role="note">${ICON.lock}<p><strong>Preview checkout.</strong> No card will be charged until Melody connects payments. Your details stay in this browser.</p></div>
+  <div class="notice" data-motion="notice" role="note">${ICON.lock}<p><strong>Preview checkout.</strong> No card will be charged until Melody connects payments. Your details stay in this browser.</p></div>
   <div data-errors tabindex="-1" style="margin-top:24px"></div>
   <div class="co-grid" style="margin-top:24px">
     <form class="co-form" novalidate>
-      <fieldset class="co-step">
+      <fieldset class="co-step" data-motion="co-step">
         <legend><span class="step-num">1</span>Contact</legend>
         <div class="row-2">${field('name', 'Full name', { ac: 'name' })}${field('email', 'Email', { type: 'email', ac: 'email', attrs: 'inputmode="email"' })}</div>
         ${field('phone', 'Phone', { type: 'tel', ac: 'tel', hint: 'Optional, for pickup or delivery questions', attrs: 'inputmode="tel"' })}
       </fieldset>
 
-      <fieldset class="co-step" data-field="ful" aria-describedby="ful-err">
+      <fieldset class="co-step" data-motion="co-step" data-field="ful" aria-describedby="ful-err">
         <legend><span class="step-num">2</span>How should it reach you?</legend>
         <div class="choice-list">
           ${Object.entries(FULFILMENT).map(([k, f]) => choice('ful', k, `${ICON[k === 'delivery' ? 'truck' : k === 'shipping' ? 'box' : 'pin']}${f.label}`, FUL_SUB[k], `<span data-fee="${k}"></span>`)).join('')}
@@ -63,7 +64,7 @@ function page() {
         <p class="info-line" data-pickup-info hidden>${ICON.info}<span>Pickup is by appointment. I’ll message you to arrange a time.</span></p>
       </fieldset>
 
-      <fieldset class="co-step" data-field="pay" aria-describedby="pay-err">
+      <fieldset class="co-step" data-motion="co-step" data-field="pay" aria-describedby="pay-err">
         <legend><span class="step-num">3</span>How would you like to pay?</legend>
         <div class="choice-list cols">
           ${Object.entries(PAY).map(([k, p]) => choice('pay', k, `${ICON[p.icon]}${p.label}`, p.sub)).join('')}
@@ -85,7 +86,7 @@ function page() {
         <p class="info-line" data-person-info hidden>${ICON.info}<span data-person-text></span></p>
       </fieldset>
 
-      <fieldset class="co-step">
+      <fieldset class="co-step" data-motion="co-step">
         <legend><span class="step-num">4</span>Pay all at once, or over time?</legend>
         <div class="choice-list">
           ${choice('plan', 'full', 'Pay in full', 'One payment today', '<span data-plan-full></span>', 'checked')}
@@ -152,19 +153,30 @@ function start() {
       ? '<span class="muted">Choose below</span>'
       : t.waived ? `<span class="free"><s>${fmt(t.baseFee)}</s>Free</span>`
         : t.fee === 0 ? '<span class="free">Free</span>' : fmt(t.fee);
+    const before = motion.snapshot(summary);
     summary.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><h2 id="sum-title">Order summary</h2><button type="button" class="btn-quiet" data-edit-bag>Edit bag</button></div>
       <ul class="line-items">${ls.map((l) => lineItem(l, { editable: false })).join('')}</ul>
       <dl class="sum-rows">
-        <div><dt>Subtotal</dt><dd>${fmt(t.subtotal)}</dd></div>
+        <div><dt>Subtotal</dt><dd data-roll="sub">${fmt(t.subtotal)}</dd></div>
         <div><dt>${state.ful ? esc(FULFILMENT[state.ful].label) : 'Delivery'}</dt><dd>${feeCell}</dd></div>
-        <div class="total"><dt>Total</dt><dd>${fmt(t.total)}</dd></div>
-        ${state.plan === 'over-time' ? `<div class="today"><dt>Due ${firstDue()}</dt><dd>${fmt(t.dueToday)}</dd></div>` : ''}
+        <div class="total"><dt>Total</dt><dd data-roll="total">${fmt(t.total)}</dd></div>
+        ${state.plan === 'over-time' ? `<div class="today"><dt>Due ${firstDue()}</dt><dd data-roll="today">${fmt(t.dueToday)}</dd></div>` : ''}
       </dl>
       <p class="footnote">No sales tax is added in this preview.</p>`;
     summary.querySelector('[data-edit-bag]').addEventListener('click', (e) => openDrawer(e.currentTarget));
+    motion.rollChanged(summary, before);
     $('[data-toggle-label]').textContent = `${toggle.getAttribute('aria-expanded') === 'true' ? 'Hide' : 'Show'} order summary · ${fmt(t.total)}`;
     return t;
+  }
+
+  // A step's number turns brass and pops the moment that step is complete.
+  function paintSteps() {
+    const done = [RULES.name() === '' && RULES.email() === '', !!state.ful, !!state.pay, true];
+    form.querySelectorAll('.co-step > legend .step-num').forEach((n, i) => {
+      if (done[i] && !n.classList.contains('done')) { n.classList.add('done'); motion.pop(n, { from: 0.8 }); }
+      else if (!done[i]) n.classList.remove('done');
+    });
   }
 
   function renderMoney() {
@@ -184,6 +196,7 @@ function start() {
     const dates = schedule(new Date());
     $('[data-schedule-list]').innerHTML = over.parts.map((p, i) => `<div><dt>${i === 0 ? cap(firstDue()) : SHORT_DATE.format(dates[i])}</dt><dd>${fmt(p)}</dd></div>`).join('');
     $('[data-schedule]').hidden = state.plan !== 'over-time';
+    paintSteps();
     const btn = $('[data-place]');
     if (!btn.dataset.busy) btn.textContent = state.pay === 'person'
       ? `Place order · pay ${fmt(t.dueToday)} ${firstDue()}`
@@ -234,6 +247,8 @@ function start() {
       ccNum.setSelectionRange(p, p);
     }
     const b = cardBrand(f);
+    if (b && b !== brandBadge.dataset.brand && !brandBadge.hidden) motion.pop(brandBadge, { from: 0.6, duration: 300 });
+    brandBadge.dataset.brand = b || '';
     brandBadge.hidden = !b;
     brandBadge.textContent = b ? BRAND_LABEL[b] : '';
     $('#cc-csc').maxLength = cvcLength(b);
@@ -301,14 +316,17 @@ function start() {
     showError(id, msg);
     return msg;
   }
+  // Fields shake once when an error first appears on leaving them; never while typing.
   form.addEventListener('focusout', (e) => {
     const id = e.target.id;
     if (!RULES[id] || !e.target.value) return;
     touched.add(id);
-    validate(id);
+    const wasOk = $(`#${id}-err`)?.hidden !== false;
+    if (validate(id) && wasOk) motion.shake(e.target);
   });
   form.addEventListener('input', (e) => {
     const id = e.target.id;
+    if (id === 'name' || id === 'email') paintSteps();
     if (RULES[id] && (touched.has(id) || submitted)) validate(id);
   });
 
@@ -320,9 +338,14 @@ function start() {
     syncChoices();
     const problems = Object.keys(RULES).map((id) => [id, validate(id)]).filter(([, m]) => m);
     if (problems.length) {
-      errorsBox.innerHTML = `<div class="error-summary" role="alert"><h2>Please fix ${problems.length === 1 ? '1 thing' : `${problems.length} things`} before placing your order</h2>
+      errorsBox.innerHTML = `<div class="error-summary" data-motion="err-sum" role="alert"><h2>Please fix ${problems.length === 1 ? '1 thing' : `${problems.length} things`} before placing your order</h2>
         <ul>${problems.map(([id, m]) => `<li><a href="#${id === 'ful' || id === 'pay' ? `${id}-first` : id}" data-target="${id}">${esc(LABEL[id])}: ${esc(m)}</a></li>`).join('')}</ul></div>`;
       errorsBox.focus();
+      problems
+        .map(([id]) => (id === 'ful' || id === 'pay' ? form.querySelector(`[data-field="${id}"] .choice-list`) : $(`#${id}`)))
+        .filter((el) => { const r = el?.getBoundingClientRect(); return r && r.bottom > 0 && r.top < innerHeight; })
+        .slice(0, 4)
+        .forEach((el, n) => setTimeout(() => motion.shake(el), n * 60));
       return;
     }
     errorsBox.innerHTML = '';
@@ -379,10 +402,10 @@ function showConfirmation(o) {
   const planText = o.plan === 'over-time' ? `4 payments of ${o.t.parts[0] === o.t.parts[1] ? '' : 'about '}${fmt(o.t.parts[1])} · ${fmt(o.t.dueToday)} ${when}` : `${o.pay === 'person' ? 'In full' : 'Paid in full'} · ${fmt(o.t.total)}${o.pay === 'person' ? ` ${when}` : ''}`;
   const fulText = `${FULFILMENT[o.ful].label}${o.address ? ` to ${o.address}` : o.ful === 'pickup' ? ' · I’ll message you to arrange a time' : ''}`;
   document.title = `Order ${o.no} · Melody’s Crystals`;
-  main.innerHTML = `<section class="confirm" aria-labelledby="thanks" tabindex="-1">
-    ${ICON.seal}
+  main.innerHTML = `<section class="confirm" data-motion="confirm" aria-labelledby="thanks" tabindex="-1">
+    <span class="seal-wrap"><span class="seal-clip"></span>${ICON.seal}</span>
     <h1 id="thanks">Thank you, ${esc(first)}!</h1>
-    <p class="order-no">Order ${o.no}</p>
+    <p class="order-no" aria-label="Order ${o.no}"><span aria-hidden="true">Order ${[...o.no].map((ch, i) => `<span class="ch" style="animation-delay:${300 + i * 25}ms">${ch}</span>`).join('')}</span></p>
     <p class="muted" style="max-width:52ch">This was a preview, so nothing was charged. Melody will be in touch at <strong>${esc(o.email)}</strong>.</p>
     <div class="recap">
       <dl class="recap-facts">
@@ -402,4 +425,7 @@ function showConfirmation(o) {
   </section>`;
   scrollTo({ top: 0, behavior: 'instant' });
   main.querySelector('.confirm').focus({ preventScroll: true });
+  const seal = main.querySelector('.seal-wrap');
+  motion.burst(seal, o.no);
+  setTimeout(() => motion.glint(seal.querySelector('.seal-clip')), 300);
 }

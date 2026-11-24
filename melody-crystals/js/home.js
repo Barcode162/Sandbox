@@ -1,6 +1,7 @@
 // home.js — hero trio, meanings list, shop grid with intention filter, format strip.
 import { CRYSTALS, FORMATS, INTENTIONS, bySlug, tagCounts, img, photoStyle } from '../data/crystals.js';
 import { mount, ICON, esc, framedPhoto, formatScene, reducedMotion, card } from './ui.js';
+import * as motion from './motion.js';
 
 mount('shop');
 
@@ -14,7 +15,7 @@ document.querySelectorAll('[data-icon]').forEach((el) => {
 const trio = [['amethyst', 't1', 1200], ['rose-quartz', 't2', 480], ['citrine', 't3', 480]];
 document.querySelector('[data-trio]').innerHTML = trio.map(([slug, cls, size], i) => {
   const c = bySlug(slug);
-  return `<a class="mat ${cls} rise" style="--i:${i + 1}" href="product.html?c=${slug}">
+  return `<a class="mat ${cls} rise" data-motion="frame" style="--i:${i + 1}" href="product.html?c=${slug}">
     ${framedPhoto(c, { size, eager: i === 0 })}<span class="label">${esc(c.name)}</span></a>`;
 }).join('');
 
@@ -43,25 +44,39 @@ function applyFilter(intent, { animate = true } = {}) {
   const i = valid.includes(intent) ? intent : '';
   chipsEl.querySelectorAll('.chip').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.i === i)));
   const items = [...grid.children];
-  const first = new Map(items.map((li) => [li, li.getBoundingClientRect()]));
-  let shown = 0;
-  for (const li of items) {
-    const on = !i || li.dataset.tags.split(' ').includes(i);
-    li.hidden = !on;
-    if (on) shown++;
+  const keep = (li) => !i || li.dataset.tags.split(' ').includes(i);
+  const shown = items.filter(keep).length;
+  const label = i ? intentions.find((t) => t.toLowerCase() === i) : '';
+  const text = i ? `${shown} crystal${shown === 1 ? '' : 's'} for ${label}` : `Showing all ${shown} crystals`;
+  const mutate = () => items.forEach((li) => { li.classList.remove('is-leaving'); li.hidden = !keep(li); });
+  if (!animate || reducedMotion()) {
+    mutate();
+    status.textContent = text;
+    return i;
   }
-  // FLIP: slide survivors from where they were to where they are.
-  if (animate && !reducedMotion()) {
+  motion.roll(status, text);
+  // Leavers fade (120 ms); then short moves slide above everything (FLIP), and long moves and
+  // newcomers fade-rise only once the sliders have cleared their slots.
+  const leaving = items.filter((li) => !li.hidden && !keep(li));
+  leaving.forEach((li) => li.classList.add('is-leaving'));
+  clearTimeout(applyFilter.t);
+  applyFilter.t = setTimeout(() => {
+    const before = new Map(items.map((li) => [li, li.hidden || li.classList.contains('is-leaving') ? null : li.getBoundingClientRect()]));
+    mutate();
     for (const li of items) {
       if (li.hidden) continue;
-      const a = first.get(li), b = li.getBoundingClientRect();
-      if (!a.width) { li.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'ease-out' }); continue; }
-      const dx = a.left - b.left, dy = a.top - b.top;
-      if (dx || dy) li.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 220, easing: 'cubic-bezier(.2,.7,.2,1)' });
+      li.getAnimations().forEach((a) => a.cancel());
+      const a = before.get(li), b = li.getBoundingClientRect();
+      const dx = a ? a.left - b.left : 0, dy = a ? a.top - b.top : 0;
+      if (!a || Math.abs(dy) > b.height * 1.2) {
+        li.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 260, delay: 220, easing: motion.EASE.out, fill: 'backwards' });
+      } else if (dx || dy) {
+        li.style.zIndex = '1';
+        li.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 300, easing: motion.EASE.inout })
+          .finished.catch(() => {}).then(() => { li.style.zIndex = ''; });
+      }
     }
-  }
-  const label = i ? intentions.find((t) => t.toLowerCase() === i) : '';
-  status.textContent = i ? `${shown} crystal${shown === 1 ? '' : 's'} for ${label}` : `Showing all ${shown} crystals`;
+  }, leaving.length ? 120 : 0);
   return i;
 }
 
@@ -74,6 +89,7 @@ const paintFade = () => chipsEl.classList.toggle('is-scrolled', chipsEl.scrollLe
 chipsEl.addEventListener('scroll', paintFade, { passive: true });
 chipsEl.addEventListener('click', (e) => {
   const b = e.target.closest('.chip');
+  if (b?.getAttribute('aria-pressed') === 'true') return;
   if (!b) return;
   const i = applyFilter(b.dataset.i);
   history.replaceState(null, '', i ? `#shop?i=${i}` : '#shop');
@@ -99,3 +115,13 @@ document.querySelector('[data-formats]').innerHTML = FORMATS.map((f) => `
     ? `<img src="${img(FORMAT_PHOTO.big, 480)}" alt="" style="${photoStyle(bySlug('amethyst'))}" loading="lazy">`
     : formatScene(f.id, img(FORMAT_PHOTO[f.id], 480), bySlug(FORMAT_PHOTO[f.id]).colour)}</div>
     <div><h4>${esc(f.name)}</h4><p>${esc(f.size)}. ${esc(f.blurb)}</p></div></div>`).join('');
+
+// ── Motion: hero glints, the living shimmer, numerals that count up ──────
+const trioFrames = [...document.querySelectorAll('.trio .frame')];
+if (!motion.reduced()) trioFrames.forEach((f, i) => setTimeout(() => motion.glint(f), 900 + i * 120));
+motion.shimmer(trioFrames);
+document.querySelectorAll('.steps li').forEach((li, n) => li.addEventListener('revealed', () => motion.countUp(li.querySelector('.num'), n + 1), { once: true }));
+document.querySelectorAll('.format-card').forEach((el) => el.setAttribute('data-motion', 'formats'));
+document.querySelectorAll('.meaning-row').forEach((el) => el.setAttribute('data-motion', 'meaning-row'));
+document.querySelectorAll('.faq details').forEach((el) => el.setAttribute('data-motion', 'faq'));
+motion.reveal(document);

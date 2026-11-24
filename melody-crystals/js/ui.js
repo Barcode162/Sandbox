@@ -2,6 +2,7 @@
 import * as bag from './bag.js';
 import { img, FORMATS, fromPrice, photoStyle } from '../data/crystals.js';
 import { fmt } from './money.js';
+import * as motion from './motion.js';
 
 export const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -116,7 +117,7 @@ export function formatScene(formatId, photoUrl, colour = '#b08a4a') {
 
 /** A photo inside the shared mat-and-frame treatment, with a named fallback. */
 export function framedPhoto(c, { size = 480, photo = c.photos[0], eager = false, cls = '' } = {}) {
-  return `<div class="frame ${cls}">
+  return `<div class="frame ${cls}"${c.pale ? ' data-pale' : ''}>
     <img src="${img(photo, size)}" alt="${esc(c.alt)}" style="${photoStyle(c)}" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async" width="${size}" height="${Math.round(size * 1.25)}">
     <span class="fallback" aria-hidden="true">${ICON.gem}${esc(c.name)}</span>
   </div>`;
@@ -148,17 +149,17 @@ function paintThemeButton(btn) {
 function header(active) {
   const link = (href, label, key) => `<a href="${href}"${active === key ? ' aria-current="page"' : ''}>${label}</a>`;
   return `
-  <a class="skip-link" href="#main">Skip to content</a>
-  <header class="site-header">
+  <a class="skip-link" data-motion="skip" href="#main">Skip to content</a>
+  <header class="site-header" data-motion="header">
     <div class="container">
-      <a class="wordmark" href="index.html"><b>Melody’s</b><span>CRYSTALS</span></a>
-      <nav class="nav" aria-label="Main">
+      <a class="wordmark" data-motion="icon" href="index.html"><b>Melody’s</b><span>CRYSTALS</span></a>
+      <nav class="nav" data-motion="nav" aria-label="Main">
         ${link('index.html#shop', 'Shop', 'shop')}${link('index.html#meanings', 'Meanings', 'meanings')}${link('index.html#faq', 'FAQ', 'faq')}
       </nav>
       <div class="header-actions">
-        <button class="icon-btn theme-btn" type="button"></button>
-        <button class="icon-btn bag-btn" type="button" aria-haspopup="dialog" aria-controls="bag-drawer">${ICON.bag}<span class="bag-count" hidden>0</span><span class="visually-hidden bag-label">Bag</span></button>
-        <button class="icon-btn menu-btn" type="button" aria-expanded="false" aria-controls="menu-sheet" aria-label="Menu">${ICON.menu}</button>
+        <button class="icon-btn theme-btn" data-motion="theme" type="button"></button>
+        <button class="icon-btn bag-btn" data-motion="bag" type="button" aria-haspopup="dialog" aria-controls="bag-drawer">${ICON.bag}<span class="bag-count" data-motion="badge" hidden>0</span><span class="visually-hidden bag-label">Bag</span></button>
+        <button class="icon-btn menu-btn" data-motion="menu" type="button" aria-expanded="false" aria-controls="menu-sheet" aria-label="Menu">${ICON.menu}</button>
       </div>
     </div>
   </header>
@@ -168,8 +169,8 @@ function header(active) {
 }
 
 function footer() {
-  return `<footer class="site-footer">
-    <div class="container footer-grid">
+  return `<footer class="site-footer" data-motion="footer">
+    <div class="container footer-grid" data-stagger="80">
       <div>
         <a class="wordmark" href="index.html"><b>Melody’s</b><span>CRYSTALS</span></a>
         <p class="muted" style="margin-top:12px">Hand-picked by Melody. Every order is packed by me, with a little card about your stone.</p>
@@ -185,23 +186,24 @@ function footer() {
 // ── Drawer ───────────────────────────────────────────────────────────────
 let opener = null;
 let lastAdded = null;
+let flying = false; // while a thumbnail is in the air, the badge waits for it to land
 let undo = null; // { name, restore, timer } — the last removal, offered inside the drawer for 5 s
 let undoTimer = 0;
 
 function drawerShell() {
-  return `<div class="scrim" hidden></div>
-  <aside class="drawer" id="bag-drawer" role="dialog" aria-modal="true" aria-labelledby="bag-title" hidden>
+  return `<div class="scrim" data-motion="scrim" hidden></div>
+  <aside class="drawer" data-motion="drawer" id="bag-drawer" role="dialog" aria-modal="true" aria-labelledby="bag-title" hidden>
     <div class="drawer-head"><h2 id="bag-title">Your bag</h2><button class="icon-btn" type="button" data-close aria-label="Close bag">${ICON.close}</button></div>
     <div class="drawer-body"></div>
     <div class="drawer-foot" hidden></div>
   </aside>
-  <div class="toast" role="status" aria-live="polite"></div>
+  <div class="toast" data-motion="toast" role="status" aria-live="polite"></div>
   <div class="visually-hidden" id="bag-live" aria-live="polite"></div>`;
 }
 
 export function lineItem(l, { editable = true } = {}) {
   const c = l.crystal;
-  return `<li class="line${l.key === lastAdded ? ' is-new' : ''}" data-key="${l.key}">
+  return `<li class="line${l.key === lastAdded ? ' is-new' : ''}" data-motion="line" data-key="${l.key}">
     <div class="thumb"><img src="${img(c.photos[0], 480)}" alt="" style="${photoStyle(c)}" loading="lazy"></div>
     <div>
       <h3><a href="product.html?c=${c.slug}">${esc(c.name)}</a></h3>
@@ -209,29 +211,32 @@ export function lineItem(l, { editable = true } = {}) {
       ${editable ? `<div class="controls">
         <div class="stepper sm" role="group" aria-label="Quantity of ${esc(c.name)}, ${esc(l.formatInfo.name)}">
           <button type="button" data-dec aria-label="Decrease quantity" ${l.qty <= 1 ? 'disabled' : ''}>${ICON.minus}</button>
-          <span class="val" aria-live="polite">${l.qty}</span>
+          <span class="val" data-roll="q-${l.key}" aria-live="polite">${l.qty}</span>
           <button type="button" data-inc aria-label="Increase quantity" ${l.qty >= bag.MAX_QTY ? 'disabled' : ''}>${ICON.plus}</button>
         </div>
-        <button type="button" class="btn-quiet" data-remove>Remove<span class="visually-hidden"> ${esc(c.name)}, ${esc(l.formatInfo.name)}</span></button>
+        <button type="button" class="btn-quiet" data-motion="line-remove" data-remove>Remove<span class="visually-hidden"> ${esc(c.name)}, ${esc(l.formatInfo.name)}</span></button>
       </div>` : ''}
     </div>
-    <div class="lt">${fmt(l.price * l.qty)}</div>
+    <div class="lt" data-motion="totals" data-roll="lt-${l.key}">${fmt(l.price * l.qty)}</div>
   </li>`;
 }
 
 export function emptyBag(headingTag = 'h3') {
-  return `<div class="empty">${ICON.gem}<${headingTag}>Your bag is empty.</${headingTag}><p class="muted">Find a stone that speaks to you.</p><a class="btn btn-primary" href="index.html#shop">Shop crystals</a></div>`;
+  return `<div class="empty" data-motion="empty">${ICON.gem}<${headingTag}>Your bag is empty.</${headingTag}><p class="muted">Find a stone that speaks to you.</p><a class="btn btn-primary" href="index.html#shop">Shop crystals</a></div>`;
 }
 
-function renderDrawer() {
+function renderDrawer({ animateIn = false, fromRects = null } = {}) {
   const d = document.getElementById('bag-drawer');
   if (!d) return;
+  // Remember where rows and numbers were, so changes can slide and roll instead of jumping.
+  const before = motion.snapshot(d);
+  const rects = fromRects || new Map([...d.querySelectorAll('.line')].map((li) => [li.dataset.key, li.getBoundingClientRect()]));
   const ls = bag.lines();
   const n = ls.reduce((s, l) => s + l.qty, 0);
   d.querySelector('#bag-title').textContent = n ? `Your bag (${n})` : 'Your bag';
   const body = d.querySelector('.drawer-body');
   const foot = d.querySelector('.drawer-foot');
-  const undoRow = undo ? `<div class="undo-row" role="status"><span>Removed ${esc(undo.name)}</span><button type="button" class="btn-quiet" data-undo>Undo</button></div>` : '';
+  const undoRow = undo ? `<div class="undo-row" data-motion="undo" role="status"><span>Removed ${esc(undo.name)}</span><button type="button" class="btn-quiet" data-undo>Undo</button></div>` : '';
   if (!ls.length) {
     body.innerHTML = undoRow + emptyBag();
     foot.hidden = true;
@@ -240,12 +245,24 @@ function renderDrawer() {
   const sub = ls.reduce((s, l) => s + l.price * l.qty, 0);
   body.innerHTML = `${undoRow}<ul class="line-items">${ls.map((l) => lineItem(l)).join('')}</ul>`;
   foot.hidden = false;
-  foot.innerHTML = `<div class="row"><span>Subtotal</span><span class="price" style="color:inherit">${fmt(sub)}</span></div>
+  foot.innerHTML = `<div class="row"><span>Subtotal</span><span class="price" data-roll="sub" style="color:inherit">${fmt(sub)}</span></div>
     <p class="note">Delivery and payment options at checkout.</p>
     <a class="btn btn-primary btn-lg btn-block" href="checkout.html">Checkout</a>
     <button type="button" class="btn btn-ghost btn-block" data-close>Keep shopping</button>
     ${bag.isPersistent() ? '' : '<p class="storage-note">Your bag won’t be saved after you close this tab.</p>'}`;
-  if (lastAdded) setTimeout(() => body.querySelector('.line.is-new')?.classList.remove('is-new'), 30);
+  if (lastAdded) setTimeout(() => body.querySelector('.line.is-new')?.classList.remove('is-new'), 1200);
+  if (animateIn) motion.riseChildren(body.querySelector('.line-items'), { step: 40 });
+  else {
+    motion.rollChanged(d, before);
+    if (!motion.reduced()) {
+      d.querySelectorAll('.line').forEach((li) => {
+        const a = rects.get(li.dataset.key);
+        if (!a) return;
+        const dy = a.top - li.getBoundingClientRect().top;
+        if (dy) li.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 220, easing: motion.EASE.inout });
+      });
+    }
+  }
 }
 
 function focusables(root) {
@@ -256,7 +273,7 @@ export function openDrawer(from) {
   const d = document.getElementById('bag-drawer');
   const s = document.querySelector('.scrim');
   opener = from || document.activeElement;
-  renderDrawer();
+  renderDrawer({ animateIn: true });
   d.hidden = false;
   s.hidden = false;
   document.body.style.overflow = 'hidden';
@@ -275,7 +292,7 @@ export function closeDrawer() {
   s.classList.remove('is-open');
   document.body.style.overflow = '';
   const done = () => { d.hidden = true; s.hidden = true; };
-  if (reducedMotion()) done(); else setTimeout(done, 380);
+  if (reducedMotion()) done(); else setTimeout(done, 260);
   lastAdded = null;
   if (opener && document.contains(opener)) opener.focus();
 }
@@ -300,6 +317,7 @@ function wireDrawer() {
       const u = undo;
       clearTimeout(u?.timer);
       undo = null;
+      if (u) lastAdded = u.key;
       u?.restore();
       d.querySelector('.line [data-remove], [data-close]')?.focus();
       return;
@@ -312,21 +330,32 @@ function wireDrawer() {
     if (t.matches('[data-inc]')) bag.setQty(key, l.qty + 1);
     else if (t.matches('[data-dec]')) bag.setQty(key, l.qty - 1);
     else if (t.matches('[data-remove]')) {
-      clearTimeout(undo?.timer);
-      undo = { name: l.crystal.name, restore: bag.remove(key) };
-      undo.timer = setTimeout(() => {
-        const hadFocus = !!document.activeElement?.closest('.undo-row');
-        undo = null;
-        renderDrawer();
-        if (hadFocus) d.querySelector('.line [data-remove], [data-close]')?.focus();
-      }, 5000);
-      renderDrawer();
-      d.querySelector('[data-undo]').focus();
+      if (li.dataset.leaving) return;
+      li.dataset.leaving = '1';
+      motion.leave(li).then(() => removeLine(d, key, l));
       return;
     }
     const again = d.querySelector(`.line[data-key="${key}"] ${t.matches('[data-inc]') ? '[data-inc]' : '[data-dec]'}`);
     (again && !again.disabled ? again : d.querySelector(`.line[data-key="${key}"] .val`)?.closest('.stepper')?.querySelector('button:not([disabled])'))?.focus();
   });
+  wireDrawerKeys(d);
+}
+
+function removeLine(d, key, l) {
+  const fromRects = new Map([...d.querySelectorAll('.line')].map((li) => [li.dataset.key, li.getBoundingClientRect()]));
+  clearTimeout(undo?.timer);
+  undo = { name: l.crystal.name, key, restore: bag.remove(key) };
+  undo.timer = setTimeout(() => {
+    const hadFocus = !!document.activeElement?.closest('.undo-row');
+    undo = null;
+    renderDrawer();
+    if (hadFocus) d.querySelector('.line [data-remove], [data-close]')?.focus();
+  }, 5000);
+  renderDrawer({ fromRects });
+  d.querySelector('[data-undo]').focus();
+}
+
+function wireDrawerKeys(d) {
   d.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { e.preventDefault(); closeDrawer(); }
     if (e.key !== 'Tab') return;
@@ -341,18 +370,26 @@ function wireDrawer() {
 function paintCount(bump = false) {
   const n = bag.count();
   document.querySelectorAll('.bag-count').forEach((el) => {
-    el.textContent = n > 99 ? '99+' : String(n);
+    const next = n > 99 ? '99+' : String(n);
+    const changed = el.textContent !== next;
+    el.textContent = next;
     el.hidden = n === 0;
-    if (bump && !reducedMotion()) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+    if (bump && !reducedMotion()) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); if (changed) motion.animateIn(el); }
   });
   document.querySelectorAll('.bag-btn').forEach((b) => b.setAttribute('aria-label', n ? `Bag, ${n} item${n === 1 ? '' : 's'}` : 'Bag, empty'));
 }
 
-/** Add to the bag, bump the badge and open the drawer. */
-export function addAndShow(slug, format, qty, from) {
+/** Add to the bag: a thumbnail flies to the bag, the drawer slides in, the badge bumps on landing. */
+export function addAndShow(slug, format, qty, from, flyFrom = null) {
+  flying = !!flyFrom && !motion.reduced();
   lastAdded = bag.add(slug, format, qty);
-  paintCount(true);
-  openDrawer(from);
+  if (!flying) {
+    paintCount(true);
+    openDrawer(from);
+    return;
+  }
+  motion.flyToBag(flyFrom, from).then(() => { flying = false; paintCount(true); });
+  setTimeout(() => { if (document.getElementById('bag-drawer').hidden) openDrawer(from); }, 450);
 }
 
 /** Mount chrome on every page. `active` marks the nav item. */
@@ -368,9 +405,13 @@ export function mount(active = '') {
   paintThemeButton(themeBtn);
   themeBtn.addEventListener('click', () => {
     const next = currentTheme() === 'dark' ? 'light' : 'dark';
-    document.documentElement.dataset.theme = next;
-    try { localStorage.setItem('mc.theme', next); } catch { /* theme still applies for this visit */ }
-    paintThemeButton(themeBtn);
+    const apply = () => {
+      document.documentElement.dataset.theme = next;
+      try { localStorage.setItem('mc.theme', next); } catch { /* theme still applies for this visit */ }
+      paintThemeButton(themeBtn);
+      themeBtn.querySelector('svg')?.classList.add('spin-in');
+    };
+    if (document.startViewTransition && !motion.reduced()) document.startViewTransition(apply); else apply();
   });
 
   const menuBtn = document.querySelector('.menu-btn');
@@ -388,16 +429,18 @@ export function mount(active = '') {
   document.querySelector('.bag-btn').addEventListener('click', (e) => openDrawer(e.currentTarget));
   wireDrawer();
   paintCount();
-  document.addEventListener('bag:change', () => { paintCount(); if (!document.getElementById('bag-drawer').hidden) renderDrawer(); });
+  document.addEventListener('bag:change', () => { if (!flying) paintCount(); if (!document.getElementById('bag-drawer').hidden) renderDrawer(); });
+  motion.hoverGlints(document);
+  motion.reveal(document);
   addEventListener('storage', (e) => { if (e.key === 'mc.bag.v1' || e.key === null) document.dispatchEvent(new CustomEvent('bag:change')); });
 }
 
 /** A shop-grid card: photo and name both link to the product page. */
 export function card(c, headingLevel = 3) {
   const h = `h${headingLevel}`;
-  return `<li data-slug="${c.slug}" data-tags="${c.tags.join(' ').toLowerCase()}">
+  return `<li data-motion="card" data-slug="${c.slug}" data-tags="${c.tags.join(' ').toLowerCase()}">
     <article class="card">
-      <a class="mat" href="product.html?c=${c.slug}" tabindex="-1" aria-hidden="true">${framedPhoto(c)}</a>
+      <a class="mat" data-motion="frame" href="product.html?c=${c.slug}" tabindex="-1" aria-hidden="true">${framedPhoto(c)}</a>
       <div class="card-body">
         <${h}><a href="product.html?c=${c.slug}">${esc(c.name)}</a></${h}>
         <p class="meaning">${esc(c.meaning)}</p>

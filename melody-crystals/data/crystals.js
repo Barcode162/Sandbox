@@ -48,6 +48,7 @@ export const INTENTIONS = [
 export const CRYSTALS = [
   {
     slug: 'clear-quartz',
+    pale: true, // light stone: the glint is drawn brighter so it shows
     name: 'Clear Quartz',
     meaning: 'The all-purpose stone of clarity.',
     help: 'Traditionally called the “master healer,” it’s kept nearby for a clear head. Many pair it with other stones to amplify an intention.',
@@ -78,6 +79,7 @@ export const CRYSTALS = [
   },
   {
     slug: 'rose-quartz',
+    pale: true, // light stone: the glint is drawn brighter so it shows
     name: 'Rose Quartz',
     meaning: 'The stone of love and kindness.',
     help: 'Traditionally linked with love of every kind, including for yourself. A soft reminder to be gentle with your heart.',
@@ -138,6 +140,7 @@ export const CRYSTALS = [
   },
   {
     slug: 'selenite',
+    pale: true, // light stone: the glint is drawn brighter so it shows
     name: 'Selenite',
     meaning: 'Soft light for a peaceful space.',
     help: 'Traditionally used to cleanse a room and other crystals. Its glow is associated with peace and quiet evenings.',
