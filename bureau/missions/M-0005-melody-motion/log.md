@@ -74,3 +74,4 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-24T04:30:12Z` **ceo** — Ship PASS (director-vision APPROVE 8.5). Conditions applied: pale-stone glint (data-pale, normal blend), noscript line in #shop, README test count 69 + Motion section.
 - `2026-11-24T04:30:12Z` **ceo** — Phase ship-review → **delivery**
 - `2026-11-24T04:30:13Z` **ceo** — Phase delivery → **retro**
+- `2026-11-24T04:31:02Z` **ceo** — Republished to gh-pages /melody-crystals/ (b62b3e1); live check: motion-ready, 0 hidden at page end, flight + badge work, 0 console errors.
