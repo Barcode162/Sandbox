@@ -26,7 +26,11 @@ function flush() {
   flushTimer = 0;
   const batch = pending.splice(0);
   batch.sort((a, b) => a.top - b.top || a.left - b.left);
-  batch.forEach(({ el }, i) => {
+  const perGroup = new Map();
+  batch.forEach(({ el }) => {
+    const group = el.parentElement?.dataset.stagger !== undefined ? el.parentElement : el;
+    const i = perGroup.get(group) ?? 0;
+    perGroup.set(group, i + 1);
     const step = Number(el.parentElement?.dataset.stagger || STAGGER);
     el.style.setProperty('--d', `${i < MAX_BATCH ? i * step : 0}ms`);
     el.classList.add('is-in');

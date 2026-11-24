@@ -381,13 +381,13 @@ function paintCount(bump = false) {
 
 /** Add to the bag: a thumbnail flies to the bag, the drawer slides in, the badge bumps on landing. */
 export function addAndShow(slug, format, qty, from, flyFrom = null) {
+  flying = !!flyFrom && !motion.reduced();
   lastAdded = bag.add(slug, format, qty);
-  if (motion.reduced() || !flyFrom) {
+  if (!flying) {
     paintCount(true);
     openDrawer(from);
     return;
   }
-  flying = true;
   motion.flyToBag(flyFrom, from).then(() => { flying = false; paintCount(true); });
   setTimeout(() => { if (document.getElementById('bag-drawer').hidden) openDrawer(from); }, 450);
 }

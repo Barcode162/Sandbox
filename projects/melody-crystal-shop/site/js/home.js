@@ -55,20 +55,28 @@ function applyFilter(intent, { animate = true } = {}) {
     return i;
   }
   motion.roll(status, text);
-  // One continuous rearrangement: short moves slide (FLIP), long moves and newcomers fade-rise into place.
-  const before = new Map(items.map((li) => [li, li.hidden ? null : li.getBoundingClientRect()]));
-  mutate();
-  for (const li of items) {
-    if (li.hidden) continue;
-    li.getAnimations().forEach((a) => a.cancel());
-    const a = before.get(li), b = li.getBoundingClientRect();
-    const dx = a ? a.left - b.left : 0, dy = a ? a.top - b.top : 0;
-    if (!a || Math.abs(dy) > b.height * 1.2) {
-      li.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 260, delay: 40, easing: motion.EASE.out, fill: 'backwards' });
-    } else if (dx || dy) {
-      li.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 320, easing: motion.EASE.inout });
+  // Leavers fade (120 ms); then short moves slide above everything (FLIP), and long moves and
+  // newcomers fade-rise only once the sliders have cleared their slots.
+  const leaving = items.filter((li) => !li.hidden && !keep(li));
+  leaving.forEach((li) => li.classList.add('is-leaving'));
+  clearTimeout(applyFilter.t);
+  applyFilter.t = setTimeout(() => {
+    const before = new Map(items.map((li) => [li, li.hidden || li.classList.contains('is-leaving') ? null : li.getBoundingClientRect()]));
+    mutate();
+    for (const li of items) {
+      if (li.hidden) continue;
+      li.getAnimations().forEach((a) => a.cancel());
+      const a = before.get(li), b = li.getBoundingClientRect();
+      const dx = a ? a.left - b.left : 0, dy = a ? a.top - b.top : 0;
+      if (!a || Math.abs(dy) > b.height * 1.2) {
+        li.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 260, delay: 220, easing: motion.EASE.out, fill: 'backwards' });
+      } else if (dx || dy) {
+        li.style.zIndex = '1';
+        li.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 300, easing: motion.EASE.inout })
+          .finished.catch(() => {}).then(() => { li.style.zIndex = ''; });
+      }
     }
-  }
+  }, leaving.length ? 120 : 0);
   return i;
 }
 

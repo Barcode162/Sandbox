@@ -139,6 +139,7 @@ test('add to bag: a thumbnail flies to the bag, then the badge bumps', async ({ 
   await page.waitForTimeout(600);
   await page.locator('[data-add]').click();
   await expect(page.locator('.flyer')).toHaveCount(1);
+  await expect(page.locator('.bag-count')).toBeHidden(); // F-013b: the count waits for the landing
   await expect(page.locator('.flyer')).toHaveCount(0, { timeout: 2000 });
   await expect(page.locator('.bag-count')).toHaveText('1');
   await expect(page.getByRole('dialog')).toBeVisible();
