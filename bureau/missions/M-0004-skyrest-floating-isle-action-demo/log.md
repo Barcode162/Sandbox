@@ -14,3 +14,4 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-25T21:10:51Z` **ceo** — Phase plan-review → **build**
 - `2026-11-25T21:10:51Z` **ceo** — Convened 3× engineer — wave 1: WO-002 world&look, WO-003 hero&combat, WO-004 guardian&loop
 - `2026-11-25T21:11:31Z` **ceo** — Gate 1 PASS (CEO trimmed brief/plan to caps). Wave 1 convened: 3 engineers, disjoint ownership per plan.md; each uses its own dev-server port (5302/5303/5304) and evidence/wo-00N; CEO runs full verify at join.
+- `2026-11-25T21:22:26Z` **ceo** — PAUSED by the Owner ('Pause!') mid wave 1. All three engineers stopped; their half-written edits are left uncommitted in projects/skyrest. Resume by resuming the same three engineers.
