@@ -5,7 +5,7 @@
   "tier": 2,
   "domain": "game",
   "output": "projects/skyrest",
-  "phase": "plan-review",
+  "phase": "build",
   "created": "2026-11-25T20:50:35Z",
   "rounds": {
     "plan": 1,
@@ -20,7 +20,8 @@
   },
   "headcount": {
     "experience-designer": 1,
-    "architect": 1
+    "architect": 1,
+    "engineer": 3
   },
   "levers": [
     "polish"
@@ -37,7 +38,11 @@
     {
       "phase": "plan-review",
       "at": "2026-11-25T21:10:35Z"
+    },
+    {
+      "phase": "build",
+      "at": "2026-11-25T21:10:51Z"
     }
   ],
-  "updated": "2026-11-25T21:10:44Z"
+  "updated": "2026-11-25T21:10:51Z"
 }
