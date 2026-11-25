@@ -5,13 +5,19 @@
   "tier": 2,
   "domain": "game",
   "output": "projects/skyrest",
-  "phase": "design",
+  "phase": "plan-review",
   "created": "2026-11-25T20:50:35Z",
   "rounds": {
     "plan": 1,
     "ship": 1
   },
-  "gates": {},
+  "gates": {
+    "plan": {
+      "passed": true,
+      "round": 1,
+      "at": "2026-11-25T21:10:44Z"
+    }
+  },
   "headcount": {
     "experience-designer": 1,
     "architect": 1
@@ -27,7 +33,11 @@
     {
       "phase": "design",
       "at": "2026-11-25T20:51:20Z"
+    },
+    {
+      "phase": "plan-review",
+      "at": "2026-11-25T21:10:35Z"
     }
   ],
-  "updated": "2026-11-25T20:51:22Z"
+  "updated": "2026-11-25T21:10:44Z"
 }

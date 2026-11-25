@@ -1,0 +1,22 @@
+// src/tuning/follow.ts — owned by WO-003. Camera behaviour constants (experience.md §4.3: follow, lock-on, orbit, kick, shake).
+export const FOLLOW = {
+  posHalfLifeMs: 110,
+  lookAheadM: 1.0,
+  lookAheadHalfLifeMs: 350,
+  lockOnRangeM: 16,
+  lockOnGain: 0.6,
+  lockOnMaxDeg: 60,
+  yawHalfLifeMs: 450,
+  yawReturnHalfLifeMs: 1200,
+  orbitMaxDeg: 40,
+  orbitDegPerPx: 0.25,
+  orbitReturnMs: 2000,
+  kickM: 0.06,
+  kickFinisherM: 0.12,
+  kickRollDeg: 0.4,
+  kickHalfLifeMs: 60,
+  shakePosM: 0.3,
+  shakeRollDeg: 1.0,
+  shakeHz: 22,
+  traumaDecayPerS: 1.8,
+} as const;

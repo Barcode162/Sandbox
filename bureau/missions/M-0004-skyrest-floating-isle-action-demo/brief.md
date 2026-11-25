@@ -28,7 +28,7 @@ A proof: can we build, in the browser, a playable demo that *looks like that scr
 
 ## Scope
 - **In:** one floating island arena + the visible temple island and bridge as scenery (bridge walkable is a stretch), the hero (move, 3-hit combo, dodge roll), the Stone Guardian (≥2 attacks), a few small rock minions as a stretch, HUD (coins, boss bar, player hearts/HP, damage numbers), title, pause/settings menu with original menu items, synthesized audio, touch + keyboard + mouse.
-- **Out:** multiplayer, the reference menu's Assets/Code/Dashboard features (those are an editor's chrome, not the game; we keep the look of the panel), saving, more levels. Loop3D engine integration (the Owner said build it in Sandbox).
+- **Out:** multiplayer, the reference menu's Assets/Code/Dashboard features (editor chrome; we keep the panel's look), saving, more levels.
 
 ## Constraints & assumptions
 - [A1] Browser, Three.js + TypeScript + Vite (playbook default), all assets procedural/original; no paid generation.

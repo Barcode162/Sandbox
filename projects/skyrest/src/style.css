@@ -1,0 +1,18 @@
+/* src/style.css — owned by WO-004 (HUD/menus). Input slice styles its touch controls in input/touch.css. */
+html, body { margin: 0; height: 100%; overflow: hidden; background: #bfe4ff; touch-action: none;
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; overscroll-behavior: none; }
+#app { position: fixed; inset: 0; font-family: 'Trebuchet MS', system-ui, sans-serif; color: #fff; }
+.stage { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.overlay, .ui { position: absolute; inset: 0; pointer-events: none; }
+.ui button { pointer-events: auto; font: inherit; }
+.hud .coins { position: absolute; top: max(12px, env(safe-area-inset-top)); right: 64px; padding: 6px 16px 6px 8px;
+  border-radius: 999px; background: rgba(28, 32, 40, 0.55); font-weight: 800; font-size: 20px; display: flex; gap: 8px; align-items: center; }
+.coin-icon { width: 24px; height: 24px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff6b0, #ffcf3a 55%, #c98a12); }
+.hud .gear { position: absolute; top: max(10px, env(safe-area-inset-top)); right: 12px; width: 44px; height: 44px;
+  border: 0; border-radius: 50%; background: rgba(28, 32, 40, 0.55); color: #fff; font-size: 24px; }
+.title-card { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 16px;
+  background: linear-gradient(rgba(20, 40, 80, 0.15), rgba(20, 40, 80, 0.35)); }
+.title-card[hidden] { display: none; }
+.title-card h1 { margin: 0; font-size: clamp(44px, 9vw, 96px); letter-spacing: 0.04em; text-shadow: 0 4px 0 #2a62c9, 0 8px 24px rgba(0,0,0,.3); }
+.title-card .start { pointer-events: auto; padding: 14px 40px; font-size: 22px; font-weight: 800; border: 0; border-radius: 999px;
+  background: #ffcf3a; color: #3a2a06; box-shadow: 0 4px 0 #c98a12; }
