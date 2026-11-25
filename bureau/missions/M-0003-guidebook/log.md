@@ -24,3 +24,4 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-25T05:41:33Z` **ceo** — Phase build → **delivery**
 - `2026-11-25T05:41:33Z` **ceo** — Phase delivery → **closed**
 - `2026-11-25T20:24:19Z` **ceo** — Owner asked for a live GitHub link. Published dist to gh-pages under /constellation-guidebook/ (commit b39d340); /constellation/ (another session's 'personal memories' build) and all other sites left untouched. Live check: seed 88 lights, Guidebook 146, no console errors.
+- `2026-11-25T20:26:51Z` **ceo** — Owner: 'just update it'. gh-pages 0b9adf1: /constellation/ now serves this build (Guidebook); previous personal-memories build preserved at /constellation-mind/. Live check passed, no console errors.
