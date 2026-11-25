@@ -5,7 +5,7 @@
   "tier": 1,
   "domain": "interactive-web",
   "output": "projects/constellation",
-  "phase": "intake",
+  "phase": "closed",
   "created": "2026-11-25T20:35:16Z",
   "rounds": {
     "plan": 1,
@@ -18,7 +18,12 @@
     {
       "phase": "intake",
       "at": "2026-11-25T20:35:16Z"
+    },
+    {
+      "phase": "closed",
+      "at": "2026-11-25T20:36:12Z"
     }
   ],
-  "updated": "2026-11-25T20:35:16Z"
+  "updated": "2026-11-25T20:36:12Z",
+  "closed": "2026-11-25T20:36:12Z"
 }
