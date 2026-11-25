@@ -50,4 +50,4 @@ A route costs `1 / weight` per hop. Routes and recall use only the lines visible
 
 The envelope comes first (`schema`, `version`, and `nodes` present). After that come the shapes and the references. Every relation endpoint, facet key, `positions` key, `meta.defaultPerspective` and `meta.featured` id must exist. Ids must be unique, and expressions must parse. Each problem is reported with a JSON `path` (for example `nodes[3].facets.cook`) and a plain sentence. Unknown fields are ignored with a warning. A `read` step whose source node was deleted is also only a warning: the memory still opens, and running that pathway stops with *"… no longer exists."*
 
-Autosave writes to `localStorage` under `constellation.memory.v1`, 400 ms after the last change.
+Autosave writes to `localStorage` under `constellation.memory.v2`, 400 ms after the last change.

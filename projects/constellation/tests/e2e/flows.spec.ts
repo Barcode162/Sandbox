@@ -274,7 +274,7 @@ test('[E5] store + find: store Tea, link it to Temperature, reload, search finds
   await expect(page.locator('#saved')).toHaveText('Saved');
   const teaPos = await page.evaluate(async () => {
     await new Promise((r) => setTimeout(r, 700));
-    const doc = JSON.parse(localStorage.getItem('constellation.memory.v1') ?? '{}');
+    const doc = JSON.parse(localStorage.getItem('constellation.memory.v2') ?? '{}');
     const id = window.__constellation!.nodeIdByLabel('Tea');
     return doc.perspectives.find((p: { id: string }) => p.id === 'cook').positions[id!];
   });
@@ -283,7 +283,7 @@ test('[E5] store + find: store Tea, link it to Temperature, reload, search finds
   await page.goto('./');
   await page.waitForFunction(() => window.__constellation?.state?.().introDone === true, undefined, { timeout: 20_000 });
   const after = await page.evaluate(() => {
-    const doc = JSON.parse(localStorage.getItem('constellation.memory.v1') ?? '{}');
+    const doc = JSON.parse(localStorage.getItem('constellation.memory.v2') ?? '{}');
     const id = window.__constellation!.nodeIdByLabel('Tea');
     return { id, pos: doc.perspectives.find((p: { id: string }) => p.id === 'cook').positions[id!] };
   });

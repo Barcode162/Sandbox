@@ -19,7 +19,8 @@ import type {
   Relation, Unsubscribe, ValidationIssue,
 } from './types.ts';
 
-export const AUTOSAVE_KEY = 'constellation.memory.v1';
+// v2 (M-0004): the app now opens on the Guidebook; memories saved by earlier builds are not reopened.
+export const AUTOSAVE_KEY = 'constellation.memory.v2';
 
 type Obj = Record<string, unknown>;
 const isObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !Array.isArray(v);

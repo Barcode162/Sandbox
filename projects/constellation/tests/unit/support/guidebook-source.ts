@@ -13,6 +13,8 @@ export const GUIDE_LENSES: Lens[] = ['today', 'last-year', 'next-year'];
 type Tri = [today: Value, lastYear: Value, nextYear: Value];
 type Cluster = 'guide' | 'home' | 'money' | 'people' | 'project' | 'code' | 'files' | 'job' | 'learning' | 'health' | 'travel' | 'timeline' | 'afford' | 'months' | 'checkout';
 
+/** The first tag of a light is its topic: the name written on the map above its island (M-0004). */
+const TOPIC_NAME: Partial<Record<Cluster, string>> = { guide: 'start here', project: 'garden app', job: 'day job', afford: 'pathways', months: 'pathways', checkout: 'pathways', code: 'garden app code' };
 const nodes: MemoryNode[] = [];
 const relations: Relation[] = [];
 const clusterOf = new Map<string, Cluster>();
@@ -27,7 +29,7 @@ interface Extra {
 }
 
 function node(id: string, label: string, kind: NodeKind, cluster: Cluster, value: Value, x: Extra = {}): void {
-  const n: MemoryNode = { id, label, kind, value, facets: {}, tags: [cluster, ...(x.tags ?? [])], created: GUIDE_TIME, updated: GUIDE_TIME };
+  const n: MemoryNode = { id, label, kind, value, facets: {}, tags: [TOPIC_NAME[cluster] ?? cluster, ...(x.tags ?? []).filter((t) => t !== (TOPIC_NAME[cluster] ?? cluster))], created: GUIDE_TIME, updated: GUIDE_TIME };
   if (x.facets) n.facets = { today: x.facets[0], 'last-year': x.facets[1], 'next-year': x.facets[2] };
   if (x.units) n.units = x.units;
   if (x.notes) n.notes = x.notes;
@@ -422,7 +424,10 @@ function hash(s: string): number {
   return (h >>> 0) / 4294967296;
 }
 
-function positionsFor(lens: Lens): Record<string, Vec3> {
+// One map for every lens (M-0004): a light stays where it is when you change time, so you can watch
+// its value, ghosts and lines change instead of chasing it. Positions are computed from Today's layout.
+function positionsFor(_lens: Lens): Record<string, Vec3> {
+  const lens: Lens = 'today';
   const out: Record<string, Vec3> = {};
   const r1 = (n: number) => Math.round(n * 100) / 100;
   // Islands: a sunflower disc in the screen plane, slight depth jitter. The hub sits at the centre.
@@ -444,7 +449,7 @@ function positionsFor(lens: Lens): Record<string, Vec3> {
     });
   }
   // Timeline: an open arc under everything, Idea on the left, Launch on the right.
-  const tilt = lens === 'last-year' ? 18 : lens === 'next-year' ? 6 : 10;
+  const tilt = 10; // one map for every lens (M-0004)
   TIMELINE.forEach(([id], i) => {
     const a = Math.PI * (1.08 + (0.84 * i) / (TIMELINE.length - 1));
     out[id] = { x: r1(10 + Math.cos(a) * 125), y: r1(-150 - Math.sin(a) * 34), z: r1(Math.sin(a) * tilt) };

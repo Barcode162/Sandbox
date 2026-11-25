@@ -20,7 +20,7 @@ test('[C0] core exports the frozen API', () => {
   for (const name of API) assert.equal(typeof (core as Record<string, unknown>)[name], 'function', name);
   assert.equal(core.SCHEMA_ID, 'constellation.memory');
   assert.equal(core.SCHEMA_VERSION, 1);
-  assert.equal(core.AUTOSAVE_KEY, 'constellation.memory.v1');
+  assert.equal(core.AUTOSAVE_KEY, 'constellation.memory.v2');
 });
 
 test('[C1] seed carries the v1 envelope', () => {

@@ -42,6 +42,9 @@ export function relationWord(r: Relation, from: NodeId): string {
   return look;
 }
 
+/** Topic colours (M-0004): distinct hues on black, assigned to topics in the order they first appear. */
+const TOPIC_PALETTE = ['#FFB547', '#5BD6A0', '#6FB7FF', '#FF7A9C', '#C79BFF', '#F4E06D', '#4FD4E4', '#FF9A5C', '#9BE36B', '#E08BFF', '#7FA8FF', '#FFC9A3', '#B3F0E0', '#F7A6D0', '#D9D9D9'];
+
 export class SceneBuilder {
   /** Positions per lens, computed once per load; births are authored in the doc. */
   private cache = new Map<PerspectiveId, Map<NodeId, Vec3>>();
@@ -109,13 +112,29 @@ export class SceneBuilder {
     return out;
   }
 
+  /** Topic → colour, stable for a memory: topics in the order their first light appears. Pathway steps have their own look. */
+  topicColors(): Map<string, string> {
+    const m = new Map<string, string>();
+    for (const n of this.graph.nodes()) {
+      const t = n.kind === 'pathway' ? undefined : n.tags[0];
+      if (t && !m.has(t)) m.set(t, TOPIC_PALETTE[m.size % TOPIC_PALETTE.length]!);
+    }
+    return m;
+  }
+
   build(lens: PerspectiveId): SceneSnapshot {
     const g = this.graph;
+    const topics = this.topicColors();
     const perspectives = g.perspectives();
     const pos = this.positions(lens);
     const lensColors: Record<PerspectiveId, string> = {};
     perspectives.forEach((p, i) => (lensColors[p.id] = lensColor(p, i)));
-    const nodes: SceneNode[] = g.nodes().map((n) => this.sceneNode(n, lens, perspectives, pos));
+    const nodes: SceneNode[] = g.nodes().map((n) => {
+      const sn = this.sceneNode(n, lens, perspectives, pos);
+      const t = n.kind === 'pathway' ? undefined : n.tags[0];
+      if (t) ((sn.group = t), (sn.groupColor = topics.get(t)));
+      return sn;
+    });
     const total = perspectives.length;
     const relations: SceneRelation[] = visibleRelations(g, lens).map((r) => ({
       id: r.id,

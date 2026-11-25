@@ -1056,8 +1056,12 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
       n.bright = ign * level;
       const kind = n.data.kind === 'pathway' ? KIND_CODE.pathway : n.road ? KIND_CODE.road : KIND_CODE[n.data.kind] ?? 0;
       const op = n.data.op ? OP_CODE[n.data.op] : 0;
-      const coreCol = n.data.kind === 'pathway' ? PULSE : flash > 1.01 ? mix(STAR, n.flashColor, Math.min(1, (flash - 1) / 1.2)) : STAR;
-      const haloCol = n.data.kind === 'pathway' ? mix(PULSE, lensRgb, 0.15) : mix(STAR, lensRgb, 0.85); // the sky carries the lens (F-019)
+      // Topic colour (M-0004): a light's halo is its topic's colour and its core is tinted toward it,
+      // so what belongs together reads as one colour. Without topics the sky carries the lens (F-019).
+      const topic = n.data.groupColor ? hex(n.data.groupColor) : null;
+      const baseCore = topic ? mix(STAR, topic, 0.45) : STAR;
+      const coreCol = n.data.kind === 'pathway' ? PULSE : flash > 1.01 ? mix(baseCore, n.flashColor, Math.min(1, (flash - 1) / 1.2)) : baseCore;
+      const haloCol = n.data.kind === 'pathway' ? mix(PULSE, lensRgb, 0.15) : topic ? topic : mix(STAR, lensRgb, 0.85);
       const ring = n.id === selected ? 1 : 0;
       nodeLayer.push(wx, wy, wz, n.r, coreCol, haloCol, bright, scale, haloScale, ring, kind, op);
       const minR = kind === KIND_CODE.pathway ? 4.5 : 3;
@@ -1513,6 +1517,22 @@ export const createRenderer: CreateRenderer = ({ container, reducedMotion }) => 
         color: toCss(shortest ? SIGNAL : TRAIL_LONG),
         force: true,
       });
+    }
+    // Region names (M-0004): each topic is named above its lights, in its colour, so the map has
+    // places. Placed first (highest priority) and only when the topic has 3+ lights on screen.
+    const regions = new Map<string, { xs: number; minY: number; n: number; color: string }>();
+    for (const n of order) {
+      const g = n.data.group;
+      if (!g || !n.onScreen || n.dying !== NEVER || n.bright < 0.06) continue;
+      const r = regions.get(g) ?? { xs: 0, minY: Infinity, n: 0, color: n.data.groupColor ?? '' };
+      r.xs += n.sx;
+      r.minY = Math.min(r.minY, n.sy);
+      r.n++;
+      regions.set(g, r);
+    }
+    for (const [g, r] of regions) {
+      if (r.n < 3) continue;
+      items.push({ key: 'r:' + g, kind: 'region', text: g.toUpperCase(), x: r.xs / r.n, y: r.minY, offset: 18, anchors: ['above', 'upright', 'upleft'], priority: 400, opacity: 0.9, color: r.color });
     }
     const cores: Array<{ x: number; y: number; r: number }> = [];
     for (const n of order) if (n.onScreen && n.bright > 0.1) cores.push({ x: n.sx, y: n.sy, r: (n.id === selected ? Math.max(n.pxR * 2.4, n.pxR + 7) : Math.max(3, n.pxR * (n.data.kind === 'pathway' ? 1.5 : 1))) + 1 });

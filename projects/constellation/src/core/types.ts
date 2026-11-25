@@ -368,7 +368,7 @@ export interface KeyValueStorage {
 }
 
 export interface AutosaveOptions {
-  /** Default 'constellation.memory.v1'. */
+  /** Default 'constellation.memory.v2'. */
   key?: string;
   /** Default 400. */
   debounceMs?: number;

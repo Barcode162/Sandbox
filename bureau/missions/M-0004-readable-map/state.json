@@ -1,0 +1,24 @@
+{
+  "id": "M-0004",
+  "title": "Constellation readable map: topic colours, region names, stable positions",
+  "slug": "readable-map",
+  "tier": 1,
+  "domain": "interactive-web",
+  "output": "projects/constellation",
+  "phase": "intake",
+  "created": "2026-11-25T20:35:16Z",
+  "rounds": {
+    "plan": 1,
+    "ship": 1
+  },
+  "gates": {},
+  "headcount": {},
+  "levers": [],
+  "history": [
+    {
+      "phase": "intake",
+      "at": "2026-11-25T20:35:16Z"
+    }
+  ],
+  "updated": "2026-11-25T20:35:16Z"
+}

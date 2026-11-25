@@ -5,6 +5,7 @@
 // (never autosaved) for the frame-time budget.
 import './styles/app.css';
 import seedJson from './seed/memory.json';
+import guidebookJson from './seed/guidebook.json';
 import { AUTOSAVE_KEY, createGraph, exportJson, loadSaved, startAutosave, validateDoc } from './core/index.ts';
 import type { KeyValueStorage, MemoryDoc } from './core/index.ts';
 import type { ConstellationState, ConstellationTestHook } from './view/contracts.ts';
@@ -53,8 +54,12 @@ function download(name: string, text: string): void {
 function boot(): void {
   const seed = validateDoc(seedJson);
   if (!seed.ok) throw new Error(`Seed memory is invalid: ${seed.errors.map((e) => e.message).join(' ')}`);
+  // M-0004: a first visit opens the Guidebook (everyday things, easier to read than the kitchen
+  // example). `?seed=1` still opens the kitchen example, which the test suite is written against.
+  const guide = validateDoc(guidebookJson);
+  if (!guide.ok) throw new Error(`Guidebook memory is invalid: ${guide.errors.map((e) => e.message).join(' ')}`);
   const store = stress ? null : storage();
-  let doc: MemoryDoc = seed.doc;
+  let doc: MemoryDoc = freshSeed ? seed.doc : guide.doc;
   let returning = false;
   let note = '';
   let unreadable: string | null = null;
@@ -112,7 +117,8 @@ function boot(): void {
   }
 
   const renderer = createRenderer({ container: stage, reducedMotion: motionQuery.matches });
-  const seedIds = new Set(seed.doc.nodes.map((n) => n.id));
+  // Example lights (kitchen + Guidebook) don't count as "your stored things" in replace warnings.
+  const seedIds = new Set([...seed.doc.nodes, ...guide.doc.nodes].map((n) => n.id));
   const app = new App(graph, renderer, seedIds, seed.doc, motionQuery.matches);
   const shell = new Shell(app);
   const extras = app.extras;

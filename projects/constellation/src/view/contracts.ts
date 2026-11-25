@@ -17,6 +17,9 @@ export interface SceneNode {
   op?: PathwayOp;
   /** WO-003 addition: ghost chip texts keyed by perspective (formatted values). */
   ghostText?: Partial<Record<PerspectiveId, string>>;
+  /** M-0004 addition: the topic this light belongs to (its first tag) and that topic's colour. */
+  group?: string;
+  groupColor?: string;
 }
 
 /** WO-003 addition: how an edge is drawn (experience.md §7 edge table). */

@@ -3,7 +3,7 @@
 // priority order; any item whose padded rect overlaps one already placed tries its alternate
 // anchors and is otherwise skipped, so labels never overlap. Fade in 160 ms, out 120 ms (CSS).
 
-export type OverlayKind = 'lbl' | 'chip' | 'flowchip' | 'condchip' | 'badge' | 'trailchip' | 'readchip';
+export type OverlayKind = 'lbl' | 'chip' | 'flowchip' | 'condchip' | 'badge' | 'trailchip' | 'readchip' | 'region';
 export type Anchor = 'right' | 'left' | 'above' | 'below' | 'center' | 'upright' | 'downright' | 'upleft' | 'downleft' | 'farright' | 'farleft';
 
 export interface OverlayItem {
@@ -49,6 +49,7 @@ const FONT: Record<OverlayKind, { font: string; pad: number; h: number; track: n
   readchip: { font: '500 11px "IBM Plex Mono", ui-monospace, monospace', pad: 12, h: 15, track: 0 },
   badge: { font: '700 12px "IBM Plex Mono", ui-monospace, monospace', pad: 12, h: 18, track: 0 },
   trailchip: { font: '500 12px Manrope, system-ui, sans-serif', pad: 18, h: 22, track: 0 },
+  region: { font: '700 13px Manrope, system-ui, sans-serif', pad: 0, h: 18, track: 0.16 },
 };
 const PAD = 4;
 

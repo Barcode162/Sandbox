@@ -93,7 +93,7 @@ export class Topbar {
       item('Import…', () => this.onImport()),
       item('Export', () => app.exportFile(), 'Ctrl E'),
       item('Open the Guidebook example', () => void app.openGuidebook()),
-      item('Reset to seed', () => void app.resetToSeed()),
+      item('Open the kitchen example', () => void app.resetToSeed()),
       h('hr', { role: 'separator' }),
       sound,
       item('Key map', () => this.onKeymap(), '?'),

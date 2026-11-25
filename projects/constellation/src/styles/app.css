@@ -35,16 +35,21 @@ kbd { font: 500 var(--fs-11) / 1 var(--font-mono); color: var(--ink-dim); }
 #stage.hovering { cursor: pointer; }
 #stage .overlay-layer { z-index: 1; contain: strict; }
 
-.lbl, .chip, .flowchip, .condchip, .badge, .trailchip, .readchip {
+.lbl, .chip, .flowchip, .condchip, .badge, .trailchip, .readchip, .region {
   position: absolute; left: 0; top: 0; white-space: nowrap;
   opacity: 0; transition: opacity 120ms linear;
 }
-.lbl.on, .chip.on, .flowchip.on, .condchip.on, .badge.on, .trailchip.on, .readchip.on { opacity: var(--o, 1); transition-duration: 160ms; }
+.lbl.on, .chip.on, .flowchip.on, .condchip.on, .badge.on, .trailchip.on, .readchip.on, .region.on { opacity: var(--o, 1); transition-duration: 160ms; }
 .lbl {
   font: 500 var(--fs-12) / 16px var(--font-ui); letter-spacing: 0.02em; color: var(--ink);
   text-shadow: 0 0 3px #000, 0 0 6px #000, 0 0 1px #000;
 }
 .lbl.sel { font-weight: 700; }
+/* Region names (M-0004): a topic's name above its lights, in the topic's colour. */
+.region {
+  font: 700 13px / 18px var(--font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--c, var(--ink));
+  text-shadow: 0 0 4px #000, 0 0 10px #000;
+}
 .lbl.road { font-weight: 700; color: var(--ink); }
 .chip {
   font: 400 var(--fs-11) / 15px var(--font-mono); color: var(--c, var(--ink));
