@@ -1,0 +1,33 @@
+{
+  "id": "M-0004",
+  "title": "Skyrest: floating-isle action demo",
+  "slug": "skyrest-floating-isle-action-demo",
+  "tier": 2,
+  "domain": "game",
+  "output": "projects/skyrest",
+  "phase": "design",
+  "created": "2026-11-25T20:50:35Z",
+  "rounds": {
+    "plan": 1,
+    "ship": 1
+  },
+  "gates": {},
+  "headcount": {
+    "experience-designer": 1,
+    "architect": 1
+  },
+  "levers": [
+    "polish"
+  ],
+  "history": [
+    {
+      "phase": "intake",
+      "at": "2026-11-25T20:50:35Z"
+    },
+    {
+      "phase": "design",
+      "at": "2026-11-25T20:51:20Z"
+    }
+  ],
+  "updated": "2026-11-25T20:51:22Z"
+}
