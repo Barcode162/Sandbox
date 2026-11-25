@@ -27,3 +27,10 @@ Menu > Guidebook > Cancel; again > Replace; search x12; routes x6 with lens swit
 
 ## Findings filed
 S2: 375 framing cuts clusters; S2: hubs unlabelled/hairball at 1440; S3: tax rate claim; S3: trivial Passport route; S3: E6 flake.
+
+## r1 verification (HEAD a25a1f2, rebuilt)
+- F-001 verified: 375x812 Home framing shows all islands (no null screenPositions). Tiny map, 5-7 labels; acceptable. 88-light seed unchanged (frame change gated on >120 lights).
+- F-002 verified: 1440, three lenses, separate islands, hubs labelled, overlaps 0, no errors (V-1440-*.jpg).
+- F-003 verified: taxPct 5/4/8; Last-year search "tax" lights it.
+- F-004 verified: Sam -> Tax return (4 hops), Work laptop -> Trip to Lisbon (3 hops) work as the notes say.
+- F-005 left open as ordered. Seed framing compared by code gate, not pixel diff.

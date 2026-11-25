@@ -36,3 +36,7 @@ Resumed engineers grow to ~500k-token contexts by the second remediation round; 
 ## L-0007 · 2026-11-23 · M-0002 · tags: experience-designer, interactive-web, spec, seed
 
 When seed geometry carries the meaning (a ring the shortcut must visibly cross, a cluster that must stay legible), the spec should include one rendered probe of the layout, and every frame table needs one row that starts from a zoomed or selected state. M-0002 re-authored the seed twice and missed camera reframing (F-014) for lack of both.
+
+## L-0008 · 2026-11-25 · M-0003 · tags: data, seed, routing, interactive-web
+
+In a seeded memory, hub nodes that exist for browsing (a guide note, a 'Files' index) become route shortcuts through everything. Give browsing links a low weight (0.25 → cost 4) and assert that example routes never pass through hubs.

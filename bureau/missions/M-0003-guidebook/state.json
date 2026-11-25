@@ -5,13 +5,19 @@
   "tier": 1,
   "domain": "interactive-web",
   "output": "projects/constellation",
-  "phase": "build",
+  "phase": "closed",
   "created": "2026-11-24T05:11:02Z",
   "rounds": {
     "plan": 1,
     "ship": 1
   },
-  "gates": {},
+  "gates": {
+    "ship": {
+      "passed": true,
+      "round": 1,
+      "at": "2026-11-25T05:41:33Z"
+    }
+  },
   "headcount": {
     "qa-tester": 1
   },
@@ -24,7 +30,16 @@
     {
       "phase": "build",
       "at": "2026-11-24T05:24:28Z"
+    },
+    {
+      "phase": "delivery",
+      "at": "2026-11-25T05:41:33Z"
+    },
+    {
+      "phase": "closed",
+      "at": "2026-11-25T05:41:33Z"
     }
   ],
-  "updated": "2026-11-24T05:24:32Z"
+  "updated": "2026-11-25T05:41:33Z",
+  "closed": "2026-11-25T05:41:33Z"
 }
