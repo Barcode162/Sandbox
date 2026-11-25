@@ -9,11 +9,15 @@ import { stepFlow } from './flow.ts';
 import { bufferHeroInput, createHero, stepHero } from '../hero/sim.ts';
 import { resolveHeroAttacks } from '../hero/combat.ts';
 import { createGolem, stepGolem } from '../golem/sim.ts';
+import { golemHpForWave } from '../tuning/golem.ts';
 import { createMinions, stepMinions } from '../minions/sim.ts';
+
+/** The coin pill's opening balance (experience.md §4.6: "starts 12,580", as in the reference). */
+export const START_COINS = 12580;
 
 export function createSim(seed: number): SimState {
   return {
-    seed, rng: seedWord(seed), frame: 0, phase: 'title', phaseFrame: 0, hitstop: 0, wave: 1, coins: 0,
+    seed, rng: seedWord(seed), frame: 0, phase: 'title', phaseFrame: 0, hitstop: 0, wave: 1, coins: START_COINS,
     fightFrames: 0, timeScale: 1, timeScaleFrames: 0,
     hero: createHero(), golem: createGolem(), minions: createMinions(), hazards: createHazards(), events: [],
     flags: { heroInvulnerable: false, golemPassive: false, forceCrit: -1, forceDamage: 0 },
@@ -27,10 +31,12 @@ export function createHazards(): HazardState[] {
   return out;
 }
 
-/** Fresh hero/golem/minions for the next attempt; keeps seed stream, coins, wave and flags. */
+/** Fresh hero/golem/minions for the next attempt; keeps seed stream, coins, wave and flags.
+ *  The Guardian's HP scales with the wave (×1.15 per wave). */
 export function resetWave(s: SimState): void {
   s.hero = createHero();
   s.golem = createGolem();
+  s.golem.hp = s.golem.maxHp = golemHpForWave(s.wave);
   s.minions = createMinions();
   s.hazards = createHazards();
   s.hitstop = 0;
