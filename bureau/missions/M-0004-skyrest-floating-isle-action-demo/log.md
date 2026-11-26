@@ -17,3 +17,4 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-25T21:22:26Z` **ceo** — PAUSED by the Owner ('Pause!') mid wave 1. All three engineers stopped; their half-written edits are left uncommitted in projects/skyrest. Resume by resuming the same three engineers.
 - `2026-11-26T11:17:12Z` **ceo** — Owner: 'Resume'. Resuming the three wave-1 engineers via SendMessage.
 - `2026-11-26T19:32:16Z` **ceo** — Wave 1 engineers stopped by the 5-hour usage limit; Owner said 'Resume' after reset. Resuming the same three.
+- `2026-11-26T19:57:48Z` **ceo** — Join verify: typecheck/unit/build/size PASS; e2e 22/23 (moments spec timed out capturing 13 moments in one test under SwiftShader). CEO glue: split moments spec into one test per moment. Resumed WO-002 (camera pitch parity, framing tree, temple detail, F2 forced damage) and WO-004 (HP balance 60-75 s, toTitle, advance() view sync, F1 overlap, vite pin) before review.

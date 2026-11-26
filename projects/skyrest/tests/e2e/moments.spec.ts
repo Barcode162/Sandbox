@@ -12,19 +12,21 @@ const SIZES: Record<string, { width: number; height: number }> = {
 const EXTRA: [MomentId, keyof typeof MOMENT_VIEWPORTS][] = [['F2', 'reference'], ['F13', 'landscape']];
 
 for (const [label, size] of Object.entries(SIZES)) {
-  test(`[M-${label}] frame-table moments F1–F13 at ${size.width}×${size.height}`, async ({ page, shot }) => {
-    test.setTimeout(180_000);
-    await page.setViewportSize(size);
-    for (const id of MOMENT_IDS) {
+  for (const id of MOMENT_IDS) {
+    // One test per moment: SwiftShader is slow, so 13 captures in one test overran any sane timeout.
+    test(`[M-${label}] moment ${id} at ${size.width}×${size.height}`, async ({ page, shot }) => {
+      test.setTimeout(180_000);
+      await page.setViewportSize(size);
       await boot(page);
       const r = await page.evaluate((m) => window.__skyrest!.moment(m), id);
       expect(r.ok, `${id}: ${r.note}`).toBe(true);
       await shot(`moments/${id}-${label}`);
-    }
-  });
+    });
+  }
 }
 
 test('[M-extra] reference-aspect F2 and landscape F13', async ({ page, shot }) => {
+  test.setTimeout(240_000);
   for (const [id, vp] of EXTRA) {
     await page.setViewportSize(MOMENT_VIEWPORTS[vp]);
     await boot(page);
