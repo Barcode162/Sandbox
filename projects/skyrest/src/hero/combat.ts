@@ -60,7 +60,7 @@ export function resolveHeroAttacks(s: SimState, _intent: Readonly<Intent>): void
     const amount = s.flags.forceDamage > 0 ? s.flags.forceDamage : Math.round(roll * mult);
     g.hp = Math.max(0, g.hp - amount);
     g.poise -= poise; // the golem sim decides when ≤ 0 becomes a stagger (§5: never mid-telegraph)
-    g.hitFlash = 6;
+    g.hitFlash = msToFrames(80); // white flash, fading over 80 ms
     g.hitsTaken++;
     s.hitstop = Math.max(s.hitstop, hitstopFrames(kind, crit));
     // Hit point: the golem's surface toward the hero.
@@ -79,7 +79,7 @@ export function resolveHeroAttacks(s: SimState, _intent: Readonly<Intent>): void
     const roll = randRange(s, dmgMin, dmgMax);
     const amount = s.flags.forceDamage > 0 ? s.flags.forceDamage : Math.round(roll * (crit ? HERO.critMult : 1) * (h.ext.perfectBonus ? HERO.perfectBonus : 1));
     mn.hp = Math.max(0, mn.hp - amount);
-    mn.hitFlash = 6;
+    mn.hitFlash = msToFrames(80);
     s.hitstop = Math.max(s.hitstop, hitstopFrames(kind, crit));
     s.events.push({ type: 'hit', attacker: 'hero', target: 'minion', targetId: mn.id, amount, crit, kind, pos: { x: mn.pos.x, z: mn.pos.z }, y: 0.5 });
     landed = true;

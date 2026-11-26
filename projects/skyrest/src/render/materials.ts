@@ -292,7 +292,7 @@ function haloTexture(): THREE.Texture {
 /** Additive halo sprite standing in for bloom on 'low' (64² radial canvas texture, shared).
  *  Its material is only drawn on Low (the renderer toggles every halo when the tier changes); owners may still
  *  pulse `opacity`/`scale` and hide the sprite itself. */
-export function glowSprite(color: THREE.ColorRepresentation, size: number, opacity = HALO.opacity): THREE.Sprite {
+export function glowSprite(color: THREE.ColorRepresentation, size: number, opacity: number = HALO.opacity): THREE.Sprite {
   const mat = new THREE.SpriteMaterial({
     color, map: haloTexture(), transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, fog: false,
   });

@@ -12,10 +12,12 @@ export function installHooks(g: GameInternals, audio: AudioEngine): SkyrestHooks
     skipTitle: () => g.skipTitle(),
     setFlags: (f) => Object.assign(g.sim().flags, f),
     inject: (intent, frames = 1) => g.input.script(intent, frames),
-    step: (n) => void g.step(n),
+    // Moment scripts only advance the sim; moment() renders once at the capture instant (a render per step
+    // would queue hundreds of frames on a software GPU).
+    step: (n) => g.advance(n),
     stepUntil(pred, limit) {
       for (let i = 0; i < limit; i++) {
-        g.step(1);
+        g.advance(1);
         if (pred(g.sim())) return true;
       }
       return false;
@@ -49,9 +51,17 @@ export function installHooks(g: GameInternals, audio: AudioEngine): SkyrestHooks
       g.setManual(true);
       g.control.setPaused(false);
       if (!script) return { id, frame: g.sim().frame, phase: g.sim().phase, ok: false, note: 'no script' };
-      const note = script(api);
+      // Captures are stills: UI entry animations jump to their end state.
+      document.documentElement.dataset.moment = id;
+      let note: string, ok = true;
+      try {
+        note = script(api);
+      } catch (e) {
+        ok = false;
+        note = e instanceof Error ? e.message : String(e);
+      }
       g.renderNow();
-      return { id, frame: g.sim().frame, phase: g.sim().phase, ok: true, note };
+      return { id, frame: g.sim().frame, phase: g.sim().phase, ok, note };
     },
   };
   window.__skyrest = hooks;

@@ -22,6 +22,8 @@ interface IsleDef {
   seed: number;
   rings: number;
   segs: number;
+  /** 'cone' (default): short cliff band then a long taper. 'column': a rock pillar that tapers late. */
+  profile?: 'cone' | 'column';
 }
 
 const GRASS_MID = rgbOf(PALETTE.grassMid), GRASS_LIT = rgbOf(PALETTE.grassLit), GRASS_SHADE = rgbOf(PALETTE.grassShade);
@@ -34,7 +36,7 @@ function wrapGrid(rows: number, cols: number, pos: Float32Array, col: Float32Arr
   for (let r = 0; r < rows - 1; r++)
     for (let c = 0; c < cols; c++) {
       const a = r * (cols + 1) + c, b = a + 1, d = a + cols + 1, e = d + 1;
-      idx.push(a, d, b, b, d, e);
+      idx.push(a, b, d, b, e, d);
     }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
@@ -77,14 +79,14 @@ function buildIsle(d: IsleDef, contact: { x: number; z: number; r: number }[]): 
       const i = j * (segs + 1) + c;
       tp.set([x, y, z], i * 3);
       // Albedo: mottled lit/mid, contact darkening near trunks and boulders, the lip shades down to soil.
-      let a = mixRGB(GRASS_MID, GRASS_LIT, 0.5 + 0.5 * noise2(x * 0.18, z * 0.18, d.seed));
+      let a = mixRGB(GRASS_MID, GRASS_LIT, 0.65 + 0.45 * noise2(x * 0.18, z * 0.18, d.seed));
       for (const o of contact) {
         const dd = Math.hypot(x - o.x, z - o.z);
         if (dd < o.r * 2.2) a = mixRGB(a, GRASS_SHADE, 0.35 * (1 - dd / (o.r * 2.2)));
       }
       if (j >= radial.length) a = mixRGB(GRASS_SHADE, SOIL, (j - radial.length) / (lip.length - 1) * 0.6);
       // The texture already carries grass-mid/lit: vertex colour is the ratio against the texture's mean.
-      tc.set([a[0] / GRASS_MID[0] * 0.92, a[1] / GRASS_MID[1] * 0.92, a[2] / GRASS_MID[2] * 0.92], i * 3);
+      tc.set([a[0] / GRASS_MID[0], a[1] / GRASS_MID[1], a[2] / GRASS_MID[2]], i * 3);
       tu.set([x / 7, z / 7], i * 2);
     }
     edge.push({ x: ex, y: ey - 0.3, z: ez, r: R, th });
@@ -104,7 +106,9 @@ function buildIsle(d: IsleDef, contact: { x: number; z: number; r: number }[]): 
       const yTop = e.y;
       const y = yTop - d.depth * Math.pow(t, 1.1);
       // Vertical cliff band for the first ~22 %, then taper to a ragged tip.
-      const band = t < 0.22 ? 1 - t * 0.35 : 0.923 * Math.pow(1 - (t - 0.22) / 0.78, 0.85);
+      const band = d.profile === 'column'
+        ? (t < 0.7 ? 1 - t * 0.3 : 0.79 * Math.pow(Math.max(0, 1 - (t - 0.7) / 0.3), 0.7))
+        : t < 0.22 ? 1 - t * 0.35 : 0.923 * Math.pow(Math.max(0, 1 - (t - 0.22) / 0.78), 0.85);
       const ledge = 1 - 0.035 * Math.abs(Math.sin(t * d.strata * Math.PI));
       const column = 1 + 0.07 * noise2(e.th * 7.5, t * 3.0, d.seed + 5) + 0.035 * noise2(e.th * 19, t * 9, d.seed + 6);
       const rr = Math.max(0.15, e.r * band * ledge * column);
@@ -202,7 +206,7 @@ export function buildIslands(contact: { x: number; z: number; r: number }[]): Is
   };
   const [tTop, tCliff] = buildIsle(temple, contact);
   const sp = SCENERY.spire;
-  const [sTop, sCliff] = buildIsle({ ...isleFromSpec(sp, 6), rings: 5, segs: 28 }, contact);
+  const [sTop, sCliff] = buildIsle({ ...isleFromSpec(sp, 6), rings: 5, segs: 28, profile: 'column' }, contact);
   const tops = [aTop.clone(), tTop, sTop];
   const cliffs = [aCliff, tCliff, sCliff];
   for (const s of SCENERY.distantIsles) {

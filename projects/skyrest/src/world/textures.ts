@@ -52,7 +52,7 @@ export function grassTexture(): THREE.Texture {
   const n = 512;
   const [c, g] = canvas(n);
   const mid = rgb(PALETTE.grassMid), lit = rgb(PALETTE.grassLit);
-  noiseFill(g, n, 6, 4, 3, (v) => mixc(mid, lit, Math.min(1, Math.max(0, v * 1.4 + 0.5))));
+  noiseFill(g, n, 6, 4, 3, (v) => mixc(mid, lit, Math.min(1, Math.max(0, v * 1.4 + 0.62))));
   const rnd = makeRng(91);
   for (let i = 0; i < 2600; i++) {
     const x = rnd() * n, y = rnd() * n;
@@ -113,20 +113,20 @@ export function cliffTexture(): THREE.Texture {
 export function leafTexture(): THREE.Texture {
   const n = 512;
   const [c, g] = canvas(n);
-  g.fillStyle = '#c4c4c4';
+  g.fillStyle = '#dedede';
   g.fillRect(0, 0, n, n);
   const rnd = makeRng(23);
-  for (let i = 0; i < 900; i++) {
-    const x = rnd() * n, y = rnd() * n, r = 10 + rnd() * 16;
+  for (let i = 0; i < 1600; i++) {
+    const x = rnd() * n, y = rnd() * n, r = 8 + rnd() * 12;
     for (const ox of [-n, 0, n])
       for (const oy of [-n, 0, n]) {
         const cx = x + ox, cy = y + oy;
         if (cx < -r || cx > n + r || cy < -r || cy > n + r) continue;
         const grd = g.createRadialGradient(cx - r * 0.2, cy - r * 0.35, r * 0.1, cx, cy, r);
         grd.addColorStop(0, '#ffffff');
-        grd.addColorStop(0.65, '#ececec');
-        grd.addColorStop(0.92, '#bdbdbd');
-        grd.addColorStop(1, 'rgba(170,170,170,0)');
+        grd.addColorStop(0.6, '#f6f6f6');
+        grd.addColorStop(0.9, 'rgba(222,222,222,0.8)');
+        grd.addColorStop(1, 'rgba(220,220,220,0)');
         g.fillStyle = grd;
         g.beginPath();
         g.arc(cx, cy, r, 0, Math.PI * 2);
@@ -193,28 +193,24 @@ export function cumulusTexture(): THREE.Texture {
     lobes.push([x, h - 50 - r * (0.55 + rnd() * 0.5), r]);
   }
   for (const [x, y, r] of lobes) {
-    const grd = g.createRadialGradient(x - r * 0.25, y - r * 0.4, r * 0.1, x, y, r);
+    const grd = g.createRadialGradient(x - r * 0.2, y - r * 0.3, r * 0.1, x, y, r);
     grd.addColorStop(0, css(PALETTE.cloudLit));
-    grd.addColorStop(0.7, css(0xf2f6fb));
-    grd.addColorStop(1, css(PALETTE.cloudShade));
+    grd.addColorStop(0.72, css(PALETTE.cloudLit, 0.97));
+    grd.addColorStop(1, css(PALETTE.cloudLit, 0));
     g.fillStyle = grd;
     g.beginPath();
     g.arc(x, y, r, 0, Math.PI * 2);
     g.fill();
   }
-  // Flat belly.
-  const belly = g.createLinearGradient(0, h - 90, 0, h - 40);
+  // Shade the belly toward cloud-shade (only where there is cloud).
+  const belly = g.createLinearGradient(0, h * 0.35, 0, h);
   belly.addColorStop(0, css(PALETTE.cloudShade, 0));
-  belly.addColorStop(1, css(PALETTE.cloudShade, 1));
+  belly.addColorStop(1, css(PALETTE.cloudShade, 0.9));
   g.globalCompositeOperation = 'source-atop';
   g.fillStyle = belly;
-  g.fillRect(0, h - 90, w, 60);
-  g.globalCompositeOperation = 'destination-out';
-  g.fillRect(0, h - 40, w, 40);
+  g.fillRect(0, 0, w, h);
   g.globalCompositeOperation = 'source-over';
-  const t = finish(c, false);
-  t.premultiplyAlpha = true;
-  return t;
+  return finish(c, false);
 }
 
 /** Banner cloth: banner blue with a gold trim border and an original upward chevron + dot device. */

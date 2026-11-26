@@ -40,7 +40,8 @@ export function spawnMinions(s: SimState, count: number): void {
   for (let i = 0; i < s.minions.length && made < count; i++) {
     const m = s.minions[i]!;
     if (m.action !== 'inactive' && m.action !== 'dead') continue;
-    const ang = g.facing + Math.PI + (made - (count - 1) / 2) * 1.1 + randRange(s, -0.25, 0.25);
+    // A fan in front of the Guardian so the hero sees them burst out.
+    const ang = g.facing + (made - (count - 1) / 2) * 1.05 + randRange(s, -0.2, 0.2);
     const r = randRange(s, MINION.spawnMin, MINION.spawnMax) + GOLEM.radius * 0.4;
     mx(m).fromX = g.pos.x;
     mx(m).fromZ = g.pos.z;

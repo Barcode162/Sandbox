@@ -57,8 +57,9 @@ export const POST = {
   vignetteColor: 0x1a2440,
   bloomStrength: 0.55,
   bloomRadius: 0.45,
-  /** Spec says 0.85; our lit whites (temple, clouds) peak ≈ 0.95 linear, so 1.0 keeps bloom on emissives only (§13). */
-  bloomThreshold: 1.0,
+  /** Spec says 0.85; our lit whites (temple, clouds, a hit-flashed golem) reach ≈ 1.1 linear, so 1.2 keeps bloom on
+   *  the emissive sources only (§13 "never mush"); every emissive is ≥ 1.3× (runes 2.4, emblem 2.0, portal 1.6). */
+  bloomThreshold: 1.2,
   msaaSamples: 4,
 } as const;
 
@@ -103,8 +104,8 @@ export const SCENERY = {
     { id: 'T1', kind: 'round', x: 19.5, z: -40.5, y: 3.5, canopyY: 2.2, canopyR: 1.3, puffs: 4 },
     { id: 'T2', kind: 'round', x: 31.5, z: -44.5, y: 3.5, canopyY: 2.4, canopyR: 1.4, puffs: 4 },
     { id: 'T3', kind: 'bush', x: 21, z: -48.5, y: 3.5, canopyY: 1.4, canopyR: 1.1, puffs: 4 },
-    { id: 'S1', kind: 'cypress', x: 9.0, z: -57.6, y: 8, canopyY: 2.6, canopyR: 0.75, puffs: 1 },
-    { id: 'S2', kind: 'cypress', x: 11.0, z: -58.8, y: 8, canopyY: 2.1, canopyR: 0.6, puffs: 1 },
+    { id: 'S1', kind: 'cypress', x: 18.0, z: -63.6, y: 9, canopyY: 2.6, canopyR: 0.75, puffs: 1 },
+    { id: 'S2', kind: 'cypress', x: 20.0, z: -64.8, y: 9, canopyY: 2.1, canopyR: 0.6, puffs: 1 },
   ] as readonly TreeSpec[],
   boulders: [
     { x: -2.8, z: 2.4, r: 0.75 }, { x: -3.4, z: 8.0, r: 0.6 }, { x: 4.6, z: -3.0, r: 0.55 },
@@ -113,7 +114,8 @@ export const SCENERY = {
     // Temple isle scatter.
     { x: 18.5, z: -45, y: 3.5, r: 0.7 }, { x: 30.5, z: -40, y: 3.5, r: 0.55 },
   ] as readonly BoulderSpec[],
-  spire: { x: 10, y: 8, z: -58, r: 3, depth: 26, strata: 4, roots: 2, seed: 31 } as IsleSpec,
+  /** Spec puts it at (10, 8, −58); moved behind-left of the temple so it reads beside it in F2, as in the reference. */
+  spire: { x: 19, y: 9, z: -64, r: 3, depth: 26, strata: 4, roots: 2, seed: 31 } as IsleSpec,
   distantIsles: [
     { x: -60, y: -4, z: -90, r: 8, depth: 20, strata: 3, roots: 3, seed: 41 },
     { x: -35, y: 6, z: -130, r: 6, depth: 18, strata: 3, roots: 2, seed: 42 },
@@ -123,9 +125,10 @@ export const SCENERY = {
   ] as readonly IsleSpec[],
   /** Waterfalls: top point, width, outward direction, drop to the cloud sea. */
   falls: [
-    { x: 16, y: 3.0, z: -44, width: 2.4, dirX: -1, dirZ: 0.1, drop: 30 },
-    { x: 33, y: 3.0, z: -42, width: 3.0, dirX: 1, dirZ: 0.25, drop: 30 },
-    { x: 10, y: 7.5, z: -57, width: 1.2, dirX: -0.4, dirZ: 1, drop: 34 },
+    // W1/W2 pour off the temple isle's camera-facing lip, so the cliff sits behind them (the reference's read).
+    { x: 15.0, y: 3.3, z: -39.6, width: 2.4, dirX: -0.9, dirZ: 0.44, drop: 30 },
+    { x: 31.5, y: 3.3, z: -37.4, width: 3.0, dirX: 0.75, dirZ: 0.66, drop: 30 },
+    { x: 18.6, y: 8.5, z: -61.4, width: 1.2, dirX: -0.4, dirZ: 1, drop: 36 },
     { x: -3, y: -0.2, z: -15.4, width: 1.0, dirX: -0.15, dirZ: -1, drop: 26 },
   ] as readonly FallSpec[],
   cloudSea: { y: -24, radius: 400, scroll: 0.004, puffMinY: -20, puffMaxY: -12, ringMin: 30, ringMax: 180, drift: 0.4, cumulus: 8, cumulusDist: 300 },

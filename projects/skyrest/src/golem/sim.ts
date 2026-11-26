@@ -48,6 +48,8 @@ function golemExt() {
     /** The windup length actually used by the current attack (P2 is shorter). */
     windupLen: 0,
     recoverLen: 0,
+    /** Double slam: the facing the second fist aims along. */
+    aim: 0,
   };
 }
 
@@ -335,6 +337,7 @@ export function stepGolem(s: SimState, _intent: Readonly<Intent>): void {
   const t = tuningOf(a);
   if (g.action === 'windup') {
     g.glow = Math.min(1, restGlow + ((1 - restGlow) * g.actionFrame) / x.windupLen);
+    if (a === 'doubleSlam' && x.slamIndex === 1) g.facing = turnToward(g.facing, x.aim, (40 * Math.PI) / 180 / 15);
     if (a === 'toss') g.facing = turnToward(g.facing, facingOf(h.pos.x - g.pos.x, h.pos.z - g.pos.z), GOLEM.turnRateP2 * STEP_S);
     if (g.actionFrame < x.windupLen) return;
     set(g, 'strike');
@@ -367,9 +370,11 @@ export function stepGolem(s: SimState, _intent: Readonly<Intent>): void {
     if (a === 'doubleSlam' && x.slamIndex === 0) {
       // Second fist: re-aim up to 40° toward the hero, telegraph the 500 ms gap.
       x.slamIndex = 1;
+      // The body turns into the new aim over the gap (no snap); the decal is placed at once.
       const want = facingOf(h.pos.x - g.pos.x, h.pos.z - g.pos.z);
-      g.facing = turnToward(g.facing, want, (40 * Math.PI) / 180);
-      aimAhead(g, t.ahead);
+      x.aim = turnToward(g.facing, want, (40 * Math.PI) / 180);
+      g.target.x = g.pos.x + dirX(x.aim) * t.ahead;
+      g.target.z = g.pos.z + dirZ(x.aim) * t.ahead;
       set(g, 'windup');
       x.windupLen = GOLEM.doubleSlamGap;
       telegraph(s, 'doubleSlam', GOLEM.doubleSlamGap);

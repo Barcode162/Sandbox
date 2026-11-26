@@ -121,7 +121,7 @@ test('[G4] poise: a break staggers for 2 s (deferred past a telegraph), poise re
   run(w, [[5, {}]]);
   assert.equal(w.golem.action, 'windup');
   run(w, [[200, {}]]);
-  assert.ok(w.golem.action === 'stagger' || w.golem.actionFrame > 0);
+  assert.ok((w.golem.action as string) === 'stagger' || w.golem.actionFrame > 0);
   // Refill.
   const r = ready(3, 3.2, 0);
   r.flags.golemPassive = true;
@@ -196,4 +196,21 @@ test('[G7] pebbles chase, squash 400 ms before the bump, pop into coins when str
   const ev = run(s, [[1, {}]]);
   assert.ok(ev.some((e) => e.type === 'death' && e.target === 'minion'));
   assert.equal(s.coins, coins + MINION.coins);
+});
+
+test('[G8] polish #3: the 14 parts bob out of phase (two poses 500 ms apart differ per part, by different amounts)', async () => {
+  const { computePose, createPose, PART_COUNT, POSE_STRIDE } = await import('../../src/golem/pose.ts');
+  const s = ready(1, 3.2, 0);
+  const a = createPose(), b = createPose();
+  computePose(s.golem, 10, 3.0, a);
+  computePose(s.golem, 10, 3.5, b);
+  const dy = new Set<string>();
+  for (let i = 0; i < PART_COUNT; i++) {
+    const k = i * POSE_STRIDE;
+    const d = Math.hypot(a[k]! - b[k]!, a[k + 1]! - b[k + 1]!, a[k + 2]! - b[k + 2]!) + Math.abs(a[k + 3]! - b[k + 3]!);
+    assert.ok(d > 1e-4, `part ${i} moved`);
+    dy.add((b[k + 1]! - a[k + 1]!).toFixed(4));
+  }
+  assert.ok(dy.size >= PART_COUNT - 2, `distinct vertical motions: ${dy.size}`);
+  assert.equal(PART_COUNT, 14);
 });

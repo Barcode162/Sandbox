@@ -8,7 +8,9 @@ import { createFixedStepper } from '../core/fixed-step.ts';
 import { neutralIntent } from '../core/intent.ts';
 import { createSettings } from '../core/settings.ts';
 import { createSim, stepSim } from '../core/sim.ts';
-import { setPhase } from '../core/flow.ts';
+import { restartWave, setPhase } from '../core/flow.ts';
+import { wakeInstantly } from '../golem/sim.ts';
+import type { GameControlExtras } from '../ui/index.ts';
 import { createRenderer } from '../render/renderer.ts';
 import { createProbeRegistry } from '../render/probe.ts';
 import { createWorldView } from '../world/view.ts';
@@ -31,6 +33,8 @@ export interface GameInternals {
   skipTitle(): void;
   setManual(on: boolean): void;
   step(n: number): number;
+  /** Advance n fixed steps without rendering (moment scripts render once at the end). */
+  advance(n: number): void;
   renderNow(): void;
   readonly ctx: RenderContext;
   readonly control: GameControl;
@@ -57,7 +61,8 @@ export function bootGame(root: HTMLElement): GameInternals {
   const ctx: RenderContext = { scene, camera, renderer, settings, bus, probe, overlay };
 
   const rig = createCameraRig();
-  const views: View[] = [createWorldView(), createHeroView(), createGolemView(), createMinionsView(), createFx(rig), rig];
+  const world = createWorldView();
+  const views: View[] = [world, createHeroView(), createGolemView(), createMinionsView(), createFx(rig), rig];
   for (const v of views) v.init(ctx);
   const audio = createAudio(bus, settings);
   const input = createInput(root, bus);
@@ -85,7 +90,7 @@ export function bootGame(root: HTMLElement): GameInternals {
       intent.confirm = true;
       pendingConfirm = false;
     }
-    if (intent.pause && sim.phase === 'fight') {
+    if (intent.pause && (sim.phase === 'fight' || sim.phase === 'intro')) {
       control.setPaused(true);
       return;
     }
@@ -93,12 +98,33 @@ export function bootGame(root: HTMLElement): GameInternals {
     drain();
   };
 
-  const control: GameControl = {
+  /** Apply a flow change made outside a step (menus): publish its events now. */
+  const publish = () => {
+    drain();
+    sim.events.length = 0;
+    stepper.reset();
+  };
+  const control: GameControl & GameControlExtras = {
     start: () => {
       pendingConfirm = true;
     },
+    /** NEXT WAVE / TRY AGAIN from a card, or RESTART FIGHT from the pause panel: the next attempt starts now. */
     retry: () => {
-      pendingConfirm = true;
+      if (sim.phase === 'title' || sim.phase === 'intro') return;
+      if (paused) control.setPaused(false);
+      sim.events.length = 0;
+      restartWave(sim);
+      publish();
+    },
+    /** TITLE from a card: back to the orbiting title, coins kept. */
+    toTitle: () => {
+      const keep = sim.coins, seed = sim.seed;
+      if (paused) control.setPaused(false);
+      sim = createSim(seed);
+      sim.coins = keep;
+      log.length = 0;
+      stepper.reset();
+      rig.snap();
     },
     setPaused(p) {
       paused = p;
@@ -134,6 +160,10 @@ export function bootGame(root: HTMLElement): GameInternals {
   addEventListener('resize', resize);
   resize();
 
+  // Phase 2 warms the sun (F8: #ffd9b0); a new attempt restores it.
+  const sunBase = world.sun.color.clone();
+  const sunWarm = new THREE.Color(0xffd9b0);
+  let sunK = 0;
   const renderFrame = (dt: number) => {
     frame.state = sim;
     frame.alpha = alpha;
@@ -141,6 +171,13 @@ export function bootGame(root: HTMLElement): GameInternals {
     frame.time = time;
     frame.paused = paused;
     for (const v of views) v.update(frame);
+    const wantK = sim.golem.enraged && sim.golem.action !== 'dead' ? 1 : 0;
+    sunK += (wantK - sunK) * Math.min(1, (paused ? 0 : dt) * 3 + (manual && wantK ? 1 : 0));
+    if (sunK > 0.001 || wantK) world.sun.color.copy(sunBase).lerp(sunWarm, sunK);
+    else if (sunK !== 0) {
+      sunK = 0;
+      world.sun.color.copy(sunBase);
+    }
     ui.update(frame);
     renderer.render(scene, camera);
     syncQuality(); // auto may have downgraded inside render()
@@ -175,6 +212,7 @@ export function bootGame(root: HTMLElement): GameInternals {
     skipTitle() {
       setPhase(sim, 'intro');
       setPhase(sim, 'fight');
+      wakeInstantly(sim.golem);
       drain();
       sim.events.length = 0;
       rig.snap();
@@ -184,13 +222,16 @@ export function bootGame(root: HTMLElement): GameInternals {
       stepper.reset();
     },
     step(n) {
+      internals.advance(n);
+      renderFrame(1 / 60);
+      return sim.frame;
+    },
+    advance(n) {
       for (let i = 0; i < n; i++) {
         doStep();
         time += 1 / 60;
       }
       alpha = 1;
-      renderFrame(1 / 60);
-      return sim.frame;
     },
     renderNow() {
       alpha = 1;

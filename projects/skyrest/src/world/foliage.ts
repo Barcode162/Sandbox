@@ -45,7 +45,7 @@ export function buildTrees(): TreesBuild {
     const rnd = makeRng(101 + ti * 7);
     const by = treeBase(t);
     const cy = by + t.canopyY, R = t.canopyR;
-    canopies.push({ x: t.x, y: cy, z: t.z, r: R * 1.05 });
+    canopies.push({ x: t.x, y: cy, z: t.z, r: R * 1.2 }); // the outer puffs reach ≈ 1.2–1.3 R
     if (t.kind === 'cypress') {
       const cone = lumpy(new THREE.IcosahedronGeometry(1, 3), 0.1, 2.2, ti);
       place(cone, t.x, by + t.canopyY * 0.55 + 0.3, t.z, 0, 0, 0, R, t.canopyY * 0.75, R);
@@ -99,14 +99,17 @@ export function buildTrees(): TreesBuild {
     }
     const flat = t.kind === 'bush' ? 0.8 : 0.9;
     for (const [px, py, pz, pr] of puffs) {
-      const g = lumpy(new THREE.IcosahedronGeometry(1, 2), 0.12, 1.6, ti * 5 + px);
+      const g = lumpy(new THREE.IcosahedronGeometry(1, 3), 0.13, 2.4, ti * 5 + px);
       place(g, t.x + px, cy + py * flat, t.z + pz, 0, rnd() * 6, 0, pr, pr * flat, pr);
       transferNormals(g, t.x, cy - R * 0.25, t.z, 0.55);
       paint(g, (x, y, z) => {
         const hy = Math.min(1, Math.max(0, (y - (cy - R)) / (2 * R)));
         const n = 0.5 + 0.5 * noise2(x * 1.3, z * 1.3 + y, ti);
         if (isBlossom) {
-          const a = mixRGB(mixRGB(BL_SHADE, BL_MID, 0.4 + hy * 0.6), BL_LIT, Math.max(0, hy - 0.55) * 1.6 * n);
+          // Blossom clusters: blotchy petal-pink highlights over a mid-pink body, deeper toward the underside.
+          const blot = 0.5 + 0.5 * noise2(x * 4.1, z * 4.1 + y * 3.7, ti + 9);
+          let a = mixRGB(mixRGB(BL_SHADE, BL_MID, 0.4 + hy * 0.6), BL_LIT, Math.max(0, hy - 0.5) * 1.5 * n);
+          a = mixRGB(a, PETAL, blot > 0.62 ? 0.45 : 0);
           return div(a, BL_LIT);
         }
         let a = mixRGB(LEAF_MID, LEAF_LIT, 0.35 + hy * 0.65);
@@ -118,17 +121,17 @@ export function buildTrees(): TreesBuild {
     if (isBlossom) {
       // Petal cards scattered on the canopy surface: the fluffy blossom silhouette.
       const n = QUALITY.high.blossomCards;
-      const card = new THREE.PlaneGeometry(0.16, 0.12);
+      const card = new THREE.CircleGeometry(0.055, 5);
       const cards: THREE.BufferGeometry[] = [];
       const crnd = makeRng(777);
       for (let i = 0; i < n; i++) {
         const [px, py, pz, pr] = puffs[Math.floor(crnd() * puffs.length)]!;
         const u = crnd() * 2 - 1, a = crnd() * Math.PI * 2, s = Math.sqrt(1 - u * u);
         const dx = s * Math.cos(a), dy = Math.max(-0.4, u), dz = s * Math.sin(a);
-        const rr = pr * (1.0 + crnd() * 0.08);
+        const rr = pr * (0.97 + crnd() * 0.06);
         const c = card.clone();
         const x = t.x + px + dx * rr, y = cy + py * flat + dy * rr * flat, z = t.z + pz + dz * rr;
-        place(c, x, y, z, crnd() * 6, crnd() * 6, crnd() * 6, 0.8 + crnd() * 0.6);
+        place(c, x, y, z, crnd() * 6, crnd() * 6, crnd() * 6, 0.7 + crnd() * 0.5);
         const nm = c.getAttribute('normal');
         for (let k = 0; k < nm.count; k++) nm.setXYZ(k, dx, dy, dz);
         const shade = mixRGB(BL_MID, PETAL, crnd());

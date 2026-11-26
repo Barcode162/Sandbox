@@ -1,0 +1,24 @@
+/* src/fx/fx.css — owned by WO-003. Damage numbers (experience.md §4.6/§4.7) and the hurt edge vignette. */
+.fx-num {
+  position: absolute; left: 0; top: 0; will-change: transform, opacity; pointer-events: none;
+  font-family: ui-rounded, 'SF Pro Rounded', 'Nunito', system-ui, sans-serif; font-weight: 800;
+  font-variant-numeric: tabular-nums; line-height: 1; white-space: nowrap; color: #fff; font-size: 28px;
+  -webkit-text-stroke: 6px #1f2a44; paint-order: stroke fill; letter-spacing: 0.01em;
+  text-shadow: 0 2px 0 #1f2a44, 0 3px 8px rgba(15, 25, 50, 0.35);
+}
+.fx-num[hidden] { display: none; }
+.fx-num.crit { font-size: 40px; color: #ffd23f; -webkit-text-stroke: 8px #9a4a12; text-shadow: 0 2px 0 #9a4a12, 0 0 14px rgba(255, 190, 60, 0.55); }
+/* 4-ray sparkle on crits */
+.fx-num.crit::after {
+  content: ''; position: absolute; right: -20px; top: -16px; width: 26px; height: 26px;
+  background:
+    linear-gradient(90deg, transparent 44%, #fff8d6 50%, transparent 56%),
+    linear-gradient(0deg, transparent 44%, #fff8d6 50%, transparent 56%),
+    radial-gradient(circle, #fff 0 18%, rgba(255, 230, 140, 0.7) 30%, transparent 62%);
+  -webkit-mask: radial-gradient(circle, #000 0 30%, rgba(0, 0, 0, 0.9) 45%, transparent 72%);
+  mask: radial-gradient(circle, #000 0 30%, rgba(0, 0, 0, 0.9) 45%, transparent 72%);
+}
+.fx-vignette {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(255, 59, 59, 0.25) 82%, rgba(255, 59, 59, 0.45) 100%);
+}

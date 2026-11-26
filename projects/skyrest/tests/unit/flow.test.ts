@@ -71,7 +71,7 @@ test('[FL3] hero down → FALLEN → TRY AGAIN: same wave, full hearts, control 
   assert.ok(DEFEAT_DELAY_FRAMES <= 90);
   run(s, [[RETRY_MIN_FRAMES, {}], [1, { confirm: true }]]);
   let m = 0;
-  while (s.phase !== 'fight' && m < 300) {
+  while ((s.phase as string) !== 'fight' && m < 300) {
     run(s, [[1, {}]]);
     m++;
   }

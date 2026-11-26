@@ -1,18 +1,179 @@
-/* src/style.css — owned by WO-004 (HUD/menus). Input slice styles its touch controls in input/touch.css. */
+/* src/style.css — owned by WO-004 (HUD, menus, cards). The input slice styles its touch controls in input/touch.css.
+   Tokens: experience.md §4.1 HUD row, §4.6 type & HUD, §4.7 motion, §8 menus. */
+:root {
+  --font: ui-rounded, 'SF Pro Rounded', 'Nunito', system-ui, sans-serif;
+  --hud-panel: rgba(28, 32, 38, 0.72);
+  --hud-pill: rgba(44, 64, 92, 0.62);
+  --hud-text: #fff;
+  --hud-dim: #b9c3cf;
+  --coin: #f4c443;
+  --coin-rim: #ffe58a;
+  --coin-deep: #c98a1c;
+  --hp-red: #e0524b;
+  --hp-lag: #fff3e0;
+  --hp-bg: #1c3a32;
+  --heart: #ff5d6c;
+  --dmg-outline: #1f2a44;
+  --crit: #ffd23f;
+  --telegraph: #ff7a3c;
+  --cape: #3a6ad5;
+  --temple-trim: #3d63b5;
+  --safe-t: max(12px, calc(env(safe-area-inset-top) + 12px));
+  --safe-r: max(12px, calc(env(safe-area-inset-right) + 12px));
+  --safe-l: max(12px, calc(env(safe-area-inset-left) + 12px));
+  --safe-b: max(12px, calc(env(safe-area-inset-bottom) + 12px));
+  --enter: cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  --out-cubic: cubic-bezier(0.33, 1, 0.68, 1);
+  --back: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
 html, body { margin: 0; height: 100%; overflow: hidden; background: #bfe4ff; touch-action: none;
-  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; overscroll-behavior: none; }
-#app { position: fixed; inset: 0; font-family: 'Trebuchet MS', system-ui, sans-serif; color: #fff; }
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+#app { position: fixed; inset: 0; font-family: var(--font); color: var(--hud-text); -webkit-font-smoothing: antialiased; }
 .stage { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.overlay, .ui { position: absolute; inset: 0; pointer-events: none; }
-.ui button { pointer-events: auto; font: inherit; }
-.hud .coins { position: absolute; top: max(12px, env(safe-area-inset-top)); right: 64px; padding: 6px 16px 6px 8px;
-  border-radius: 999px; background: rgba(28, 32, 40, 0.55); font-weight: 800; font-size: 20px; display: flex; gap: 8px; align-items: center; }
-.coin-icon { width: 24px; height: 24px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff6b0, #ffcf3a 55%, #c98a12); }
-.hud .gear { position: absolute; top: max(10px, env(safe-area-inset-top)); right: 12px; width: 44px; height: 44px;
-  border: 0; border-radius: 50%; background: rgba(28, 32, 40, 0.55); color: #fff; font-size: 24px; }
-.title-card { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 16px;
-  background: linear-gradient(rgba(20, 40, 80, 0.15), rgba(20, 40, 80, 0.35)); }
-.title-card[hidden] { display: none; }
-.title-card h1 { margin: 0; font-size: clamp(44px, 9vw, 96px); letter-spacing: 0.04em; text-shadow: 0 4px 0 #2a62c9, 0 8px 24px rgba(0,0,0,.3); }
-.title-card .start { pointer-events: auto; padding: 14px 40px; font-size: 22px; font-weight: 800; border: 0; border-radius: 999px;
-  background: #ffcf3a; color: #3a2a06; box-shadow: 0 4px 0 #c98a12; }
+.overlay, .ui { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.ui button { pointer-events: auto; font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.ui button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.ui [hidden] { display: none !important; }
+
+/* ── HUD: hidden on the title, slides in when control begins (§12.25) ── */
+.hud { position: absolute; inset: 0; opacity: 0; transition: opacity 160ms ease-in; }
+.hud > * { transition: transform 220ms var(--enter); }
+.hud .hearts { transform: translateX(-24px); }
+.hud .coins, .hud .gear { transform: translateX(24px); }
+.hud:not(.in) button { pointer-events: none; }
+.hud.in { opacity: 1; transition: opacity 220ms var(--out-cubic); }
+.hud.in > * { transform: none; }
+
+/* Coin pill (§4.6): 40 px tall, radius 20, 10 px blur; 34 px coin overlapping the left end. */
+.coins { position: absolute; top: var(--safe-t); right: calc(var(--safe-r) + 42px); height: 40px; box-sizing: border-box;
+  padding: 0 18px 0 40px; border-radius: 20px; background: var(--hud-pill); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  display: flex; align-items: center; font-weight: 800; font-size: 20px; font-variant-numeric: tabular-nums; letter-spacing: 0.01em;
+  text-shadow: 0 1px 2px rgba(10, 20, 40, 0.45); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12); transform-origin: 30% 50%; }
+.coins .coin { position: absolute; left: -4px; top: 3px; }
+.coins.bump { animation: bump 240ms ease-out; }
+@keyframes bump { 0% { scale: 1; } 33% { scale: 1.12; } 100% { scale: 1; } }
+.cv-last.flash { color: var(--crit); }
+.coin { display: block; width: 34px; height: 34px; border-radius: 50%; box-sizing: border-box; position: relative;
+  background: radial-gradient(circle at 50% 120%, var(--coin-deep) 0 38%, transparent 39%), radial-gradient(circle at 38% 32%, #fff6c4 0 12%, var(--coin) 40%, #e9a92c 100%);
+  border: 2px solid var(--coin-rim); box-shadow: 0 2px 0 var(--coin-deep), 0 3px 6px rgba(60, 30, 0, 0.35), inset 0 -2px 0 rgba(150, 90, 10, 0.35); overflow: hidden; }
+.coin::after { content: ''; position: absolute; left: -40%; top: -60%; width: 40%; height: 220%; background: rgba(255, 255, 255, 0.55);
+  transform: rotate(28deg); animation: shine 3.6s ease-in-out infinite; }
+@keyframes shine { 0%, 70% { left: -40%; } 100% { left: 130%; } }
+.coin-star { position: absolute; inset: 0; margin: auto; width: 14px; height: 14px; background: #fff3c0;
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); opacity: 0.9;
+  box-shadow: inset 0 -2px 0 var(--coin-deep); }
+.gear { position: absolute; top: calc(var(--safe-t) + 2px); right: var(--safe-r); width: 36px; height: 36px; padding: 3px; border: 0;
+  background: none; color: #fff; filter: drop-shadow(0 1px 2px rgba(10, 20, 40, 0.55)); transition: scale 90ms ease-out; }
+.gear:active { scale: 0.92; }
+.gear svg { display: block; }
+
+/* Hearts (§4.6): 5 × 22 px on a 36 px pill; half steps. */
+.hearts { position: absolute; top: calc(var(--safe-t) + 2px); left: var(--safe-l); height: 36px; padding: 0 10px; box-sizing: border-box;
+  border-radius: 18px; background: var(--hud-pill); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  display: flex; gap: 4px; align-items: center; }
+.heart { position: relative; width: 22px; height: 20px; }
+.heart span { position: absolute; inset: 0; }
+.heart svg { width: 22px; height: 20px; display: block; overflow: visible; }
+.h-empty path { fill: none; stroke: #ffffff55; stroke-width: 2; }
+.h-fill path { fill: var(--heart); stroke: var(--dmg-outline); stroke-width: 1.5; paint-order: stroke; }
+.h-fill::after { content: ''; position: absolute; left: 5px; top: 4px; width: 5px; height: 3px; border-radius: 3px; background: #fff; transform: rotate(-35deg); opacity: 0.9; }
+
+/* Boss nameplate (§4.6): 17 px/700 + 2 px outline; 168×10 bar (portrait 150). */
+.nameplate { position: absolute; left: 0; top: 0; width: 176px; display: grid; justify-items: center; gap: 5px; opacity: 0; will-change: transform; }
+.np-name { display: flex; align-items: center; gap: 5px; font-size: 17px; font-weight: 700; white-space: nowrap; letter-spacing: 0.01em;
+  text-shadow: -2px 0 var(--dmg-outline), 2px 0 var(--dmg-outline), 0 -2px var(--dmg-outline), 0 2px var(--dmg-outline), -1.4px -1.4px var(--dmg-outline), 1.4px 1.4px var(--dmg-outline), -1.4px 1.4px var(--dmg-outline), 1.4px -1.4px var(--dmg-outline), 0 3px 6px rgba(0, 0, 0, 0.35); }
+.ember { width: 0; height: 12px; fill: #ff7a2c; filter: drop-shadow(0 0 3px #ffb63c); transition: width 200ms var(--enter); }
+.nameplate.kindled .ember { width: 10px; }
+.np-bar { position: relative; width: 168px; height: 10px; border-radius: 5px; background: var(--hp-bg); border: 1.5px solid #0e1a1a; overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); }
+.np-fill, .np-lag { position: absolute; inset: 0; transform-origin: 0 50%; border-radius: 4px; }
+.np-lag { background: var(--hp-lag); }
+.np-fill { background: linear-gradient(#ef6a60, var(--hp-red) 55%, #c23d37); }
+.np-wave { font-size: 12px; font-weight: 700; color: var(--hud-dim); text-shadow: 0 1px 2px var(--dmg-outline); min-height: 0; }
+.np-wave:empty { display: none; }
+@media (max-aspect-ratio: 1/1) { .nameplate { width: 160px; } .np-bar { width: 150px; } }
+
+/* Hints, banner, bridge line (§8/§9). */
+.hint { position: absolute; left: 0; right: 0; top: 62%; text-align: center; font-size: 20px; font-weight: 800; letter-spacing: 0.02em;
+  text-shadow: 0 0 2px var(--dmg-outline), 0 2px 0 var(--dmg-outline), 0 3px 10px rgba(0, 0, 0, 0.35); opacity: 0; transform: translateY(8px) scale(0.96);
+  transition: opacity 160ms ease-in, transform 160ms ease-in; }
+.hint.show { opacity: 1; transform: none; transition: opacity 220ms var(--out-cubic), transform 220ms var(--enter); }
+.hint.bridge { top: 54%; font-size: 17px; font-weight: 700; font-style: italic; color: #f2f6ff; }
+.banner { position: absolute; left: 0; right: 0; top: 21%; transform: translateY(-50%) scale(0.9); text-align: center; font-size: clamp(28px, 6vw, 40px); font-weight: 800;
+  color: #fff4e0; letter-spacing: 0.02em; opacity: 0; transition: opacity 300ms ease-in, transform 300ms ease-in;
+  text-shadow: 0 0 2px #7a2408, 0 2px 0 #7a2408, 0 0 18px rgba(255, 110, 40, 0.8), 0 0 40px rgba(255, 90, 30, 0.45); }
+.banner.show { opacity: 1; transform: translateY(-50%) scale(1); transition: opacity 220ms var(--out-cubic), transform 380ms var(--back); }
+.legend { position: absolute; left: 50%; bottom: var(--safe-b); transform: translateX(-50%); font-size: 12px; font-weight: 600; color: #f4f7fb;
+  padding: 5px 12px; border-radius: 12px; background: rgba(28, 32, 38, 0.45); white-space: nowrap; opacity: 0; transition: opacity 600ms ease; }
+.legend.show { opacity: 1; }
+.ui[data-phase='title'] .legend { opacity: 0; }
+
+/* Hurt vignette: edge-only red, 25 % peak. */
+.vignette { position: absolute; inset: 0; opacity: 0; background: radial-gradient(ellipse at center, transparent 55%, rgba(255, 59, 59, 0.9) 120%); }
+
+/* Coins flying to the pill. */
+.fly-layer { position: absolute; inset: 0; }
+.fly-coin { position: absolute; left: -12px; top: -12px; opacity: 0; will-change: transform; }
+.fly-coin .coin { width: 24px; height: 24px; border-width: 1.5px; }
+.fly-coin .coin-star { width: 10px; height: 10px; }
+
+/* ── Title (F1): wordmark in open sky, prompt pulsing 0.55↔1 at 0.8 Hz. ── */
+.title-card { position: absolute; inset: 0; pointer-events: auto; cursor: pointer; transition: opacity 400ms ease;
+  background: radial-gradient(ellipse at 50% 32%, rgba(255, 255, 255, 0.18), transparent 55%); }
+.title-card.gone { opacity: 0; pointer-events: none; }
+.title-card h1 { position: absolute; left: 0; right: 0; top: 30%; transform: translateY(-62%); margin: 0; text-align: center;
+  font-size: 64px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #fff;
+  -webkit-text-stroke: 4px var(--temple-trim); paint-order: stroke fill; text-shadow: 0 4px 24px #2a4a8a66; }
+.title-card .subtitle { position: absolute; left: 0; right: 0; top: 37%; margin: 0; text-align: center; font-size: 17px; font-weight: 700; color: #fff;
+  text-shadow: 0 1px 0 var(--temple-trim), 0 0 2px var(--temple-trim), 0 2px 10px rgba(30, 60, 120, 0.45); }
+.title-card .prompt { position: absolute; left: 50%; top: 78%; transform: translate(-50%, -50%); padding: 12px 28px; border: 0; background: none;
+  font-size: 20px; font-weight: 800; letter-spacing: 0.04em; color: #fff; text-shadow: 0 0 2px var(--dmg-outline), 0 2px 0 var(--temple-trim), 0 2px 12px rgba(20, 40, 90, 0.5);
+  animation: pulse 1.25s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+@media (max-aspect-ratio: 1/1) { .title-card h1 { font-size: 48px; } }
+
+/* ── Panels: the reference's dark translucent rounded style, our own items (§8). ── */
+.scrim { position: absolute; inset: 0; background: rgba(8, 14, 26, 0.3); opacity: 0; pointer-events: none; transition: opacity 160ms ease-in; }
+.scrim.on { opacity: 1; pointer-events: auto; transition: opacity 220ms var(--out-cubic); }
+.panel { position: absolute; background: var(--hud-panel); -webkit-backdrop-filter: blur(14px) saturate(1.1); backdrop-filter: blur(14px) saturate(1.1);
+  border-radius: 18px; box-shadow: 0 12px 40px rgba(6, 12, 24, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08); pointer-events: auto; }
+.pause-panel { top: var(--safe-t); left: var(--safe-l); width: min(360px, 84vw); padding: 8px 20px; box-sizing: border-box;
+  animation: panelIn 220ms var(--out-cubic); }
+@keyframes panelIn { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: none; } }
+.pause-panel .row { display: flex; align-items: center; gap: 16px; width: 100%; height: 56px; padding: 0; border: 0; background: none; text-align: left;
+  color: #e9edf2; border-bottom: 1px solid #ffffff14; transition: scale 90ms ease-out; }
+.pause-panel .row:last-child { border-bottom: 0; }
+.pause-panel .row:active { scale: 0.97; }
+.pause-panel .row svg, .pause-panel .ico { flex: none; width: 22px; height: 22px; display: block; color: #fff; }
+.pause-panel .label { flex: 1; font-size: 17px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.pause-panel .value { font-size: 14px; font-weight: 600; color: var(--hud-dim); }
+.restart-label { transition: color 120ms; }
+.ui.paused .overlay { filter: blur(2px); }
+
+.card { left: 50%; top: 45%; width: 320px; max-width: calc(100vw - 32px); box-sizing: border-box; padding: 22px 22px 20px; text-align: center; transform: translate(-50%, -50%); }
+.card.pop { animation: cardIn 360ms var(--back); }
+@keyframes cardIn { from { opacity: 0; transform: translate(-50%, -50%) scale(0.86); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+.card h2 { margin: 0 0 6px; font-size: 28px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; }
+.victory h2 { color: var(--crit); text-shadow: 0 2px 0 #9a4a12, 0 0 16px rgba(255, 200, 60, 0.45); }
+.card-sub { margin: 0 0 8px; font-size: 14px; font-weight: 600; color: var(--hud-dim); }
+.card-stats { margin: 0 0 16px; font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.card-buttons { display: grid; gap: 8px; }
+.card-buttons button { height: 48px; border: 0; border-radius: 14px; font-size: 17px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+  transition: scale 90ms ease-out; }
+.card-buttons button:active { scale: 0.92; }
+.card-buttons .primary { background: var(--cape); box-shadow: 0 3px 0 #22448f, inset 0 1px 0 rgba(255, 255, 255, 0.25); }
+.card-buttons .secondary { height: 40px; background: rgba(255, 255, 255, 0.08); color: #e9edf2; font-size: 14px; }
+
+/* Retry veil: covers the swap to the next attempt (300 ms fade out). */
+.veil { position: absolute; inset: 0; background: #dbeeff; opacity: 0; transition: opacity 300ms ease; }
+.veil.on { opacity: 1; transition: opacity 120ms ease-in; }
+
+@media (prefers-reduced-motion: reduce) {
+  .coin::after, .title-card .prompt { animation: none; }
+  .title-card .prompt { opacity: 1; }
+}
+
+/* Frame-table captures (window.__skyrest.moment): entry animations snap to their end state. */
+[data-moment] .panel, [data-moment] .card { animation: none !important; }
+[data-moment] .hud, [data-moment] .hud > *, [data-moment] .title-card, [data-moment] .veil, [data-moment] .hint,
+[data-moment] .banner, [data-moment] .scrim, [data-moment] .legend { transition: none !important; }

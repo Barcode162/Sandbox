@@ -35,6 +35,11 @@ export const HERO_EXT = {
 } as const;
 export type HeroExtKey = keyof typeof HERO_EXT;
 
+/** Observational clock for render-side listeners: the sim (and its frame) of the step being run right now. Set every
+ *  step (stepHero, or bufferHeroInput during hit-stop), so bus handlers can timestamp events even when the game
+ *  steps several times between renders. Never read by the sim itself. */
+export const SIM_CLOCK: { state: SimState | null; frame: number } = { state: null, frame: 0 };
+
 export function createHero(): HeroState {
   const p = ARENA.heroSpawn;
   return {
@@ -112,6 +117,8 @@ function setAction(s: SimState, a: HeroAction): void {
 
 /** Latch attack/dodge/skill presses into the 200 ms input buffer (also called during hit-stop so no press is lost). */
 export function bufferHeroInput(s: SimState, intent: Readonly<Intent>): void {
+  SIM_CLOCK.state = s;
+  SIM_CLOCK.frame = s.frame;
   if (intent.attack) s.hero.attackBuffer = HERO.inputBufferFrames;
   if (intent.dodge) s.hero.dodgeBuffer = HERO.inputBufferFrames;
   if (intent.skill) s.hero.ext.skillBuffer = HERO.inputBufferFrames;
@@ -126,6 +133,8 @@ const outCubic = (t: number) => 1 - (1 - t) * (1 - t) * (1 - t);
 export function stepHero(s: SimState, intent: Readonly<Intent>): void {
   const h = s.hero;
   const x = h.ext;
+  SIM_CLOCK.state = s;
+  SIM_CLOCK.frame = s.frame;
   if (h.skillCooldown > 0 && --h.skillCooldown === 0) s.events.push({ type: 'skillReady' });
   if (s.phase !== 'fight') {
     h.vel.x = h.vel.z = 0;

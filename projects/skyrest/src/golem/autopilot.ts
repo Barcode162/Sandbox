@@ -82,7 +82,7 @@ export function autopilot(s: SimState, mem: AutopilotMemory, into: Intent): void
     }
   }
   // 3. Nearest live target: the golem, or a pebble that is closer.
-  let tx = g.pos.x, tz = g.pos.z, tr = GOLEM.radius;
+  let tx = g.pos.x, tz = g.pos.z, tr: number = GOLEM.radius;
   let best = Math.hypot(h.pos.x - tx, h.pos.z - tz) - tr;
   for (let i = 0; i < s.minions.length; i++) {
     const m = s.minions[i]!;
