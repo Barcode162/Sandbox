@@ -12,6 +12,8 @@ async function touch(page: Page) {
     cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y, id: 1 }] });
   return { send };
 }
+/** Chrome delivers pointermove aligned to animation frames: let two frames pass before stepping the sim. */
+const frames2 = (page: Page) => page.evaluate(() => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r()))));
 
 for (const [label, size] of [['portrait', { width: 430, height: 932 }], ['landscape', { width: 932, height: 430 }]] as const) {
   test(`[T-${label}] joystick moves and stops the hero; Attack/Dodge fire; buttons in the safe area`, async ({ page }) => {
@@ -45,6 +47,7 @@ for (const [label, size] of [['portrait', { width: 430, height: 932 }], ['landsc
     await t.send('touchStart', x0, y0);
     await t.send('touchMove', x0 + 25, y0 - 4);
     await t.send('touchMove', x0 + 60, y0 - 6);
+    await frames2(page);
     await g.step(30);
     await page.screenshot({ path: path.join(evidenceDir(), 'wo-003', `touch-${label}.jpg`), type: 'jpeg', quality: 80 });
     const moved = (await g.snapshot()).hero;
@@ -53,6 +56,7 @@ for (const [label, size] of [['portrait', { width: 430, height: 932 }], ['landsc
     expect(Math.hypot(moved.vel.x, moved.vel.z)).toBeGreaterThan(4);
     // Release: stopped within 6 steps (100 ms), no skid.
     await t.send('touchEnd');
+    await frames2(page);
     await g.step(6);
     const stopped = (await g.snapshot()).hero;
     expect(Math.hypot(stopped.vel.x, stopped.vel.z), 'speed after release + 6 steps').toBe(0);

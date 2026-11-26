@@ -24,9 +24,14 @@ test('[HE1] sfx() logs swing, hit, crit, dodge, golemSlam and coin', async ({ pa
   await g.step(40);
   await g.inject({ dodge: true });
   await g.step(30);
-  await g.setFlags({ forceDamage: 999_999 });
+  // Kill from the spawn staging (the roll above left the hero out of reach): the coin burst follows.
+  await g.setSeed(20261125);
+  await g.skipTitle();
+  await g.setFlags({ golemPassive: true, forceDamage: 999_999 });
+  await g.step(120);
   await g.inject({ attack: true });
-  await g.step(40);
+  // The coin burst follows the crumble: step until the sim has emitted it.
+  for (let i = 0; i < 20 && !(await g.events()).some((e) => e.type === 'coins'); i++) await g.step(30);
   const ids = await g.sfx();
   for (const id of ['swing1', 'hit', 'crit', 'dodge', 'golemSlam', 'coin']) expect(ids, id).toContain(id);
 });

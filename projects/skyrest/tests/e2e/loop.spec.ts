@@ -42,14 +42,17 @@ async function expectWall(page: Page, ms: number, label: string): Promise<void> 
   else test.info().annotations.push({ type: 'slow-renderer', description: `${label}: ${ms} ms wall at ${fm.toFixed(0)} ms/frame; steps asserted instead` });
 }
 
-/** Wall-clock ms and sim steps from a click until phase 'fight'. */
+/** Wall-clock ms from a click until phase 'fight', and sim steps from the attempt starting (phase 'intro', after the
+ *  120 ms veil) until 'fight'. Steps are what the game controls; wall ms also depends on the renderer's frame rate. */
 async function timeToControl(page: Page, click: () => Promise<void>) {
-  const f0 = await page.evaluate(() => window.__skyrest!.snapshot().frame);
   const t0 = Date.now();
   await click();
-  await page.waitForFunction(() => window.__skyrest!.snapshot().phase === 'fight', undefined, { timeout: 10_000, polling: 16 });
+  await page.waitForFunction(() => window.__skyrest!.snapshot().phase === 'intro', undefined, { timeout: 45_000, polling: 16 });
+  const fI = await page.evaluate(() => window.__skyrest!.snapshot().frame - window.__skyrest!.snapshot().phaseFrame);
+  await page.waitForFunction(() => window.__skyrest!.snapshot().phase === 'fight', undefined, { timeout: 45_000, polling: 16 });
   const ms = Date.now() - t0;
-  const steps = (await page.evaluate(() => window.__skyrest!.snapshot().frame)) - f0;
+  const s = await page.evaluate(() => window.__skyrest!.snapshot());
+  const steps = s.frame - s.phaseFrame - fI; // intro start → fight start, exactly
   return { ms, steps };
 }
 
@@ -88,7 +91,7 @@ test('[LP1] title → Start → kill → coins counted in → NEXT WAVE in ≤ 1
   const s2 = await game.snapshot();
   expect(s2.wave).toBe(2);
   expect(s2.coins).toBe(total);
-  expect(next.steps, 'sim steps to control').toBeLessThanOrEqual(108);
+  expect(next.steps, 'sim steps to control').toBeLessThanOrEqual(108 - 8); // + the 120 ms veil
   await expectWall(page, next.ms, 'next wave');
 
   // FALLEN: let the Guardian win (manual), then TRY AGAIN in real time.
@@ -107,7 +110,7 @@ test('[LP1] title → Start → kill → coins counted in → NEXT WAVE in ≤ 1
   const s3 = await game.snapshot();
   expect(s3.wave).toBe(2);
   expect(s3.hero.hp).toBe(s3.hero.maxHp);
-  expect(again.steps).toBeLessThanOrEqual(108);
+  expect(again.steps).toBeLessThanOrEqual(108 - 8);
   await expectWall(page, again.ms, 'try again');
   writeEvidence('loop/retry-timing.json', { nextWave: next, tryAgain: again, coinValuesSeen: seen.size });
 });
