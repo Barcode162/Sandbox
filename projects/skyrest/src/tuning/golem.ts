@@ -23,8 +23,9 @@ export interface GolemAttackTuning {
 }
 
 export const GOLEM = {
-  /** §5: HP 60,000 × 1.15^(wave−1). */
-  maxHp: 60000,
+  /** §5 says 60,000 × 1.15^(wave−1); raised by CEO decision so a wave-1 fight lasts ~60–75 s for a decent player
+   *  (the frame-perfect autopilot needs ~30 s; the spec number gave 12 s). */
+  maxHp: 150000,
   hpWaveGrowth: 1.15,
   maxPoise: 100,
   /** Poise refills this long after the last hit (4 s). */

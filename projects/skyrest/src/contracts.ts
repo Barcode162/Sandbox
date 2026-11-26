@@ -348,6 +348,8 @@ export type CreateFx = (rig: CameraRig) => View;
 export interface GameControl {
   start(): void;
   retry(): void;
+  /** Back to the title (coins kept). Added by CEO decision in wave 1 (WO-004). */
+  toTitle(): void;
   setPaused(paused: boolean): void;
   readonly paused: boolean;
   readonly settings: SettingsStore;

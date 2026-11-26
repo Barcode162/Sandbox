@@ -11,10 +11,6 @@ import { golemAnchor } from '../golem/view.ts';
 import { arrivalTime, COIN_FLY_S, coinWorld, golemBurst, golemBurstTime, handoffTime, minionBurstTime, MINION_BURST, unarrived, type CoinBurst } from '../golem/coins.ts';
 import { GOLEM } from '../tuning/golem.ts';
 
-/** Optional extras the game's control object offers beyond the frozen GameControl (see the WO-004 report). */
-export interface GameControlExtras {
-  toTitle?(): void;
-}
 
 const fmt = (n: number) => Math.round(n).toLocaleString('en-US');
 const clamp01 = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t);
@@ -40,7 +36,7 @@ const EMBER = '<svg class="ember" viewBox="0 0 12 14" aria-hidden="true"><path d
 export const createUi: CreateUi = () => {
   let root!: HTMLElement;
   let ctx!: RenderContext;
-  let control!: GameControl & GameControlExtras;
+  let control!: GameControl;
   const q = <T extends HTMLElement>(sel: string) => root.querySelector(sel) as T;
   // Elements
   let hud!: HTMLElement, coinsEl!: HTMLElement, coinValue!: HTMLElement, coinLast!: HTMLElement, heartsEl!: HTMLElement;
@@ -267,7 +263,7 @@ export const createUi: CreateUi = () => {
         const b = (e.target as HTMLElement).closest('[data-act]') as HTMLElement | null;
         if (!b) return;
         click();
-        if (b.dataset.act === 'title') underVeil(() => (control.toTitle ? control.toTitle() : location.reload()));
+        if (b.dataset.act === 'title') underVeil(() => control.toTitle());
         else underVeil(() => control.retry());
       });
     }
@@ -468,7 +464,7 @@ export const createUi: CreateUi = () => {
     init(r: HTMLElement, c: RenderContext, ctl: GameControl) {
       root = r;
       ctx = c;
-      control = ctl as GameControl & GameControlExtras;
+      control = ctl;
       buildDom();
       wire();
       syncPanel();

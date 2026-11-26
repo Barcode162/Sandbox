@@ -10,7 +10,6 @@ import { createSettings } from '../core/settings.ts';
 import { createSim, stepSim } from '../core/sim.ts';
 import { restartWave, setPhase } from '../core/flow.ts';
 import { wakeInstantly } from '../golem/sim.ts';
-import type { GameControlExtras } from '../ui/index.ts';
 import { createRenderer } from '../render/renderer.ts';
 import { createProbeRegistry } from '../render/probe.ts';
 import { createWorldView } from '../world/view.ts';
@@ -104,7 +103,7 @@ export function bootGame(root: HTMLElement): GameInternals {
     sim.events.length = 0;
     stepper.reset();
   };
-  const control: GameControl & GameControlExtras = {
+  const control: GameControl = {
     start: () => {
       pendingConfirm = true;
     },
@@ -164,7 +163,8 @@ export function bootGame(root: HTMLElement): GameInternals {
   const sunBase = world.sun.color.clone();
   const sunWarm = new THREE.Color(0xffd9b0);
   let sunK = 0;
-  const renderFrame = (dt: number) => {
+  /** Every view + the UI read the sim (no draw). */
+  const syncViews = (dt: number) => {
     frame.state = sim;
     frame.alpha = alpha;
     frame.dt = paused ? 0 : dt;
@@ -179,6 +179,9 @@ export function bootGame(root: HTMLElement): GameInternals {
       world.sun.color.copy(sunBase);
     }
     ui.update(frame);
+  };
+  const renderFrame = (dt: number) => {
+    syncViews(dt);
     renderer.render(scene, camera);
     syncQuality(); // auto may have downgraded inside render()
   };
@@ -227,11 +230,14 @@ export function bootGame(root: HTMLElement): GameInternals {
       return sim.frame;
     },
     advance(n) {
+      // Views and UI follow every step (no GPU work), so bus listeners and per-step view state see the live sim;
+      // only step()/moment() then draw a frame.
       for (let i = 0; i < n; i++) {
         doStep();
         time += 1 / 60;
+        alpha = 1;
+        syncViews(1 / 60);
       }
-      alpha = 1;
     },
     renderNow() {
       alpha = 1;
