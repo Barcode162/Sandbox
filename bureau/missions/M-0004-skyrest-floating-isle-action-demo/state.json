@@ -21,7 +21,9 @@
   "headcount": {
     "experience-designer": 1,
     "architect": 1,
-    "engineer": 3
+    "engineer": 3,
+    "code-reviewer": 1,
+    "polish-critic": 1
   },
   "levers": [
     "polish"
@@ -48,5 +50,5 @@
       "at": "2026-11-26T20:17:45Z"
     }
   ],
-  "updated": "2026-11-26T20:17:45Z"
+  "updated": "2026-11-26T20:17:51Z"
 }
