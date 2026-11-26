@@ -2,7 +2,6 @@
 // undersides (strata, rock columns, hanging roots, vines). Every top merges into ONE grass mesh and every
 // underside into ONE cliff mesh, so the arena, the temple isle, the spire and five distant isles cost 2 draws.
 import * as THREE from 'three';
-import { ARENA } from '../tuning/arena.ts';
 import { PALETTE, SCENERY, type IsleSpec } from '../tuning/world.ts';
 import { makeRng } from '../core/rng.ts';
 import { arenaRimRadius, groundHeight } from './ground.ts';
@@ -28,7 +27,6 @@ interface IsleDef {
 const GRASS_MID = rgbOf(PALETTE.grassMid), GRASS_LIT = rgbOf(PALETTE.grassLit), GRASS_SHADE = rgbOf(PALETTE.grassShade);
 const SOIL = rgbOf(PALETTE.soilLip), CLIFF_LIT = rgbOf(PALETTE.cliffLit), CLIFF_MID = rgbOf(PALETTE.cliffMid), CLIFF_SHADE = rgbOf(PALETTE.cliffShade);
 const LEAF_MID = rgbOf(PALETTE.leafMid), LEAF_SHADE = rgbOf(PALETTE.leafShade), MOSS = rgbOf(PALETTE.moss);
-const WHITE: RGB = [1, 1, 1];
 
 /** Grid helper: rows × cols vertex grid (cols wraps) → indexed triangles. */
 function wrapGrid(rows: number, cols: number, pos: Float32Array, col: Float32Array, uv: Float32Array): THREE.BufferGeometry {
@@ -110,7 +108,7 @@ function buildIsle(d: IsleDef, contact: { x: number; z: number; r: number }[]): 
       const ledge = 1 - 0.035 * Math.abs(Math.sin(t * d.strata * Math.PI));
       const column = 1 + 0.07 * noise2(e.th * 7.5, t * 3.0, d.seed + 5) + 0.035 * noise2(e.th * 19, t * 9, d.seed + 6);
       const rr = Math.max(0.15, e.r * band * ledge * column);
-      const x = cx + sx * rr + (k === K ? 0 : 0), z = cz + sz * rr;
+      const x = cx + sx * rr, z = cz + sz * rr;
       const i = k * (segs + 1) + c;
       cp.set([x, k === 0 ? yTop : y, z], i * 3);
       let a: RGB;
@@ -159,7 +157,6 @@ function buildIsle(d: IsleDef, contact: { x: number; z: number; r: number }[]): 
     });
     parts.push(v);
   }
-  void WHITE;
   return [top, merge(parts)];
 }
 
@@ -213,6 +210,5 @@ export function buildIslands(contact: { x: number; z: number; r: number }[]): Is
     tops.push(t);
     cliffs.push(c);
   }
-  void ARENA;
   return { tops: merge(tops), cliffs: merge(cliffs), arenaTop: aTop };
 }

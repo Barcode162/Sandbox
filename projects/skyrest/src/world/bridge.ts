@@ -1,6 +1,6 @@
 // src/world/bridge.ts — owned by WO-002. The rope bridge (§4.4): P1 on the arena's NE lip → P2 on the temple
 // isle, catenary sag 0.7 m, 84 instanced planks with ±3° jitter, two sagging rope rails strung between 5 post
-// pairs, thick end posts with rope wraps, hanger ropes, and the sealed-way rune curtain + signboard at P1.
+// pairs, thick end posts with rope wraps, hanger ropes, and the "sealed… for now" signboard at P1.
 import * as THREE from 'three';
 import { ARENA } from '../tuning/arena.ts';
 import { BRIDGE, PALETTE, SCENERY } from '../tuning/world.ts';
