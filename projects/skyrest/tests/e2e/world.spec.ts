@@ -18,7 +18,8 @@ async function moment(page: Page, id: MomentId, quality: Quality) {
 
 const inRange = (v: number, lo: number, hi: number) => v >= lo && v <= hi;
 
-test('[W-F2] reference frame 802×917: temple upper-right, hero low-centre', async ({ page }) => {
+test('[W-F2] reference frame 802×917: temple upper-right, hero low-centre', async ({ page, consoleErrors }) => {
+  void consoleErrors; // the harness fails the test on any console error
   await page.setViewportSize({ width: 802, height: 917 });
   const { r, probe, stats } = await moment(page, 'F2', 'high');
   writeEvidence('wo-002/probe-F2-reference.json', { stats, probe });
@@ -49,7 +50,8 @@ test('[W-F13] landscape 932×430: hero low, temple ≈ sx 0.67 near the top', as
   expect(inRange(temple!.cx, 0.61, 0.73) && temple!.cy <= 0.2, `temple ${temple!.cx}, ${temple!.cy}`).toBe(true);
 });
 
-test('[W-BUDGET] draw calls and triangles within budget on High and Low', async ({ page }) => {
+test('[W-BUDGET] draw calls and triangles within budget on High and Low', async ({ page, consoleErrors }) => {
+  void consoleErrors;
   const out: Record<string, RenderStats> = {};
   for (const [size, label] of [[{ width: 1280, height: 720 }, 'desktop'], [{ width: 430, height: 932 }, 'portrait']] as const) {
     await page.setViewportSize(size);

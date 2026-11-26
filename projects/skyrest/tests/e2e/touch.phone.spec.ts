@@ -38,13 +38,13 @@ for (const [label, size] of [['portrait', { width: 430, height: 932 }], ['landsc
       if (label === 'portrait') expect(b.y / size.height, `${id} top sy`).toBeGreaterThan(0.82);
     }
 
-    // Drag on the left half: the hero moves (screen-up = away from the camera).
+    // Drag on the left half (to the right, onto open ground): the hero moves.
     const t = await touch(page);
     const x0 = size.width * 0.2, y0 = size.height * 0.8;
     const before = (await g.snapshot()).hero.pos;
     await t.send('touchStart', x0, y0);
-    await t.send('touchMove', x0 + 10, y0 - 25);
-    await t.send('touchMove', x0 + 20, y0 - 60);
+    await t.send('touchMove', x0 + 25, y0 - 4);
+    await t.send('touchMove', x0 + 60, y0 - 6);
     await g.step(30);
     await page.screenshot({ path: path.join(evidenceDir(), 'wo-003', `touch-${label}.jpg`), type: 'jpeg', quality: 80 });
     const moved = (await g.snapshot()).hero;
@@ -58,11 +58,12 @@ for (const [label, size] of [['portrait', { width: 430, height: 932 }], ['landsc
     expect(Math.hypot(stopped.vel.x, stopped.vel.z), 'speed after release + 6 steps').toBe(0);
 
     // Attack and Dodge fire on the first tap.
-    await page.getByTestId('btn-attack').tap();
+    // force: the Attack button breathes (never 'stable'); the tap is still a real touch on its centre.
+    await page.getByTestId('btn-attack').tap({ force: true });
     await g.step(1);
     expect((await g.events()).some((e) => e.type === 'swing')).toBe(true);
     await g.step(40);
-    await page.getByTestId('btn-dodge').tap();
+    await page.getByTestId('btn-dodge').tap({ force: true });
     await g.step(1);
     expect((await g.events()).some((e) => e.type === 'dodge')).toBe(true);
 

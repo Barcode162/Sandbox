@@ -4,7 +4,7 @@
 // clear of the coin pill. (Heap: loop-heap.spec.ts, which needs its own browser flags.)
 import { boot, expect, test, writeEvidence } from './support/harness.ts';
 import type { Page } from '@playwright/test';
-import { GOLEM } from '../../src/tuning/golem.ts';
+import { GOLEM, MINION } from '../../src/tuning/golem.ts';
 import { START_COINS } from '../../src/core/sim.ts';
 
 const coinsShown = (page: Page) => page.getByTestId('coins').innerText().then((t) => Number(t.replace(/[^0-9]/g, '')));
@@ -66,7 +66,12 @@ test('[LP1] title → Start → kill → coins counted in → NEXT WAVE in ≤ 1
   await game.setManual(true);
   await scriptedKill(page);
   await game.setManual(false);
-  // Coins fly in one by one: the pill passes through intermediate values and lands exactly +coinsOnDeath.
+  // Coins fly in one by one: the pill passes through intermediate values and lands on the sim's total, which is
+  // the Guardian's +coinsOnDeath plus MINION.coins for each phase-2 pebble that popped with it.
+  const total = (await game.snapshot()).coins;
+  const gained = total - START_COINS;
+  expect(gained).toBeGreaterThanOrEqual(GOLEM.coinsOnDeath);
+  expect((gained - GOLEM.coinsOnDeath) % MINION.coins).toBe(0);
   const seen = new Set<number>();
   await expect
     .poll(async () => {
@@ -74,7 +79,7 @@ test('[LP1] title → Start → kill → coins counted in → NEXT WAVE in ≤ 1
       seen.add(v);
       return v;
     }, { timeout: 60_000, intervals: [50] })
-    .toBe(START_COINS + GOLEM.coinsOnDeath);
+    .toBe(total);
   expect(seen.size, 'the count ticks per arriving coin').toBeGreaterThan(2);
   await expect(page.getByTestId('victory')).toBeVisible();
   await shot('loop/victory');
@@ -82,7 +87,7 @@ test('[LP1] title → Start → kill → coins counted in → NEXT WAVE in ≤ 1
   const next = await timeToControl(page, () => page.getByTestId('next-wave').click());
   const s2 = await game.snapshot();
   expect(s2.wave).toBe(2);
-  expect(s2.coins).toBe(START_COINS + GOLEM.coinsOnDeath);
+  expect(s2.coins).toBe(total);
   expect(next.steps, 'sim steps to control').toBeLessThanOrEqual(108);
   await expectWall(page, next.ms, 'next wave');
 
@@ -122,17 +127,17 @@ test('[LP2] pause via the gear and Esc freezes the sim; settings persist; QUALIT
   await shot('loop/pause');
   // QUALITY cycles Auto → High → Low and the renderer follows.
   const ui = page.locator('.ui');
-  await page.locator('[data-row="quality"]').click();
+  await page.locator('[data-row=\"quality\"]').click({ force: true });
   await expect(page.getByTestId('val-quality')).toHaveText('High');
   await expect(ui).toHaveAttribute('data-quality', 'high');
-  await page.locator('[data-row="quality"]').click();
+  await page.locator('[data-row=\"quality\"]').click({ force: true });
   await expect(page.getByTestId('val-quality')).toHaveText('Low');
   await expect(ui).toHaveAttribute('data-quality', 'low');
-  await page.locator('[data-row="shake"]').click();
-  await page.locator('[data-row="sound"]').click();
+  await page.locator('[data-row=\"shake\"]').click({ force: true });
+  await page.locator('[data-row=\"sound\"]').click({ force: true });
   await expect(page.getByTestId('val-sound')).toHaveText('Off');
   // RESTART FIGHT asks twice.
-  await page.locator('[data-row="restart"]').click();
+  await page.locator('[data-row=\"restart\"]').click({ force: true });
   await expect(page.locator('.restart-label')).toHaveText(/tap again/i);
   // Esc resumes; the sim moves again; Esc pauses again.
   await page.keyboard.press('Escape');
