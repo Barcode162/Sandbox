@@ -5,7 +5,7 @@
   "tier": 2,
   "domain": "game",
   "output": "projects/skyrest",
-  "phase": "build",
+  "phase": "review",
   "created": "2026-11-25T20:50:35Z",
   "rounds": {
     "plan": 1,
@@ -42,7 +42,11 @@
     {
       "phase": "build",
       "at": "2026-11-25T21:10:51Z"
+    },
+    {
+      "phase": "review",
+      "at": "2026-11-26T20:17:45Z"
     }
   ],
-  "updated": "2026-11-25T21:10:51Z"
+  "updated": "2026-11-26T20:17:45Z"
 }
