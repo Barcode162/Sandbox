@@ -117,14 +117,15 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #bfe4ff; tou
 .fly-coin .coin { width: 24px; height: 24px; border-width: 1.5px; }
 .fly-coin .coin-star { width: 10px; height: 10px; }
 
-/* ── Title (F1): wordmark in open sky, prompt pulsing 0.55↔1 at 0.8 Hz. ── */
+/* ── Title (F1): wordmark in open sky above the temple (moved up from the spec's sy 0.30, which met the spire),
+   prompt pulsing 0.55↔1 at 0.8 Hz. ── */
 .title-card { position: absolute; inset: 0; pointer-events: auto; cursor: pointer; transition: opacity 400ms ease;
   background: radial-gradient(ellipse at 50% 32%, rgba(255, 255, 255, 0.18), transparent 55%); }
 .title-card.gone { opacity: 0; pointer-events: none; }
-.title-card h1 { position: absolute; left: 0; right: 0; top: 30%; transform: translateY(-62%); margin: 0; text-align: center;
+.title-card h1 { position: absolute; left: 0; right: 0; top: 15%; transform: translateY(-62%); margin: 0; text-align: center;
   font-size: 64px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #fff;
   -webkit-text-stroke: 4px var(--temple-trim); paint-order: stroke fill; text-shadow: 0 4px 24px #2a4a8a66; }
-.title-card .subtitle { position: absolute; left: 0; right: 0; top: 37%; margin: 0; text-align: center; font-size: 17px; font-weight: 700; color: #fff;
+.title-card .subtitle { position: absolute; left: 0; right: 0; top: 21%; margin: 0; text-align: center; font-size: 17px; font-weight: 700; color: #fff;
   text-shadow: 0 1px 0 var(--temple-trim), 0 0 2px var(--temple-trim), 0 2px 10px rgba(30, 60, 120, 0.45); }
 .title-card .prompt { position: absolute; left: 50%; top: 78%; transform: translate(-50%, -50%); padding: 12px 28px; border: 0; background: none;
   font-size: 20px; font-weight: 800; letter-spacing: 0.04em; color: #fff; text-shadow: 0 0 2px var(--dmg-outline), 0 2px 0 var(--temple-trim), 0 2px 12px rgba(20, 40, 90, 0.5);

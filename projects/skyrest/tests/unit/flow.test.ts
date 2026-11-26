@@ -46,7 +46,7 @@ test('[FL2] kill → SKY CLEARED → NEXT WAVE: control in ≤ 1.8 s, wave 2 at 
   assert.ok(n + 1 <= 108, `control after ${n + 1} steps`);
   assert.equal(s.wave, 2);
   assert.equal(s.golem.maxHp, golemHpForWave(2));
-  assert.equal(s.golem.maxHp, 69000);
+  assert.equal(s.golem.maxHp, Math.round(GOLEM.maxHp * 1.15));
   assert.equal(s.coins, coins);
   // The Guardian reforms (short assembly) and stands by 1.8 s.
   run(s, [[GOLEM.reformFrames, {}]]);

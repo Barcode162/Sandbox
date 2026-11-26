@@ -6,11 +6,15 @@
 export interface Framing { aspect: number; vfovDeg: number; pitchDeg: number; back: number; up: number; yawDeg: number }
 
 /** Sorted by aspect (w/h). Linear interpolation between neighbours; clamped at the ends. */
+/** Retuned at the join (CEO, against reference.jpg): higher and further back with a steeper look so the meadow
+ *  shows between hero and golem and the characters read at the reference's size (hero ≈ 11 %, golem ≈ 27 % of
+ *  frame height). Solved numerically for hero/golem/temple screen positions; a steeper pitch pushes the temple
+ *  out of the top edge (the horizon sits at sy ≈ 0.5 − tan p / (2 tan(fov/2))), so the look-down comes from a higher camera and a wider lens (66° at the reference aspect), not more pitch. */
 export const PRESETS: readonly Framing[] = [
-  { aspect: 0.46, vfovDeg: 70, pitchDeg: 21, back: 6.8, up: 6.6, yawDeg: 14 }, // phone portrait
-  { aspect: 0.875, vfovDeg: 60, pitchDeg: 20, back: 5.5, up: 5.7, yawDeg: -3 }, // the reference frame
-  { aspect: 1.78, vfovDeg: 46, pitchDeg: 16, back: 9.0, up: 5.6, yawDeg: 10 }, // desktop / landscape
-  { aspect: 2.16, vfovDeg: 42, pitchDeg: 15, back: 9.2, up: 5.5, yawDeg: 10 }, // phone landscape
+  { aspect: 0.46, vfovDeg: 70, pitchDeg: 21, back: 7.0, up: 7.0, yawDeg: 12 }, // phone portrait
+  { aspect: 0.875, vfovDeg: 66, pitchDeg: 25, back: 6.0, up: 8.0, yawDeg: -3 }, // the reference frame
+  { aspect: 1.78, vfovDeg: 58, pitchDeg: 23, back: 9.0, up: 8.5, yawDeg: 6 }, // desktop / landscape
+  { aspect: 2.16, vfovDeg: 50, pitchDeg: 22, back: 9.5, up: 8.0, yawDeg: 6 }, // phone landscape
 ];
 
 export const CLIP = { near: 0.1, far: 600 } as const;

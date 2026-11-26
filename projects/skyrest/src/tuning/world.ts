@@ -93,7 +93,7 @@ export const SCENERY = {
   arenaDepth: 22,
   arenaOverhang: 0.3,
   trees: [
-    { id: 'A', kind: 'round', x: -4.2, z: 0.5, canopyY: 4.0, canopyR: 2.4, puffs: 7 },
+    { id: 'A', kind: 'round', x: -4.2, z: 0.5, canopyY: 3.8, canopyR: 2.0, puffs: 7 },
     { id: 'B', kind: 'blossom', x: -3.6, z: 6.0, canopyY: 2.6, canopyR: 1.8, puffs: 5 },
     { id: 'C', kind: 'bush', x: 2.2, z: 6.9, canopyY: 1.5, canopyR: 1.6, puffs: 4 },
     { id: 'F', kind: 'round', x: -8.5, z: -2.5, canopyY: 4.2, canopyR: 2.6, puffs: 7 },

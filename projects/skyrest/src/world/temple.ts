@@ -58,12 +58,14 @@ export function buildTemple(): TempleView {
   const trim = asRatio(TRIM), warm = asRatio(rgbOf(0xe7e2d8));
   const parts: THREE.BufferGeometry[] = [];
   // Plinth: 3 steps of 0.4 m.
-  for (let k = 0; k < TEMPLE.steps; k++) parts.push(block(11 - k * 1.1, TEMPLE.stepH, 9 - k * 0.9, 0, k * TEMPLE.stepH, -0.6 + k * -0.25, k === 0 ? warm : [1, 1, 1]));
+  for (let k = 0; k < TEMPLE.steps; k++) parts.push(block(13.5 - k * 1.2, TEMPLE.stepH, 10.5 - k * 1.1, 0, k * TEMPLE.stepH, -0.2 + k * -0.45, k === 0 ? warm : [1, 1, 1]));
+  // A broad front stair of 5 shallow treads down from the plinth.
+  for (let k = 0; k < 5; k++) parts.push(block(4.4, TEMPLE.stepH * (k + 1) * 0.6, 0.55, 0, 0, 5.3 - k * 0.5, k % 2 ? warm : [1, 1, 1]));
   const base = TEMPLE.steps * TEMPLE.stepH; // 1.2
   // Central hall (facade front at z = 1.3).
-  parts.push(block(4.2, TEMPLE.facadeH, 4.4, 0, base, -0.9));
-  parts.push(block(4.6, 0.35, 4.8, 0, base + 4.6, -0.9, trim)); // mid cornice
-  parts.push(block(4.7, 0.4, 4.9, 0, base + TEMPLE.facadeH, -0.9, trim)); // top cornice
+  parts.push(block(5.4, TEMPLE.facadeH, 4.4, 0, base, -0.9));
+  parts.push(block(5.8, 0.35, 4.8, 0, base + 4.6, -0.9, trim)); // mid cornice
+  parts.push(block(5.9, 0.4, 4.9, 0, base + TEMPLE.facadeH, -0.9, trim)); // top cornice
   parts.push(block(3.6, 0.7, 3.8, 0, base + TEMPLE.facadeH + 0.4, -1.0));
   const dome = new THREE.SphereGeometry(1.35, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2);
   place(dome, 0, base + TEMPLE.facadeH + 1.1, -1.0);
@@ -71,9 +73,9 @@ export function buildTemple(): TempleView {
   parts.push(cyl(0.12, 0.7, 0, base + TEMPLE.facadeH + 2.4, -1.0, 6, trim, 0.03));
   // Wings and towers.
   for (const sd of [-1, 1]) {
-    parts.push(block(1.5, 4.6, 3.6, sd * 2.85, base, -1.1));
-    parts.push(block(1.7, 0.3, 3.8, sd * 2.85, base + 4.6, -1.1, trim));
-    const tx = sd * 4.25;
+    parts.push(block(2.2, 4.6, 3.6, sd * 3.8, base, -1.1));
+    parts.push(block(2.4, 0.3, 3.8, sd * 3.8, base + 4.6, -1.1, trim));
+    const tx = sd * 5.6;
     parts.push(block(1.5, TEMPLE.towerH, 1.6, tx, base, -0.5));
     parts.push(block(1.8, 0.35, 1.9, tx, base + TEMPLE.towerH, -0.5, trim));
     parts.push(block(1.3, 0.5, 1.4, tx, base + TEMPLE.towerH + 0.35, -0.5));
@@ -83,13 +85,14 @@ export function buildTemple(): TempleView {
     // Window slits on the towers.
     parts.push(block(0.32, 1.1, 0.1, tx, base + 6.2, 0.32, asRatio(rgbOf(PALETTE.templeTrim)).map((v) => v * 0.7) as RGB));
     // Front columns flanking the portal and on the wings.
-    for (const cx of [sd * 1.45, sd * 2.85]) {
+    for (const cx of [sd * 1.25, sd * 2.4, sd * 3.5, sd * 4.6]) {
       parts.push(cyl(0.22, 4.2, cx, base, 1.75, 10));
       parts.push(block(0.62, 0.22, 0.62, cx, base + 4.2, 1.75));
       parts.push(block(0.6, 0.18, 0.6, cx, base, 1.75, warm));
     }
   }
-  parts.push(block(6.4, 0.3, 1.0, 0, base + 4.4, 1.75, trim)); // lintel over the columns
+  parts.push(block(10.0, 0.3, 1.0, 0, base + 4.4, 1.75, trim)); // lintel over the colonnade
+  parts.push(block(10.4, 0.25, 1.1, 0, base + 4.7, 1.7)); // entablature
   // Portal frame (dark recess + trim arch).
   parts.push(block(TEMPLE.portalW + 0.5, TEMPLE.portalH + 0.4, 0.2, 0, base, 1.32, trim));
   const archRing = new THREE.TorusGeometry(TEMPLE.portalW / 2 + 0.12, 0.13, 6, 16, Math.PI);
@@ -156,7 +159,7 @@ export function buildTemple(): TempleView {
   building.add(emblem);
 
   // Banners (0.9 × 3.2, banner + trim chevron), waving 0.12·u·sin(3t − 4u); merged, CPU-animated (≈ 250 verts).
-  const bannerSpots: [number, number, number][] = [[-4.25, base + 7.6, 0.37], [4.25, base + 7.6, 0.37], [-2.85, base + 4.35, 0.8], [2.85, base + 4.35, 0.8]];
+  const bannerSpots: [number, number, number][] = [[-5.6, base + 7.6, 0.37], [5.6, base + 7.6, 0.37], [-2.4, base + 6.4, 1.56], [2.4, base + 6.4, 1.56]];
   const bparts: THREE.BufferGeometry[] = [];
   for (const [x, yTop, z] of bannerSpots) {
     const b = new THREE.PlaneGeometry(TEMPLE.bannerW, TEMPLE.bannerH, 3, 10);

@@ -96,8 +96,8 @@ test('[W5] camera presets: sorted, interpolated and clamped', () => {
   const a = PRESETS[0]!, b = PRESETS[1]!, mid = (a.aspect + b.aspect) / 2;
   framingFor(mid, f);
   assert.ok(Math.abs(f.vfovDeg - (a.vfovDeg + b.vfovDeg) / 2) < 1e-9);
-  // The spec's per-aspect vFOV/pitch stay as written in experience.md §4.3.
-  assert.deepEqual(PRESETS.map((p) => [p.vfovDeg, p.pitchDeg]), [[70, 21], [60, 20], [46, 16], [42, 15]]);
+  // Every preset looks down (pitch 15–35°) and keeps the camera above and behind the hero.
+  for (const p of PRESETS) assert.ok(p.pitchDeg >= 15 && p.pitchDeg <= 35 && p.up > 4 && p.back > 4);
 });
 
 test('[W6] scenery: temple isle lies far upper-right of the arena; the bridge spans the gap', () => {

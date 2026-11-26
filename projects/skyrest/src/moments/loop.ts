@@ -24,8 +24,11 @@ function strike(api: MomentApi): boolean {
 const killGolem = (api: MomentApi): boolean => {
   api.setSeed(MOMENT_SEED);
   api.skipTitle();
-  api.setFlags({ golemPassive: true, heroInvulnerable: true, forceDamage: 99999, forceCrit: 0 });
+  api.setFlags({ golemPassive: true, heroInvulnerable: true, forceCrit: 0 });
   api.step(30);
+  const g = api.state().golem;
+  g.hp = 1200; // the last sliver: the next real hit is the killing blow
+  g.enraged = true; // (it would have kindled long before)
   api.inject({ attack: true }, 1);
   return api.stepUntil((s) => has(s, (e) => e.type === 'death' && e.target === 'golem'), 120);
 };
