@@ -3,7 +3,7 @@
 VERDICT: REJECT
 SCORE: 7.5 / 10
 
-Remediation moved the picture a long way. Next to `evidence/polish/F2-ref-high.jpg` (before), the temple is now the reference's white-and-blue hall, the golem reads as warm grey stone, the blossom has a trunk, the trail is cyan and the numbers stack cleanly. It is now the same kind of game as the reference. What still fails is the hero, and the hero is on screen in every frame. His head still reads as a spiked mace. I won't put my name on a flagship demo whose protagonist reads as a weapon from the chase camera. The rest of the gap is small and listed below.
+Remediation moved the picture a long way. Next to `evidence/polish/F2-ref-high.jpg` (before), the temple is now the reference's white-and-blue hall, the golem reads as warm grey stone, the blossom has a trunk, the trail is cyan and the numbers stack cleanly. It is now the same kind of game as the reference. What still fails is the hero, and the hero is on screen in every frame. His head still reads as a spiked mace. The rest of the gap is small.
 
 ## Rubric
 | # | Dimension | Score | Why (one line, with evidence) |
@@ -23,13 +23,13 @@ Overall 7.5 is below the 8.0 threshold, and Craft and Evidence are below the flo
 - Opened reference.jpg and the fresh moments F1, F2 (desktop/portrait/reference), F3, F4, F6, F7, F8, F9, F10, F12-portrait and F13-landscape, plus wo-003/touch-portrait and touch-landscape, and compared them with the pre-fix polish/F2-ref-high.jpg.
 - Made a 3× crop of the hero (F2-reference 320,680–480,870). It shows a grey sphere with radial spikes and a cape. No hair shape reads.
 - `ls projects/skyrest/evidence/wo-002`: JSON files only. `wo-003/r1` is missing.
-- Read the fix lines for F-001 to F-007, the touch-portrait.json button rects and the hero box (bottom sy 0.867 with the hero moved; F12 moment ≈0.82).
+- Read the fix lines for F-001 to F-007 and the touch-portrait.json rects.
 - Findings: I verified 19. I reopened 2: F-011 (S1) and F-016 (S2). I filed 3 new ones: F-022 (S2), F-023 (S3) and F-024 (S3).
 
 ## Per finding (non-obvious calls)
-- F-008 verified. The top 40% is saturated blue and the white mass in the mid sky matches the reference's clouds. The haze on the left of the desktop frame is still heavier than the reference.
+- F-008 verified: the top 40% is blue and the mid-sky white matches the reference's clouds. The desktop's left haze is still heavier.
 - F-017 verified. The falls and moss lip read. The cliffs are darker navy than the reference's blue-grey; that is noted, not reopened.
-- F-018 verified. The isles have a cap, a tree and vines. The cone silhouette remains, but in the far plane that is acceptable.
+- F-018 verified: cap, tree and vines added; the cone silhouette is acceptable in the far plane.
 - F-020 verified. The hero clears the buttons in F12 and in touch-portrait.
 - LP2 (F-024) does not block: it passes alone, and the failure is a test race, not a product defect.
 

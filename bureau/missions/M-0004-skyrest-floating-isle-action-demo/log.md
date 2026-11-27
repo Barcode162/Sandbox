@@ -93,3 +93,4 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-27T20:41:04Z` **director-vision** — F-022 [S2] filed: Canopy occlusion dither exposes a dark skeletal trunk/branch over the hero and the Attack button
 - `2026-11-27T20:41:04Z` **director-vision** — F-023 [S3] filed: Resolution evidence cites screenshots that do not exist
 - `2026-11-27T20:41:04Z` **director-vision** — F-024 [S3] filed: LP2 flakes under load: val-shake empty after reload
+- `2026-11-27T20:41:30Z` **director-vision** — ship gate r1: REJECT (7.5)
