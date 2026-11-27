@@ -23,7 +23,8 @@
     "architect": 1,
     "engineer": 3,
     "code-reviewer": 1,
-    "polish-critic": 1
+    "polish-critic": 1,
+    "director-vision": 1
   },
   "levers": [
     "polish"
@@ -54,5 +55,5 @@
       "at": "2026-11-27T04:25:55Z"
     }
   ],
-  "updated": "2026-11-27T04:25:55Z"
+  "updated": "2026-11-27T20:39:00Z"
 }
