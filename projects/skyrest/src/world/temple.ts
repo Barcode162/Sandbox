@@ -4,7 +4,7 @@
 // Built in a local frame (facade toward +z) and turned to face SSW, toward the bridge and the arena.
 import * as THREE from 'three';
 import { makeRng } from '../core/rng.ts';
-import { AMBIENT, HALO, PALETTE, SCENERY, TEMPLE } from '../tuning/world.ts';
+import { AMBIENT, HALO, LIGHT, PALETTE, SCENERY, TEMPLE } from '../tuning/world.ts';
 import { emissiveMaterial, glowSprite, softToon } from '../render/materials.ts';
 import { merge, paint, place, rgbOf, type RGB } from './geo.ts';
 import { stoneTexture, bannerTexture } from './textures.ts';
@@ -48,6 +48,8 @@ function feather(): THREE.Shape {
   return s;
 }
 
+const EMBLEM_Y = TEMPLE.steps * TEMPLE.stepH + 5.75;
+
 export function buildTemple(): TempleView {
   const group = new THREE.Group();
   const building = new THREE.Group();
@@ -57,50 +59,45 @@ export function buildTemple(): TempleView {
   group.add(building);
   const trim = asRatio(TRIM), warm = asRatio(rgbOf(0xe7e2d8));
   const parts: THREE.BufferGeometry[] = [];
-  // Plinth: 3 steps of 0.4 m.
-  for (let k = 0; k < TEMPLE.steps; k++) parts.push(block(13.5 - k * 1.2, TEMPLE.stepH, 10.5 - k * 1.1, 0, k * TEMPLE.stepH, -0.2 + k * -0.45, k === 0 ? warm : [1, 1, 1]));
-  // A broad front stair of 5 shallow treads down from the plinth.
-  for (let k = 0; k < 5; k++) parts.push(block(4.4, TEMPLE.stepH * (k + 1) * 0.6, 0.55, 0, 0, 5.3 - k * 0.5, k % 2 ? warm : [1, 1, 1]));
-  const base = TEMPLE.steps * TEMPLE.stepH; // 1.2
-  // Central hall (facade front at z = 1.3).
-  parts.push(block(5.4, TEMPLE.facadeH, 4.4, 0, base, -0.9));
-  parts.push(block(5.8, 0.35, 4.8, 0, base + 4.6, -0.9, trim)); // mid cornice
-  parts.push(block(5.9, 0.4, 4.9, 0, base + TEMPLE.facadeH, -0.9, trim)); // top cornice
-  parts.push(block(3.6, 0.7, 3.8, 0, base + TEMPLE.facadeH + 0.4, -1.0));
-  const dome = new THREE.SphereGeometry(1.35, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2);
-  place(dome, 0, base + TEMPLE.facadeH + 1.1, -1.0);
+  // Plinth: 5 broad steps spanning the full width (F-009).
+  for (let k = 0; k < TEMPLE.steps; k++)
+    parts.push(block(15 - k * 0.55, TEMPLE.stepH, 12 - k * 0.8, 0, k * TEMPLE.stepH, -0.3 - k * 0.35, k % 2 ? warm : [1, 1, 1]));
+  const base = TEMPLE.steps * TEMPLE.stepH; // 1.5
+  const W = TEMPLE.facadeW;
+  // The hall: one wide white block (facade front at z = 1.3), trim cornices, a low attic and a small dome.
+  parts.push(block(W, TEMPLE.facadeH, 4.4, 0, base, -0.9));
+  parts.push(block(W + 0.3, 0.3, 4.7, 0, base + 4.55, -0.9, trim)); // mid cornice
+  parts.push(block(W + 0.4, 0.4, 4.8, 0, base + TEMPLE.facadeH, -0.9, trim)); // top cornice
+  parts.push(block(W * 0.6, 0.6, 3.6, 0, base + TEMPLE.facadeH + 0.4, -1.0));
+  const dome = new THREE.SphereGeometry(1.6, 18, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+  place(dome, 0, base + TEMPLE.facadeH + 1.0, -1.0);
   parts.push(paint(dome, () => [1, 1, 1]));
-  parts.push(cyl(0.12, 0.7, 0, base + TEMPLE.facadeH + 2.4, -1.0, 6, trim, 0.03));
-  // Wings and towers.
+  parts.push(cyl(0.12, 0.7, 0, base + TEMPLE.facadeH + 2.55, -1.0, 6, trim, 0.03));
+  // Flanking towers: 6.5 m, flat crenellated trim caps (no cone roofs).
   for (const sd of [-1, 1]) {
-    parts.push(block(2.2, 4.6, 3.6, sd * 3.8, base, -1.1));
-    parts.push(block(2.4, 0.3, 3.8, sd * 3.8, base + 4.6, -1.1, trim));
-    const tx = sd * 5.6;
-    parts.push(block(1.5, TEMPLE.towerH, 1.6, tx, base, -0.5));
-    parts.push(block(1.8, 0.35, 1.9, tx, base + TEMPLE.towerH, -0.5, trim));
-    parts.push(block(1.3, 0.5, 1.4, tx, base + TEMPLE.towerH + 0.35, -0.5));
-    const roof = new THREE.ConeGeometry(1.05, 1.5, 4, 1);
-    place(roof, tx, base + TEMPLE.towerH + 0.85 + 0.75, -0.5, 0, Math.PI / 4, 0);
-    parts.push(paint(roof, () => trim));
-    // Window slits on the towers.
-    parts.push(block(0.32, 1.1, 0.1, tx, base + 6.2, 0.32, asRatio(rgbOf(PALETTE.templeTrim)).map((v) => v * 0.7) as RGB));
-    // Front columns flanking the portal and on the wings.
-    for (const cx of [sd * 1.25, sd * 2.4, sd * 3.5, sd * 4.6]) {
-      parts.push(cyl(0.22, 4.2, cx, base, 1.75, 10));
-      parts.push(block(0.62, 0.22, 0.62, cx, base + 4.2, 1.75));
-      parts.push(block(0.6, 0.18, 0.6, cx, base, 1.75, warm));
+    const tx = sd * (W / 2 + 0.9);
+    parts.push(block(1.9, TEMPLE.towerH, 1.9, tx, base, -0.3));
+    parts.push(block(2.2, 0.35, 2.2, tx, base + TEMPLE.towerH, -0.3, trim));
+    for (const [mx, mz] of [[-0.75, -0.75], [0.75, -0.75], [-0.75, 0.75], [0.75, 0.75], [0, 0.75], [0, -0.75], [0.75, 0], [-0.75, 0]] as const)
+      parts.push(block(0.42, 0.42, 0.42, tx + mx, base + TEMPLE.towerH + 0.35, -0.3 + mz, trim));
+    parts.push(block(0.34, 1.0, 0.1, tx, base + 4.9, 0.66, trim.map((v) => v * 0.7) as RGB)); // window slit
+    // Colonnade: 6 columns across the front, the middle pair flanking the portal.
+    for (const cx of [sd * 1.5, sd * 3.0, sd * 4.5]) {
+      parts.push(cyl(0.24, 3.7, cx, base + 0.15, 1.75, 12));
+      parts.push(block(0.66, 0.22, 0.66, cx, base + 3.85, 1.75));
+      parts.push(block(0.64, 0.15, 0.64, cx, base, 1.75, warm));
     }
   }
-  parts.push(block(10.0, 0.3, 1.0, 0, base + 4.4, 1.75, trim)); // lintel over the colonnade
-  parts.push(block(10.4, 0.25, 1.1, 0, base + 4.7, 1.7)); // entablature
-  // Portal frame (dark recess + trim arch).
-  parts.push(block(TEMPLE.portalW + 0.5, TEMPLE.portalH + 0.4, 0.2, 0, base, 1.32, trim));
+  parts.push(block(10.2, 0.3, 1.0, 0, base + 4.0, 1.75, trim)); // lintel over the colonnade
+  parts.push(block(10.6, 0.22, 1.1, 0, base + 4.3, 1.7)); // entablature
+  // Portal frame (trim surround + arch).
+  parts.push(block(TEMPLE.portalW + 0.5, TEMPLE.portalH + 0.3, 0.2, 0, base, 1.32, trim));
   const archRing = new THREE.TorusGeometry(TEMPLE.portalW / 2 + 0.12, 0.13, 6, 16, Math.PI);
-  place(archRing, 0, base + TEMPLE.portalH - TEMPLE.portalW / 2 + 0.2, 1.45);
+  place(archRing, 0, base + TEMPLE.portalH - TEMPLE.portalW / 2 + 0.15, 1.45);
   parts.push(paint(archRing, () => trim));
-  // Emblem backing disc.
-  const disc = new THREE.CylinderGeometry(0.9, 0.9, 0.12, 24);
-  place(disc, 0, base + 5.9, 1.36, Math.PI / 2, 0, 0);
+  // Emblem backing disc (2.5 m) above the portal.
+  const disc = new THREE.CylinderGeometry(TEMPLE.emblemR * 1.25, TEMPLE.emblemR * 1.25, 0.12, 32);
+  place(disc, 0, EMBLEM_Y, 1.36, Math.PI / 2, 0, 0);
   parts.push(paint(disc, () => trim.map((v) => v * 0.75) as RGB));
   // Ruined columns on the isle (outside the building group so the probe box stays the temple).
   const ruins: THREE.BufferGeometry[] = [];
@@ -113,7 +110,8 @@ export function buildTemple(): TempleView {
     ruins.push(drum);
   }
   const stoneMat = softToon(0xffffff, { vertexColors: true, map: stoneTexture(), shade: new THREE.Color().setRGB(
-    rgbOf(PALETTE.templeShade)[0] / WHITE[0], rgbOf(PALETTE.templeShade)[1] / WHITE[1], rgbOf(PALETTE.templeShade)[2] / WHITE[2]) });
+    rgbOf(PALETTE.templeShade)[0] / WHITE[0], rgbOf(PALETTE.templeShade)[1] / WHITE[1], rgbOf(PALETTE.templeShade)[2] / WHITE[2]) },
+    { fogScale: LIGHT.templeFogScale });
   // Albedo = templeWhite × vertex ratio: fold the white into the vertex colours.
   const body = merge(parts);
   const col = body.getAttribute('color');
@@ -136,6 +134,7 @@ export function buildTemple(): TempleView {
   ps.absarc(0, ph - pw, pw, 0, Math.PI, false);
   ps.lineTo(-pw, 0);
   const portalMat = emissiveMaterial(PALETTE.portal, 1.6);
+  portalMat.fog = false;
   const portalBase = portalMat.color.clone().multiplyScalar(1 / 1.6);
   const portal = new THREE.Mesh(new THREE.ShapeGeometry(ps, 12), portalMat);
   portal.position.set(0, base + 0.02, 1.44);
@@ -143,23 +142,25 @@ export function buildTemple(): TempleView {
 
   // Emblem: ring + three feathers, rotating 6°/s about the facade normal.
   const emblem = new THREE.Group();
-  emblem.position.set(0, base + 5.9, 1.46);
-  const emblemMat = emissiveMaterial(PALETTE.emblem, 2.0);
-  const ring = new THREE.TorusGeometry(TEMPLE.emblemR, 0.07, 6, 32);
+  emblem.position.set(0, EMBLEM_Y, 1.46);
+  const emblemMat = emissiveMaterial(PALETTE.emblem, TEMPLE.emblemIntensity);
+  emblemMat.fog = false;
+  const ring = new THREE.TorusGeometry(TEMPLE.emblemR, 0.12, 6, 40);
   const glyphs: THREE.BufferGeometry[] = [ring];
   for (let k = 0; k < 3; k++) {
     const f = new THREE.ShapeGeometry(feather(), 8);
+    f.scale(TEMPLE.emblemR / 0.55, TEMPLE.emblemR / 0.55, 1);
     f.rotateZ((k * Math.PI * 2) / 3);
     glyphs.push(f);
   }
-  const dot = new THREE.CircleGeometry(0.07, 12);
+  const dot = new THREE.CircleGeometry(0.12, 12);
   glyphs.push(dot);
   const emblemMesh = new THREE.Mesh(merge(glyphs), emblemMat);
   emblem.add(emblemMesh);
   building.add(emblem);
 
   // Banners (0.9 × 3.2, banner + trim chevron), waving 0.12·u·sin(3t − 4u); merged, CPU-animated (≈ 250 verts).
-  const bannerSpots: [number, number, number][] = [[-5.6, base + 7.6, 0.37], [5.6, base + 7.6, 0.37], [-2.4, base + 6.4, 1.56], [2.4, base + 6.4, 1.56]];
+  const bannerSpots: [number, number, number][] = [[-5.3, base + 6.6, 1.52], [5.3, base + 6.6, 1.52], [-(TEMPLE.facadeW / 2 + 0.9), base + 6.1, 0.66], [TEMPLE.facadeW / 2 + 0.9, base + 6.1, 0.66]];
   const bparts: THREE.BufferGeometry[] = [];
   for (const [x, yTop, z] of bannerSpots) {
     const b = new THREE.PlaneGeometry(TEMPLE.bannerW, TEMPLE.bannerH, 3, 10);
@@ -176,7 +177,7 @@ export function buildTemple(): TempleView {
     const spot = bannerSpots.reduce((best, s) => (Math.abs(s[0] - bPos.getX(i)) < Math.abs(best[0] - bPos.getX(i)) ? s : best));
     bU[i] = Math.min(1, Math.max(0, (spot[1] - y) / TEMPLE.bannerH));
   }
-  const bannerMat = softToon(0xffffff, { map: bannerTexture(), shade: new THREE.Color(0.55, 0.62, 0.85) }, { side: THREE.DoubleSide, noCloudShadow: true });
+  const bannerMat = softToon(0xffffff, { map: bannerTexture(), shade: new THREE.Color(0.55, 0.62, 0.85) }, { side: THREE.DoubleSide, noCloudShadow: true, fogScale: LIGHT.templeFogScale });
   bannerMat.alphaTest = 0.5;
   const banners = new THREE.Mesh(bannerGeo, bannerMat);
   banners.castShadow = true;
@@ -220,7 +221,7 @@ export function buildTemple(): TempleView {
       emblem.rotation.z = -t * ((TEMPLE.emblemSpinDeg * Math.PI) / 180);
       const shimmer = 1.6 + AMBIENT.portalShimmer * Math.sin(t * Math.PI * 2 * AMBIENT.portalHz);
       portalMat.color.copy(portalBase).multiplyScalar(shimmer);
-      emblemMat.color.set(PALETTE.emblem).multiplyScalar(2.0 * (0.95 + 0.05 * Math.sin(t * 2.1)));
+      emblemMat.color.set(PALETTE.emblem).multiplyScalar(TEMPLE.emblemIntensity * (0.95 + 0.05 * Math.sin(t * 2.1)));
       portalHalo.material.opacity = HALO.opacity * (shimmer / 1.6);
       emblemHalo.material.opacity = 0.9 + 0.1 * Math.sin(t * 2.1);
       for (let i = 0; i < bPos.count; i++) {

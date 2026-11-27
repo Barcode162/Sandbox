@@ -46,8 +46,8 @@ export function buildSky(): SkyView {
           float e25 = radians(25.0);
           vec3 c;
           // Horizon haze is a thin band; the saturated blue starts low so a pitched-down camera still sees it.
-          if (el > radians(9.0)) c = mix(uMid, uZenith, smoothstep(radians(9.0), radians(45.0), el));
-          else if (el > 0.0) c = mix(uHorizon, uMid, smoothstep(0.0, radians(9.0), el));
+          if (el > radians(4.0)) c = mix(uMid, uZenith, smoothstep(radians(8.0), radians(35.0), el)); // F-008: mid at 8°, zenith at 35°
+          else if (el > 0.0) c = mix(uHorizon, uMid, smoothstep(0.0, radians(4.0), el)); // horizon band 0–4° only
           else c = mix(uHorizon, uDeep, smoothstep(0.0, radians(30.0), -el) * 0.6);
           float s = max(dot(d, uSun), 0.0);
           c += uSunCol * (pow(s, 600.0) * 1.2 + pow(s, 12.0) * 0.12);
@@ -117,7 +117,8 @@ export function buildSky(): SkyView {
       return [c[0] + (w[0] - c[0]) * k2, c[1] + (w[1] - c[1]) * k2, c[2] + (w[2] - c[2]) * k2].map((v, i) => v / w[i]!) as [number, number, number];
     }));
   }
-  const puffMat = softToon(PALETTE.cloudLit, { vertexColors: true, shade: PALETTE.cloudShade }, { noCloudShadow: true });
+  // A cool emissive lift keeps undersides cloud-shade blue instead of the green hemisphere bounce (F-008).
+  const puffMat = softToon(PALETTE.cloudLit, { vertexColors: true, shade: PALETTE.cloudShade, emissive: PALETTE.cloudShade, emissiveIntensity: 0.3 }, { noCloudShadow: true });
   // Clouds are the haze: fogging them toward the fog colour would erase their billows, so they stay crisp white.
   puffMat.fog = false;
   const maxPuffs = QUALITY.high.cloudPuffs;

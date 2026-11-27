@@ -214,3 +214,14 @@ test('[G8] polish #3: the 14 parts bob out of phase (two poses 500 ms apart diff
   assert.ok(dy.size >= PART_COUNT - 2, `distinct vertical motions: ${dy.size}`);
   assert.equal(PART_COUNT, 14);
 });
+
+test('[G9] F-007: pickAttack only ever returns an attack that is in range (never a stray double slam)', async () => {
+  const { pickAttack, ATTACKS } = await import('../../src/golem/sim.ts');
+  for (let seed = 1; seed <= 300; seed++) {
+    for (const [d, b] of [[3.2, 0], [3.0, 60], [8, 0], [5.2, 0], [2, 120]] as const) {
+      const s = ready(seed, d, b, false);
+      const i = pickAttack(s, d);
+      if (i >= 0) assert.notEqual(ATTACKS[i], 'doubleSlam', `seed ${seed} d ${d}`);
+    }
+  }
+});

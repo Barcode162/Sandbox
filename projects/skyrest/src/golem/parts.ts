@@ -19,14 +19,15 @@ function noise3(x: number, y: number, z: number, seed: number): number {
 }
 
 const C = (hex: number) => new THREE.Color(hex);
-const STONE_A = C(PALETTE.boulderLit);
+// Warm grey: stone-mid dominant, lit and shade tones only as mottling (F-010).
+const STONE_A = C(PALETTE.stoneMid).lerp(C(PALETTE.boulderLit), 0.5);
 const STONE_B = C(PALETTE.stoneLit);
 const STONE_C = C(PALETTE.stoneMid);
 const MOSS = C(PALETTE.moss);
 const MOSS_SHADE = C(PALETTE.mossShade);
 
 /** One boulder: returns indexed geometry with normals + vertex colours; y range for AO is the part's own. */
-export function partGeometry(p: PartSpec, detail = 3): THREE.BufferGeometry {
+export function partGeometry(p: PartSpec, detail = 2): THREE.BufferGeometry {
   let g: THREE.BufferGeometry = new THREE.IcosahedronGeometry(1, detail);
   g.deleteAttribute('normal');
   g.deleteAttribute('uv');
@@ -68,9 +69,21 @@ export function partGeometry(p: PartSpec, detail = 3): THREE.BufferGeometry {
     }
   }
   if (fd) g.userData.faceDist = flattenFace(pos, fd);
+  // Chunky facets (F-010): each face's normal is 60 % its own flat normal + 40 % the smooth one, so chips read as
+  // planes of split stone while the boulder still turns softly toward the light (pure flat went brown-black).
   g.computeVertexNormals();
-  paint(g, p);
-  return g;
+  const flat = g.toNonIndexed();
+  flat.userData = g.userData;
+  const smooth = (flat.getAttribute('normal') as THREE.BufferAttribute).array.slice();
+  flat.computeVertexNormals();
+  const nrm = flat.getAttribute('normal') as THREE.BufferAttribute;
+  const nv = new THREE.Vector3();
+  for (let i = 0; i < nrm.count; i++) {
+    nv.set(nrm.getX(i) * 0.6 + smooth[i * 3]! * 0.4, nrm.getY(i) * 0.6 + smooth[i * 3 + 1]! * 0.4, nrm.getZ(i) * 0.6 + smooth[i * 3 + 2]! * 0.4).normalize();
+    nrm.setXYZ(i, nv.x, nv.y, nv.z);
+  }
+  paint(flat, p);
+  return flat;
 }
 
 /** Carve a flat facet facing `dir` where the rune plane sits (so the glyph never clips into lumps). */
@@ -100,13 +113,14 @@ function paint(g: THREE.BufferGeometry, p: PartSpec): void {
     const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
     const ny = nor.getY(i);
     const m = noise3(x * 2.2, y * 2.2, z * 2.2, p.seed + 3);
-    c.copy(STONE_A).lerp(m > 0 ? STONE_B : STONE_C, Math.min(1, Math.abs(m) * 1.6));
+    c.copy(STONE_A).lerp(m > 0 ? STONE_B : STONE_C, Math.min(0.45, Math.abs(m) * 0.9));
     // Small dark pits.
     const pit = noise3(x * 7, y * 7, z * 7, p.seed + 9);
     if (pit > 0.42) c.multiplyScalar(0.82);
     // Moss on the top-facing surface, with a ragged edge.
+    // Only on parts that carry moss (torso, shoulders), and only as a cap on the top ~0.12 m.
     const edge = 0.95 - p.moss * 0.75 + 0.22 * noise3(x * 3.1, y * 3.1, z * 3.1, p.seed + 5);
-    if (ny > edge) c.copy(ny > edge + 0.12 ? MOSS : MOSS_SHADE).lerp(MOSS, Math.min(1, (ny - edge) * 4));
+    if (p.moss > 0 && ny > edge && y > h - 0.12 - 0.3 * p.moss) c.copy(ny > edge + 0.12 ? MOSS : MOSS_SHADE).lerp(MOSS, Math.min(1, (ny - edge) * 4));
     // Vertex AO near the base (y_local < 0.25 h from the bottom → up to 22 % darker).
     const fromBottom = (y + h) / (2 * h);
     if (fromBottom < 0.25) c.multiplyScalar(1 - 0.22 * (1 - fromBottom / 0.25));
@@ -117,7 +131,7 @@ function paint(g: THREE.BufferGeometry, p: PartSpec): void {
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
 }
 
-/** Original glyph art: R = outer glow stroke, G = hot core line (the rune shader tints each). */
+/** Original glyph art: B = dark outline, R = glowing stroke, G = hot core line (the rune shader tints each). */
 export function runeTexture(glyph: RuneGlyph): THREE.CanvasTexture {
   const n = 128;
   const cv = document.createElement('canvas');
@@ -146,17 +160,16 @@ export function runeTexture(glyph: RuneGlyph): THREE.CanvasTexture {
       x.moveTo(20, 64); x.lineTo(108, 64);
     }
   };
-  const blurOk = 'filter' in x;
-  x.strokeStyle = '#f00';
-  if (blurOk) x.filter = 'blur(5px)';
-  x.lineWidth = glyph === 'crack' ? 12 : 22;
-  path();
-  x.stroke();
-  if (blurOk) x.filter = 'none';
-  x.lineWidth = glyph === 'crack' ? 6 : 12;
-  path();
-  x.stroke();
+  // Crisp, no blur (F-010): B = dark rune-edge outline, R = the glowing stroke, G = its hot core line.
   x.globalCompositeOperation = 'lighter';
+  x.strokeStyle = '#00f';
+  x.lineWidth = glyph === 'crack' ? 10 : 22;
+  path();
+  x.stroke();
+  x.strokeStyle = '#f00';
+  x.lineWidth = glyph === 'crack' ? 6 : 13;
+  path();
+  x.stroke();
   x.strokeStyle = '#0f0';
   x.lineWidth = glyph === 'crack' ? 2.5 : 4.5;
   path();
@@ -166,12 +179,13 @@ export function runeTexture(glyph: RuneGlyph): THREE.CanvasTexture {
   return t;
 }
 
-/** Rune surface: outer stroke tinted `uEdge`, core tinted `uCore`, both × uIntensity (HDR for bloom). */
+/** Rune surface: dark outline `uOutline`; stroke `uEdge` and core `uCore` × uIntensity (HDR for bloom). */
 export function runeMaterial(tex: THREE.Texture): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
     uniforms: {
       uMap: { value: tex },
       uEdge: { value: new THREE.Color(PALETTE.rune) },
+      uOutline: { value: new THREE.Color(PALETTE.runeEdge).multiplyScalar(0.55) },
       uCore: { value: new THREE.Color(PALETTE.runeCore) },
       uIntensity: { value: 2.4 },
       uOpacity: { value: 1 },
@@ -180,13 +194,14 @@ export function runeMaterial(tex: THREE.Texture): THREE.ShaderMaterial {
       varying vec2 vUv;
       void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
     fragmentShader: /* glsl */ `
-      uniform sampler2D uMap; uniform vec3 uEdge; uniform vec3 uCore; uniform float uIntensity; uniform float uOpacity;
+      uniform sampler2D uMap; uniform vec3 uEdge; uniform vec3 uCore; uniform vec3 uOutline; uniform float uIntensity; uniform float uOpacity;
       varying vec2 vUv;
       void main() {
         vec4 t = texture2D(uMap, vUv);
-        float a = max(t.r, t.g);
+        float a = max(t.b, max(t.r, t.g));
         if (a < 0.02) discard;
-        vec3 c = (uEdge * t.r + uCore * t.g * 1.4) * uIntensity;
+        // The outline stays below the bloom threshold (a carved edge); only the stroke and its core glow.
+        vec3 c = uOutline * t.b * (1.0 - t.r) + uEdge * uIntensity * t.r * (1.0 - t.g) + uCore * uIntensity * t.g;
         gl_FragColor = vec4(c, a * uOpacity);
         #include <colorspace_fragment>
       }`,

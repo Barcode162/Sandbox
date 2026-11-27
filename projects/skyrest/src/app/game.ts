@@ -82,7 +82,11 @@ export function bootGame(root: HTMLElement): GameInternals {
       bus.emit(e);
     }
   };
+  /** A pause pressed inside a step is applied after the stepper returns (pausing mid-advance would reset the
+   *  accumulator under the loop and leave alpha at −1). The rest of that frame's steps are skipped. */
+  let pausePending = false;
   const doStep = () => {
+    if (pausePending) return;
     intent.camYaw = rig.yaw;
     input.sample(intent);
     if (pendingConfirm) {
@@ -90,7 +94,7 @@ export function bootGame(root: HTMLElement): GameInternals {
       pendingConfirm = false;
     }
     if (intent.pause && (sim.phase === 'fight' || sim.phase === 'intro')) {
-      control.setPaused(true);
+      pausePending = true;
       return;
     }
     stepSim(sim, intent);
@@ -195,11 +199,21 @@ export function bootGame(root: HTMLElement): GameInternals {
       } else {
         time += dt;
         alpha = stepper.advance(dt * sim.timeScale, doStep);
+        if (pausePending) {
+          pausePending = false;
+          control.setPaused(true);
+          alpha = 1; // the last completed step, exactly
+        }
       }
     }
     renderFrame(dt);
     requestAnimationFrame(tick);
   };
+  // A lost WebGL context (iOS backgrounding, GPU reset): the renderer stops drawing and rebuilds on restore;
+  // the fight must not run blind meanwhile, so it pauses (the player resumes from the panel).
+  canvas.addEventListener('webglcontextlost', () => {
+    if (sim.phase === 'fight' || sim.phase === 'intro') control.setPaused(true);
+  });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && sim.phase === 'fight') control.setPaused(true);
   });
@@ -237,6 +251,11 @@ export function bootGame(root: HTMLElement): GameInternals {
         time += 1 / 60;
         alpha = 1;
         syncViews(1 / 60);
+        if (pausePending) {
+          pausePending = false;
+          control.setPaused(true);
+          break;
+        }
       }
     },
     renderNow() {
@@ -248,7 +267,10 @@ export function bootGame(root: HTMLElement): GameInternals {
     input,
     eventLog: () => log.slice(),
   };
-  installHooks(internals, audio);
+  // The test surface (window.__skyrest, incl. cheat flags) exists only in dev, under automation (navigator.webdriver:
+  // Playwright) or with ?test in the URL; the public build has none.
+  const testing = import.meta.env.DEV || navigator.webdriver || new URLSearchParams(location.search).has('test');
+  if (testing) installHooks(internals, audio);
   requestAnimationFrame((t) => {
     last = t;
     tick(t);

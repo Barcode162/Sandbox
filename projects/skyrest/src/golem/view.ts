@@ -182,6 +182,7 @@ export const createGolemView: CreateGolemView = () => {
   const meshes: THREE.Mesh[] = [];
   const pose = createPose();
   let stoneMat!: THREE.MeshLambertMaterial;
+  const partMats: THREE.MeshLambertMaterial[] = [];
   const runeMats: Partial<Record<RuneGroup, THREE.ShaderMaterial>> = {};
   const halos: { sprite: THREE.Sprite; group: RuneGroup | 'eye'; base: number }[] = [];
   let eyeMat!: THREE.MeshBasicMaterial;
@@ -215,15 +216,20 @@ export const createGolemView: CreateGolemView = () => {
   const coinP = { x: 0, y: 0, z: 0 };
 
   function buildBody(): void {
-    stoneMat = toonMaterial(0xffffff, { vertexColors: true, rim: true, shade: 0x8c9db8 }) as THREE.MeshLambertMaterial;
+    // Light shade tint: facets turned from the sun stay warm grey, never brown-black (F-010).
+    const stone = () => toonMaterial(0xffffff, { vertexColors: true, rim: true, shade: 0xb2b4c4 }) as THREE.MeshLambertMaterial;
+    stoneMat = stone();
     const textures: Partial<Record<string, THREE.Texture>> = {};
     const tex = (k: RuneGlyph) => (textures[k] ??= runeTexture(k));
     for (const p of PARTS) {
       const geo = partGeometry(p);
-      const m = new THREE.Mesh(geo, stoneMat);
+      // One material per part (same program) so a hit flashes only the struck boulder (F-010).
+      const mat = stone(); // a fresh SoftToon (clone() would drop its shader patch)
+      partMats.push(mat);
+      const m = new THREE.Mesh(geo, mat);
       m.name = 'golem-' + p.name;
       m.castShadow = true;
-      m.receiveShadow = true;
+      m.receiveShadow = false; // chunky facets self-shadowing went muddy; the blob + world shadows ground it
       if (p.rune) {
         const mat = (runeMats[p.rune.group] ??= runeMaterial(tex(p.rune.glyph)));
         const plane = new THREE.Mesh(new THREE.PlaneGeometry(p.rune.size, p.rune.size), mat);
@@ -236,7 +242,7 @@ export const createGolemView: CreateGolemView = () => {
           const halo = glowSprite(PALETTE.rune, p.rune.size * 2.2);
           halo.position.copy(plane.position).multiplyScalar(1.08);
           m.add(halo);
-          halos.push({ sprite: halo, group: p.rune.group, base: 0.55 });
+          halos.push({ sprite: halo, group: p.rune.group, base: 0.32 });
         }
       }
       if (p.name === 'torso') {
@@ -265,7 +271,7 @@ export const createGolemView: CreateGolemView = () => {
         for (let i = 0; i < gp.count; i++) if (Math.abs(gp.getX(i)) < 0.2 && Math.abs(gp.getY(i)) < 0.08) front = Math.max(front, gp.getZ(i));
         eyes.position.z = front - 0.008;
         // A brow ridge: a flattened boulder sliver above the eyes.
-        const brow = new THREE.Mesh(partGeometry({ ...p, name: 'brow', size: [0.42, 0.07, 0.12], boxy: 0.5, seed: 31, moss: 0.8, rune: undefined }, 2), stoneMat);
+        const brow = new THREE.Mesh(partGeometry({ ...p, name: 'brow', size: [0.42, 0.07, 0.12], boxy: 0.5, seed: 31, moss: 0, rune: undefined }, 2), stoneMat);
         brow.position.set(0, 0.07, front - 0.02);
         brow.castShadow = true;
         m.add(eyes, brow);
@@ -357,7 +363,7 @@ export const createGolemView: CreateGolemView = () => {
     const t = f.time;
     const pulse = 0.85 + 0.15 * Math.sin((t * Math.PI * 2) / 2.2);
     const hot = g.enraged;
-    const base = hot ? 3.6 : 2.4;
+    const base = hot ? 3.0 : 2.4;
     const flare = Math.max(0, (g.glow - (hot ? 0.6 : 0.35)) / (hot ? 0.4 : 0.65));
     const stag = g.action === 'stagger';
     const flick = stag ? (Math.sin(t * 43) > 0.2 ? 0.35 : 1) : 1;
@@ -370,10 +376,11 @@ export const createGolemView: CreateGolemView = () => {
       const u = m.uniforms;
       const ign = clamp01((asm - 0.7 - order[k] * 0.07) / 0.06);
       const limb = k === 'fistR' || (k === 'fistL' && !sweep) || (k === 'chest' && !sweep) ? 1 : 0.25;
-      let I = base * pulse * flick * (1 + 1.2 * flare * limb);
+      // Capped so the bloom halo stays on the glyph, never across the stone (F-010).
+      let I = Math.min(4.2, base * pulse * flick * (1 + 1.2 * flare * limb));
       const edge = u.uEdge!.value as THREE.Color, core = u.uCore!.value as THREE.Color;
       if (k === 'crack') {
-        I = hot ? 3.2 * pulse : 0;
+        I = hot ? 3.6 * pulse : 0;
         edge.copy(COL.runeHot);
         core.copy(COL.white);
         u.uOpacity!.value = hot ? 1 : 0;
@@ -402,7 +409,7 @@ export const createGolemView: CreateGolemView = () => {
     }
     // Eyes: open last in the assembly; flare on windups; 30 % in a stagger; out on death.
     const eyeOpen = clamp01((asm - 0.93) / 0.05) * (dying ? clamp01(1 - deathT / 0.35) : 1);
-    const eyeI = 3 * (stag ? 0.3 : 1) * (1 + 0.8 * flare) * eyeOpen;
+    const eyeI = 3.6 * (stag ? 0.3 : 1) * (1 + 0.5 * flare) * eyeOpen;
     eyeMat.color.copy(hot ? COL.runeCore : COL.eye).multiplyScalar(Math.max(0.25, eyeI));
     if (eyeOpen <= 0) eyeMat.color.copy(COL.dead);
     eyes.scale.y = 0.25 + 0.75 * eyeOpen;
@@ -703,8 +710,13 @@ export const createGolemView: CreateGolemView = () => {
       }
       golemAnchor.visible = !dying && g.action !== 'dormant';
       runeLook(f);
+      // Struck part only: +0.5 for the hit frame, fading over 80 ms; capped well under the bloom threshold.
       const since = f.state.frame - flashFrame - 1 + f.alpha;
-      stoneMat.emissive.setScalar(since >= 0 && since < 5 ? 0.6 * (1 - since / 5) : 0);
+      const fl = since >= 0 && since < 5 ? 0.5 * (1 - since / 5) : 0;
+      for (let i = 0; i < partMats.length; i++) {
+        const want = i === joltPart ? fl : 0;
+        if (partMats[i]!.emissive.r !== want) partMats[i]!.emissive.setScalar(want);
+      }
       blob.visible = !dying;
       blob.position.set(root.position.x, root.position.y + 0.03, root.position.z);
       const bs = g.action === 'dormant' ? 3.2 : 3.6;

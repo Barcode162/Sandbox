@@ -45,7 +45,9 @@ export function buildTrees(): TreesBuild {
     const rnd = makeRng(101 + ti * 7);
     const by = treeBase(t);
     const cy = by + t.canopyY, R = t.canopyR;
-    canopies.push({ x: t.x, y: cy, z: t.z, r: R * 1.2 }); // the outer puffs reach ≈ 1.2–1.3 R
+    // Canopy centre z: a lean (−z = away from the camera) lets the trunk show below the canopy (blossom B, F-012).
+    const cz = t.z + (t.leanZ ?? 0);
+    canopies.push({ x: t.x, y: cy, z: cz, r: R * 1.2 }); // the outer puffs reach ≈ 1.2–1.3 R
     if (t.kind === 'cypress') {
       const cone = lumpy(new THREE.IcosahedronGeometry(1, 3), 0.1, 2.2, ti);
       place(cone, t.x, by + t.canopyY * 0.55 + 0.3, t.z, 0, 0, 0, R, t.canopyY * 0.75, R);
@@ -62,7 +64,8 @@ export function buildTrees(): TreesBuild {
     const h = trunkTop - by;
     const scaleR = t.kind === 'bush' ? 0.7 : t.canopyR / 2.4 + 0.35;
     const main = new THREE.CylinderGeometry(0.18 * scaleR, 0.32 * scaleR, h, 9, 5);
-    place(main, t.x + Math.sin(lean) * h * 0.5, by + h / 2, t.z, 0, 0, -lean);
+    const pitchLean = Math.atan2(t.leanZ ?? 0, h);
+    place(main, t.x + Math.sin(lean) * h * 0.5, by + h / 2, t.z + (t.leanZ ?? 0) * 0.5, pitchLean, 0, -lean);
     const pieces: THREE.BufferGeometry[] = [main];
     for (let k = 0; k < 2; k++) {
       const a = rnd() * Math.PI * 2 + k * Math.PI;
@@ -70,7 +73,7 @@ export function buildTrees(): TreesBuild {
       const fork = new THREE.CylinderGeometry(0.07 * scaleR, 0.15 * scaleR, fl, 6, 2);
       const tilt = 0.55 + rnd() * 0.25;
       const topX = t.x + Math.sin(lean) * h;
-      place(fork, topX + Math.cos(a) * Math.sin(tilt) * fl * 0.5, trunkTop + Math.cos(tilt) * fl * 0.5 - 0.05, t.z + Math.sin(a) * Math.sin(tilt) * fl * 0.5,
+      place(fork, topX + Math.cos(a) * Math.sin(tilt) * fl * 0.5, trunkTop + Math.cos(tilt) * fl * 0.5 - 0.05, cz + Math.sin(a) * Math.sin(tilt) * fl * 0.5,
         Math.sin(a) * tilt, 0, -Math.cos(a) * tilt);
       pieces.push(fork);
     }
@@ -88,20 +91,22 @@ export function buildTrees(): TreesBuild {
         const a = mixRGB(TRUNK_SHADE, TRUNK, 0.65 + 0.35 * noise2(_x * 6, y * 3, ti));
         return div(a, TRUNK).map((v) => v * ao) as RGB;
       }));
-    // Canopy: puffs (detail-2 icospheres, ±12 % noise, radii 0.45–0.7 × R) around a centre one.
     const isBlossom = t.kind === 'blossom';
+    // Canopy: puffs (detail-2 icospheres, ±12 % noise, radii 0.45–0.7 × R) around a centre one.
     const dirs = puffDirs(t.puffs - 1, 300 + ti);
-    const puffs: [number, number, number, number][] = [[0, 0.05 * R, 0, R * 0.7]];
+    // Blossom: many small clumps (0.3–0.5 R) so it reads as flower clusters, not one smooth ball (F-012).
+    const [r0, r1] = isBlossom ? [0.3, 0.5] : [0.45, 0.7];
+    const puffs: [number, number, number, number][] = [[0, 0.05 * R, 0, R * (isBlossom ? 0.55 : 0.7)]];
     for (const [dx, dy, dz] of dirs) {
-      const pr = R * (0.45 + rnd() * 0.25);
+      const pr = R * (r0 + rnd() * (r1 - r0));
       const off = R - pr * 0.75;
       puffs.push([dx * off * 1.1, dy * off * 0.8, dz * off * 1.1, pr]);
     }
     const flat = t.kind === 'bush' ? 0.8 : 0.9;
     for (const [px, py, pz, pr] of puffs) {
       const g = lumpy(new THREE.IcosahedronGeometry(1, 3), 0.13, 2.4, ti * 5 + px);
-      place(g, t.x + px, cy + py * flat, t.z + pz, 0, rnd() * 6, 0, pr, pr * flat, pr);
-      transferNormals(g, t.x, cy - R * 0.25, t.z, 0.55);
+      place(g, t.x + px, cy + py * flat, cz + pz, 0, rnd() * 6, 0, pr, pr * flat, pr);
+      transferNormals(g, t.x, cy - R * 0.25, cz, 0.55);
       paint(g, (x, y, z) => {
         const hy = Math.min(1, Math.max(0, (y - (cy - R)) / (2 * R)));
         const n = 0.5 + 0.5 * noise2(x * 1.3, z * 1.3 + y, ti);
@@ -116,7 +121,7 @@ export function buildTrees(): TreesBuild {
         a = mixRGB(a, GRASS_TIP, Math.max(0, hy - 0.7) * 0.9 * n);
         return div(a, LEAF_LIT);
       });
-      (isBlossom ? blossom : leaves).push(pivot(g, t.x, cy, t.z, ti));
+      (isBlossom ? blossom : leaves).push(pivot(g, t.x, cy, cz, ti));
     }
     if (isBlossom) {
       // Petal cards scattered on the canopy surface: the fluffy blossom silhouette.
@@ -130,14 +135,14 @@ export function buildTrees(): TreesBuild {
         const dx = s * Math.cos(a), dy = Math.max(-0.4, u), dz = s * Math.sin(a);
         const rr = pr * (0.97 + crnd() * 0.06);
         const c = card.clone();
-        const x = t.x + px + dx * rr, y = cy + py * flat + dy * rr * flat, z = t.z + pz + dz * rr;
+        const x = t.x + px + dx * rr, y = cy + py * flat + dy * rr * flat, z = cz + pz + dz * rr;
         place(c, x, y, z, crnd() * 6, crnd() * 6, crnd() * 6, 0.7 + crnd() * 0.5);
         const nm = c.getAttribute('normal');
         for (let k = 0; k < nm.count; k++) nm.setXYZ(k, dx, dy, dz);
         const shade = mixRGB(BL_MID, PETAL, crnd());
         const col = mixRGB(shade, BL_LIT, Math.max(0, dy) * 0.6);
         paint(c, () => div(col, BL_LIT));
-        cards.push(pivot(c, t.x, cy, t.z, ti));
+        cards.push(pivot(c, t.x, cy, cz, ti));
       }
       card.dispose();
       blossom.push(merge(cards));
@@ -281,7 +286,7 @@ export function seedPetals(n: number): PetalState[] {
   const out: PetalState[] = [];
   for (let i = 0; i < n; i++) {
     const a = rnd() * Math.PI * 2, r = rnd() * b.canopyR;
-    out.push({ x0: b.x + Math.cos(a) * r, y0: by + b.canopyY - 0.4 + rnd() * 1.0, z0: b.z + Math.sin(a) * r, phase: rnd(), life: 0, spin: 0.6 + rnd() * 0.8 });
+    out.push({ x0: b.x + Math.cos(a) * r, y0: by + b.canopyY - 0.4 + rnd() * 1.0, z0: b.z + (b.leanZ ?? 0) + Math.sin(a) * r, phase: rnd(), life: 0, spin: 0.6 + rnd() * 0.8 });
   }
   return out;
 }

@@ -79,14 +79,17 @@ export function buildWater(): WaterView {
         vec3 a = texture2D(uMap, vec2(vUv.x, v - uTime * ${AMBIENT.fallScroll1.toFixed(2)})).rgb;
         vec3 b = texture2D(uMap, vec2(vUv.x * 1.7 + 0.3, v * 0.7 - uTime * ${AMBIENT.fallScroll2.toFixed(2)})).rgb;
         vec3 c = mix(a, b, 0.45);
-        float edge = smoothstep(0.0, 0.18, vUv.x) * smoothstep(1.0, 0.82, vUv.x);
-        float foam = smoothstep(0.08, 0.0, vUv.y);
+        float edge = smoothstep(0.0, 0.08, vUv.x) * smoothstep(1.0, 0.92, vUv.x);
+        float foam = 1.0 - smoothstep(0.35, 0.6, vUv.y * vLen); // 0.6 m white head at the lip (F-017)
         c = mix(c, uFoam * 1.05, foam);
-        float alpha = edge * mix(0.94, 1.0, foam) * (1.0 - smoothstep(0.78, 1.0, vUv.y));
+        float alpha = edge * mix(0.92, 1.0, foam) * (1.0 - smoothstep(0.82, 1.0, vUv.y));
         gl_FragColor = vec4(c, alpha);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
-        #include <fog_fragment>
+        #ifdef USE_FOG
+        float fogFactor = (1.0 - exp(-fogDensity * fogDensity * vFogDepth * vFogDepth)) * 0.5; // falls stay bright through the haze
+        gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fogFactor);
+        #endif
       }`,
   });
   fallMat.uniforms.uMap!.value = tex;

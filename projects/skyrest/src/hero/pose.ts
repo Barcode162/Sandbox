@@ -11,7 +11,7 @@ export const PIVOT_Y = 0.56;
 export const HIPS_Y = 0.36;
 export const SHOULDER_R = { x: -0.17, y: 0.33, z: 0.0 } as const; // hips space
 export const ARM_LEN = 0.27;
-export const BLADE_LEN = 0.86; // grip → tip (0.14 grip + 0.72 blade)
+export const BLADE_LEN = 1.04; // grip → tip (0.14 grip + 0.9 blade)
 /** Swing centre (hips space) for the trail's 1.3× tip radius. */
 export const SWING_C = { x: -0.05, y: 0.3, z: 0.0 } as const;
 
@@ -198,7 +198,7 @@ function dodge(p: Pose, c: PoseCtx, t: number): void {
   p.armLx = -0.9 * tuck; p.armLz = 0.3;
   setGrip(p, -0.22, 0.1 + 0.05 * tuck, 0.12);
   setDir(p, -0.3, -0.2 * tuck + 0.3 * (1 - tuck), -0.9 * tuck + 0.85 * (1 - tuck));
-  p.cape = 0.7 * tuck;
+  p.cape = 0;
   p.sweep = 0;
   p.headPitch = 0.3 * tuck;
   void s;

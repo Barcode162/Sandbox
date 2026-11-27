@@ -24,11 +24,13 @@ interface IsleDef {
   segs: number;
   /** 'cone' (default): short cliff band then a long taper. 'column': a rock pillar that tapers late. */
   profile?: 'cone' | 'column';
+  /** [centre θ, width] of the arc that gets half the vines (the face the camera sees). */
+  vineArc?: [number, number];
 }
 
 const GRASS_MID = rgbOf(PALETTE.grassMid), GRASS_LIT = rgbOf(PALETTE.grassLit), GRASS_SHADE = rgbOf(PALETTE.grassShade);
 const SOIL = rgbOf(PALETTE.soilLip), CLIFF_LIT = rgbOf(PALETTE.cliffLit), CLIFF_MID = rgbOf(PALETTE.cliffMid), CLIFF_SHADE = rgbOf(PALETTE.cliffShade);
-const LEAF_MID = rgbOf(PALETTE.leafMid), LEAF_SHADE = rgbOf(PALETTE.leafShade), MOSS = rgbOf(PALETTE.moss);
+const LEAF_MID = rgbOf(PALETTE.leafMid), LEAF_SHADE = rgbOf(PALETTE.leafShade), MOSS = rgbOf(PALETTE.moss), MOSS_SHADE = rgbOf(PALETTE.mossShade);
 
 /** Grid helper: rows × cols vertex grid (cols wraps) → indexed triangles. */
 function wrapGrid(rows: number, cols: number, pos: Float32Array, col: Float32Array, uv: Float32Array): THREE.BufferGeometry {
@@ -53,7 +55,8 @@ function buildIsle(d: IsleDef, contact: { x: number; z: number; r: number }[]): 
   // ── Top: polar grid, denser toward the rim, then a rounded grass lip that drapes over the edge.
   const radial: number[] = [];
   for (let j = 0; j <= d.rings; j++) radial.push(Math.pow(j / d.rings, 0.75));
-  const lip = [[1.0 + 0.012, -0.05], [1.0 + 0.02, -0.16], [1.0 + 0.018, -0.3]] as const; // (r ×, y offset)
+  // (r ×, y offset): rounded grass lip, then a ragged 0.8 m moss drape over the cliff top (F-017).
+  const lip = [[1.0 + 0.012, -0.05], [1.0 + 0.02, -0.16], [1.0 + 0.02, -0.3], [1.0 + 0.018, -0.55], [1.0 + 0.014, -0.8]] as const;
   const rows = radial.length + lip.length;
   const tp = new Float32Array(rows * (segs + 1) * 3), tc = new Float32Array(rows * (segs + 1) * 3), tu = new Float32Array(rows * (segs + 1) * 2);
   const edge: { x: number; y: number; z: number; r: number; th: number }[] = [];
@@ -74,7 +77,8 @@ function buildIsle(d: IsleDef, contact: { x: number; z: number; r: number }[]): 
         const [k, dy] = lip[j - radial.length]!;
         x = cx + sx * (R * k + 0.06);
         z = cz + sz * (R * k + 0.06);
-        y = ey + dy;
+        // Ragged drape: the lower rows vary in length round the rim.
+        y = ey + (dy < -0.31 ? dy * (0.5 + 0.5 * (0.5 + 0.5 * noise2(th * 9, 0, d.seed + 13))) : dy);
       }
       const i = j * (segs + 1) + c;
       tp.set([x, y, z], i * 3);
@@ -84,7 +88,7 @@ function buildIsle(d: IsleDef, contact: { x: number; z: number; r: number }[]): 
         const dd = Math.hypot(x - o.x, z - o.z);
         if (dd < o.r * 2.2) a = mixRGB(a, GRASS_SHADE, 0.35 * (1 - dd / (o.r * 2.2)));
       }
-      if (j >= radial.length) a = mixRGB(GRASS_SHADE, SOIL, (j - radial.length) / (lip.length - 1) * 0.6);
+      if (j >= radial.length) a = mixRGB(GRASS_SHADE, MOSS_SHADE, (j - radial.length) / (lip.length - 1));
       // The texture already carries grass-mid/lit: vertex colour is the ratio against the texture's mean.
       tc.set([a[0] / GRASS_MID[0], a[1] / GRASS_MID[1], a[2] / GRASS_MID[2]], i * 3);
       tu.set([x / 7, z / 7], i * 2);
@@ -119,8 +123,9 @@ function buildIsle(d: IsleDef, contact: { x: number; z: number; r: number }[]): 
       if (k === 0) a = SOIL;
       else {
         const s = 0.5 + 0.5 * Math.sin(t * d.strata * Math.PI * 2 + noise2(e.th * 3, t * 4, d.seed) * 1.5);
-        a = mixRGB(CLIFF_MID, CLIFF_LIT, s);
-        a = mixRGB(a, CLIFF_SHADE, Math.min(1, t * 1.1) * 0.75);
+        // Strong strata contrast: lit bands vs mid bands, deepening to cliff-shade blue (F-017).
+        a = mixRGB(CLIFF_MID, CLIFF_LIT, s * s * (3 - 2 * s) > 0.5 ? 1 : 0.15);
+        a = mixRGB(a, CLIFF_SHADE, Math.min(1, t * 1.2) * 0.85);
         if (k === 1) a = mixRGB(a, SOIL, 0.55);
         // Moss in the upper strata.
         if (t < 0.25 && noise2(e.th * 9, t * 12, d.seed + 9) > 0.35) a = mixRGB(a, MOSS, 0.55);
@@ -147,9 +152,11 @@ function buildIsle(d: IsleDef, contact: { x: number; z: number; r: number }[]): 
     });
     parts.push(cone);
   }
-  // Vines draped over the lip (thin green strips).
+  // Vines draped over the lip (thin green strips); half of them on the camera-facing arc when one is given.
   for (let i = 0; i < d.vines; i++) {
-    const e = edge[Math.floor(rnd() * segs)]!;
+    const e = d.vineArc && i % 2 === 0
+      ? edge[Math.round(((((d.vineArc[0] + (rnd() - 0.5) * d.vineArc[1]) / (Math.PI * 2)) % 1 + 1) % 1) * segs)]!
+      : edge[Math.floor(rnd() * segs)]!;
     const len = 1.2 + rnd() * 3.5;
     const v = new THREE.BoxGeometry(0.16, len, 0.08, 1, 4, 1);
     const sx = Math.sin(e.th), sz = -Math.cos(e.th);
@@ -164,10 +171,10 @@ function buildIsle(d: IsleDef, contact: { x: number; z: number; r: number }[]): 
   return [top, merge(parts)];
 }
 
-function isleFromSpec(s: IsleSpec, vines: number, rimFn?: (th: number) => number): IsleDef {
+function isleFromSpec(s: IsleSpec, vines: number, rimFn?: (th: number) => number, lobes = 0): IsleDef {
   return {
     cx: s.x, cz: s.z, depth: s.depth, strata: s.strata, roots: s.roots, vines, seed: s.seed, rings: 8, segs: 40,
-    rim: rimFn ?? ((th) => s.r * (1 + 0.12 * noiseAngle(th, 1.4, s.seed) + 0.05 * noiseAngle(th, 4, s.seed + 1))),
+    rim: rimFn ?? ((th) => s.r * (1 + 0.12 * noiseAngle(th, 1.4, s.seed) + 0.05 * noiseAngle(th, 4, s.seed + 1) + lobes * Math.cos(3 * th + s.seed))),
     top: (x, z) => {
       const r2 = ((x - s.x) ** 2 + (z - s.z) ** 2) / (s.r * s.r);
       return s.y + 0.4 * Math.max(0, 1 - r2) + 0.12 * noise2(x / 5, z / 5, s.seed);
@@ -202,7 +209,7 @@ export function buildIslands(contact: { x: number; z: number; r: number }[]): Is
   const temple: IsleDef = {
     ...isleFromSpec({ x: ti.x, y: ti.y, z: ti.z, r: SCENERY.templeIslandRadius, depth: 34, strata: 3, roots: 4, seed: 51 }, 22, templeRim),
     top: (x, z) => ti.y + 0.06 * noise2(x / 4, z / 4, 51) + 0.25 * Math.max(0, 1 - ((x - ti.x) ** 2 + (z - ti.z) ** 2) / 140),
-    rings: 10, segs: 64,
+    rings: 10, segs: 64, vineArc: [-2.64, 1.6],
   };
   const [tTop, tCliff] = buildIsle(temple, contact);
   const sp = SCENERY.spire;
@@ -210,7 +217,8 @@ export function buildIslands(contact: { x: number; z: number; r: number }[]): Is
   const tops = [aTop.clone(), tTop, sTop];
   const cliffs = [aCliff, tCliff, sCliff];
   for (const s of SCENERY.distantIsles) {
-    const [t, c] = buildIsle(isleFromSpec(s, 0), []);
+    // F-018: 3-lobed noisy outlines, more roots and a few vines, so they read as isles, not cones.
+    const [t, c] = buildIsle({ ...isleFromSpec({ ...s, roots: s.roots + 2 }, 6, undefined, 0.22), segs: 48, rings: 6 }, []);
     tops.push(t);
     cliffs.push(c);
   }

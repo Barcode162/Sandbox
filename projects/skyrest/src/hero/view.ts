@@ -15,6 +15,7 @@ import { Ribbon } from './ribbon.ts';
 const TRAIL_SAMPLES = 20;
 const TRAIL_FRAMES = 140 * 0.06; // 140 ms of action time
 const TEMPLE = { x: 26, z: -47 };
+const CAPE_MAX = (100 * Math.PI) / 180;
 const DOWN = new THREE.Vector3(0, -1, 0);
 const UP = new THREE.Vector3(0, 1, 0);
 
@@ -24,13 +25,13 @@ class CapeChain {
   va = [0, 0, 0];
   s = [0, 0, 0];
   vs = [0, 0, 0];
-  step(dt: number, pitch: number, side: number): void {
+  step(dt: number, pitch: number, side: number, k = 70): void {
     for (let i = 0; i < 3; i++) {
       // Each joint follows the one above it: the hem lags and whips.
       const tp = i === 0 ? pitch * 0.5 : this.a[i - 1]! * 0.75 + pitch * 0.18;
       const ts = i === 0 ? side * 0.5 : this.s[i - 1]! * 0.8 + side * 0.2;
-      this.va[i]! += (70 * (tp - this.a[i]!) - 9 * this.va[i]!) * dt;
-      this.vs[i]! += (70 * (ts - this.s[i]!) - 9 * this.vs[i]!) * dt;
+      this.va[i]! += (k * (tp - this.a[i]!) - 9 * this.va[i]!) * dt;
+      this.vs[i]! += (k * (ts - this.s[i]!) - 9 * this.vs[i]!) * dt;
       this.a[i]! += this.va[i]! * dt;
       this.s[i]! += this.vs[i]! * dt;
     }
@@ -56,7 +57,8 @@ function shapeCape(geo: THREE.BufferGeometry, ch: CapeChain, time: number, flutt
       const v = row / CAPE_ROWS;
       if (row > 0) {
         const j = Math.min(2, Math.floor(((row - 1) / CAPE_ROWS) * 3));
-        ang = ch.a[0]! + (j >= 1 ? ch.a[1]! : 0) + (j >= 2 ? ch.a[2]! : 0);
+        // Never more than 100° from hanging straight down (polish F-019: no cape standing over the head).
+        ang = Math.min(CAPE_MAX, Math.max(-0.35, ch.a[0]! + (j >= 1 ? ch.a[1]! : 0) + (j >= 2 ? ch.a[2]! : 0)));
         side = ch.s[0]! + (j >= 1 ? ch.s[1]! : 0) + (j >= 2 ? ch.s[2]! : 0);
         const fl = Math.sin(time * 9 + v * 5 + u * 3) * 0.06 * flutter * v;
         y -= Math.cos(ang + fl) * dl;
@@ -84,8 +86,8 @@ export const createHeroView: CreateHeroView = () => {
   let ghostPairs: THREE.Object3D[] = [];
   const fxRoot = new THREE.Group(); // world-space effects (kept out of the 'hero' probe box)
   const trail = new Ribbon(TRAIL_SAMPLES);
-  const ground = new Ribbon(24, 2.0);
-  const waves = [new Ribbon(49, 2.0), new Ribbon(49, 2.0)];
+  const ground = new Ribbon(24, 1.3);
+  const waves = [new Ribbon(49, 1.3), new Ribbon(49, 1.3)];
   let ring!: THREE.Mesh;
   let shadow!: THREE.Mesh;
   const pose = newPose();
@@ -106,6 +108,7 @@ export const createHeroView: CreateHeroView = () => {
   let ghostPending = false;
   let ghostX = 0, ghostZ = 0;
   let ringFrame = -1e9;
+  let flickering = false;
 
   /** Pose the bone hierarchy of model `m` from `p`. */
   const apply = (m: HeroModel, p: Pose) => {
@@ -146,10 +149,13 @@ export const createHeroView: CreateHeroView = () => {
       // Crescent: thick at the head, tapering toward the tail; outer edge at 1.3× the tip's radius from the swing centre.
       const reach = 1.3 - 0.75 * age * age;
       const ox = cen[0]! + (pts[3]! - cen[0]!) * reach, oy = cen[1]! + (pts[4]! - cen[1]!) * reach, oz = cen[2]! + (pts[5]! - cen[2]!) * reach;
-      const ix = pts[0]! + (ox - pts[0]!) * 0.1 * age, iy = pts[1]! + (oy - pts[1]!) * 0.1 * age, iz = pts[2]! + (oz - pts[2]!) * 0.1 * age;
+      // Inner edge: a band behind the leading edge (thick at the head, thin at the tail) — a crescent, not a fan.
+      const band = 0.76 + 0.2 * age;
+      const ix = pts[0]! + (ox - pts[0]!) * band, iy = pts[1]! + (oy - pts[1]!) * band, iz = pts[2]! + (oz - pts[2]!) * band;
       toWorld(ix, iy, iz, iv);
       toWorld(ox, oy, oz, ov);
-      const al = sp.sweep * Math.pow(1 - age, 1.3);
+      // Slow fade, then a quick end: a faint tail over grass mixes to mint, so keep it either solid or gone.
+      const al = sp.sweep * Math.min(1, (1 - age) * 1.6);
       if (al > 0.01 && k > 0) any = true;
       trail.set(k, iv.x, iv.y, iv.z, ov.x, ov.y, ov.z, al);
     }
@@ -217,10 +223,10 @@ export const createHeroView: CreateHeroView = () => {
       ghost = buildHero(ghostMat);
       ghost.root.visible = false;
       ghost.root.traverse((o) => (o.renderOrder = 8)); // after dust/sparks, so the impact cloud never hides it
-      ghostPairs = [ghost.hop, M.hop, ghost.pivot, M.pivot, ghost.squash, M.squash, ghost.hips, M.hips, ghost.head, M.head, ghost.armL, M.armL, ghost.armR, M.armR, ghost.legL, M.legL, ghost.legR, M.legR, ghost.sword, M.sword];
+      ghostPairs = [ghost.hop, M.hop, ghost.pivot, M.pivot, ghost.squash, M.squash, ghost.hips, M.hips, ghost.head, M.head, ghost.armL, M.armL, ghost.armR, M.armR, ghost.legL, M.legL, ghost.legR, M.legR, ghost.sword, M.sword, ghost.capeAnchor, M.capeAnchor];
       // Blob shadow (0.55× footprint, #2b3a2a at 30 %).
       shadow = new THREE.Mesh(
-        new THREE.CircleGeometry(0.34, 24).rotateX(-Math.PI / 2),
+        new THREE.CircleGeometry(0.44, 24).rotateX(-Math.PI / 2),
         new THREE.MeshBasicMaterial({ color: 0x2b3a2a, transparent: true, opacity: 0.3, depthWrite: false }),
       );
       shadow.renderOrder = 1;
@@ -278,25 +284,35 @@ export const createHeroView: CreateHeroView = () => {
       const turn = dt > 0 ? wrapAngle(facing - lastFacing) / dt : 0;
       lastFacing = facing;
       const fwdSpeed = pctx.speed;
-      const pitch = 0.14 + fwdSpeed * 0.96 * 0.75 + pose.cape + 0.07 * Math.sin(f.time * Math.PI * 1.2);
+      // In a roll the body spins 360°: the cape stays wrapped close to the back and shortened (tucked) so it never
+      // swings out over the head.
+      const rolling = h.action === 'dodge';
+      const tuck = rolling ? Math.sin(Math.PI * Math.min(1, t / HERO.dodge.frames)) : 0;
+      M.capeAnchor.scale.set(1, 1 - 0.45 * tuck, 1 - 0.3 * tuck);
+      const pitch = rolling ? 0.08 : 0.14 + fwdSpeed * 0.96 * 0.75 + pose.cape + 0.07 * Math.sin(f.time * Math.PI * 1.2);
       const side = Math.max(-0.5, Math.min(0.5, turn * 0.05));
       if (resetChain) cape.settle(pitch, side);
       else if (dt > 0) {
         let rem = Math.min(dt, 0.25);
         while (rem > 1e-6) {
           const d = Math.min(rem, 1 / 120);
-          cape.step(d, pitch, side);
+          cape.step(d, pitch, side, rolling ? 40 : 70);
           rem -= d;
         }
       }
       shapeCape(M.capeGeo, cape, f.time, 0.3 + fwdSpeed);
 
-      // Hurt: 10 Hz white flicker through the 1 s grace i-frames.
-      // (A roll's i-frames end before the roll does, so iframes > 0 outside a roll means post-hurt grace.)
-      const hurtFlash = h.action !== 'dodge' && h.iframes > 0 && Math.floor(s.frame / 3) % 2 === 0;
-      const flash = hurtFlash ? 0.85 : 0;
-      M.body.emissive.setRGB(flash, flash, flash);
-      M.capeOuter.emissive.setRGB(flash * 0.7, flash * 0.7, flash * 0.7);
+      // Hurt: through the 1 s grace i-frames the hero alternates full / 50 % opacity every 60 ms (no white
+      // emissive: under bloom that became a blob, polish F-015). A roll's i-frames end before the roll does, so
+      // iframes > 0 outside a roll means post-hurt grace.
+      const grace = h.action !== 'dodge' && h.iframes > 0;
+      const half = grace && Math.floor((s.frame + a) / (60 * 0.06)) % 2 === 0;
+      if (grace !== flickering) {
+        flickering = grace;
+        for (const m of [M.body, M.capeOuter, M.capeInner, M.bladeMat]) m.transparent = grace;
+      }
+      const op = half ? 0.5 : 1;
+      M.body.opacity = M.capeOuter.opacity = M.capeInner.opacity = M.bladeMat.opacity = op;
 
       // Blade glow breathes; brighter while swinging.
       const swinging = pose.sweep > 0;

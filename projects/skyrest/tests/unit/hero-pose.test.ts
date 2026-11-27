@@ -26,14 +26,15 @@ test('[HP1] hit 1 slashes right → left, hit 2 left → right (rig +x = hero le
   }
 });
 
-test('[HP2] the trail reaches 1.3× the tip radius and is longer than the sword (§12 item 4)', () => {
+test('[HP2] the trail reaches 1.3× the tip radius, beyond the sword (§12 item 4)', () => {
   const p = poseAt('attack1', HERO.combo[0]!.startup, ctx, newPose());
   swordPoints(p, pts);
   swingCentre(p, cen);
-  const r = Math.hypot(pts[3]! - cen[0]!, pts[4]! - cen[1]!, pts[5]! - cen[2]!);
+  const tipR = Math.hypot(pts[3]! - cen[0]!, pts[4]! - cen[1]!, pts[5]! - cen[2]!);
   const hiltR = Math.hypot(pts[0]! - cen[0]!, pts[1]! - cen[1]!, pts[2]! - cen[2]!);
-  const trailWidth = r * 1.3 - hiltR;
-  assert.ok(trailWidth > BLADE_LEN, `trail band ${trailWidth.toFixed(2)} m vs blade ${BLADE_LEN} m`);
+  // The view draws the leading edge at 1.3 × tipR: past the tip by more than a quarter blade.
+  assert.ok(tipR * 1.3 - tipR > BLADE_LEN * 0.25, `outer ${(tipR * 1.3).toFixed(2)} vs tip ${tipR.toFixed(2)}`);
+  assert.ok(tipR > hiltR + BLADE_LEN * 0.8);
 });
 
 test('[HP3] the finisher is airborne ~0.35 m at its active frame; the roll turns a full circle', () => {

@@ -1,6 +1,6 @@
 // src/fx/index.ts — owned by WO-003. Hit FX on the bus (experience.md §5): 8 cyan sparks + 6 stone chips (12 on the
 // finisher) + a dust ring + a white flash per landed hit, camera kick and trauma; golem slam dust ring (24), crumble
-// dust, footstep/roll dust, perfect-dodge sparkle, hurt sparks + red edge vignette; DOM damage numbers (comma
+// dust, footstep/roll dust, perfect-dodge sparkle, hurt sparks (the red hurt vignette is the HUD's, WO-004); DOM damage numbers (comma
 // grouped, tabular, outlined; crits gold 40 px + sparkle). Particles are pooled (≤ 400, Low ≤ 200) and analytic on
 // the sim clock. Golem-specific meshes (decals, shockwave rings, boulders, coins) are the golem view's.
 import './fx.css';
@@ -50,12 +50,11 @@ export const createFx: CreateFx = (rig: CameraRig) => {
   const dust = new ParticlePool(FX_CAPS.dust, false, 0);
   let chips!: ChipPool;
   const nums: Num[] = [];
-  let vignette!: HTMLDivElement;
-  let hurtAt = -1e9;
   let state: SimState | null = null;
   const v = new THREE.Vector3();
   const right = new THREE.Vector3();
   const offs: (() => void)[] = [];
+  let bar: HTMLElement | null = null;
 
   const clearAll = () => {
     sparks.clear();
@@ -65,7 +64,6 @@ export const createFx: CreateFx = (rig: CameraRig) => {
       n.live = false;
       n.el.hidden = true;
     }
-    hurtAt = -1e9;
   };
   /** Sim seconds of the step being run (events fire mid-step), from the hero sim's observational clock. */
   let emitState: SimState | null = null;
@@ -120,25 +118,26 @@ export const createFx: CreateFx = (rig: CameraRig) => {
     }
   };
 
-  const showNumber = (t: number, amount: number, crit: boolean, x: number, y: number, z: number, aboveHead: boolean) => {
-    // Stack: younger numbers at the same anchor push the older ones up so hits never overprint.
-    for (const n of nums) if (n.live && n.crit === crit && t - n.t0 < 0.6) n.lift += crit ? 44 : 34;
+  let lastJitter = 0;
+  const showNumber = (t: number, amount: number, crit: boolean, x: number, y: number, z: number) => {
+    // One column beside the Guardian: every new number pushes the live ones up by its own height (polish F-014),
+    // so a crit never overprints a normal hit; x jitter always steps away from the previous number.
+    for (const n of nums) if (n.live) n.lift += crit ? 46 : 34;
     let slot = nums.find((n) => !n.live);
     if (!slot) slot = nums.reduce((a, b) => (a.t0 < b.t0 ? a : b));
     slot.live = true;
     slot.t0 = t;
     slot.crit = crit;
     slot.life = crit ? 1.1 : 0.9;
-    slot.jitter = (rnd() * 2 - 1) * 18;
+    lastJitter = (lastJitter > 0 ? -1 : 1) * (6 + rnd() * 12);
+    slot.jitter = lastJitter;
     slot.lift = 0;
-    // Normal: beside the golem on the camera-right; crit: above its head (§11 F2/F4).
     right.set(1, 0, 0).applyQuaternion(ctx.camera.quaternion);
     right.y = 0;
     right.normalize();
-    const side = aboveHead ? 0.25 : 1.15;
-    slot.x = x + right.x * side;
-    slot.y = aboveHead ? y : y + 0.3;
-    slot.z = z + right.z * side;
+    slot.x = x + right.x * 1.15;
+    slot.y = y + 0.3;
+    slot.z = z + right.z * 1.15;
     slot.el.textContent = formatDamage(amount);
     slot.el.className = crit ? 'fx-num crit' : 'fx-num';
     slot.el.hidden = false;
@@ -162,13 +161,11 @@ export const createFx: CreateFx = (rig: CameraRig) => {
       rig.kick(fin ? 0.12 : 0.06, -dx, -dz);
       if (fin) rig.shake(0.15, 0.4);
       if (ev.crit) rig.shake(0.12, 0.4);
-      const headY = big ? 3.7 : 1.2;
-      showNumber(t, ev.amount, ev.crit, ev.pos.x, ev.crit ? headY : ev.y, ev.pos.z, ev.crit);
+      showNumber(t, ev.amount, ev.crit, ev.pos.x, big ? ev.y : 0.9, ev.pos.z);
     } else {
-      // The hero got hit: white-red sparks, trauma, edge vignette.
+      // The hero got hit: warm sparks and trauma (the HUD draws the edge vignette).
       sparkBurst(t, ev.pos.x, 0.8 + groundHeight(ev.pos.x, ev.pos.z), ev.pos.z, 0, 1, 8, 0xffb0a0);
       rig.shake(0.35, 0.5);
-      hurtAt = t;
     }
   };
 
@@ -185,9 +182,6 @@ export const createFx: CreateFx = (rig: CameraRig) => {
         ctx.overlay.appendChild(el);
         nums.push({ el, t0: 0, life: 0.9, x: 0, y: 0, z: 0, jitter: 0, lift: 0, crit: false, live: false });
       }
-      vignette = document.createElement('div');
-      vignette.className = 'fx-vignette';
-      ctx.overlay.appendChild(vignette);
       const b = ctx.bus;
       offs.push(
         b.on('hit', onHit),
@@ -258,6 +252,15 @@ export const createFx: CreateFx = (rig: CameraRig) => {
       // Damage numbers follow their world point (projected), rising and fading on the sim clock.
       const cam = ctx.camera;
       const w = ctx.overlay.clientWidth || innerWidth, h = ctx.overlay.clientHeight || innerHeight;
+      // Keep numbers clear of the boss bar: origins at least 28 px below it; anything rising into it fades out.
+      let barBottom = -1e9;
+      if (nums.some((n) => n.live)) {
+        bar ??= document.querySelector<HTMLElement>('[data-testid="nameplate"] .np-bar');
+        if (bar) {
+          const r = bar.getBoundingClientRect(), o = ctx.overlay.getBoundingClientRect();
+          if (r.height > 0) barBottom = r.bottom - o.top;
+        }
+      }
       for (const n of nums) {
         if (!n.live) continue;
         const age = (t - n.t0) * 1000;
@@ -268,16 +271,15 @@ export const createFx: CreateFx = (rig: CameraRig) => {
         }
         const k = numberAt(age, n.life * 1000);
         v.set(n.x, n.y, n.z).project(cam);
-        const sx = ((v.x + 1) / 2) * w + n.jitter, sy = ((1 - v.y) / 2) * h - k.rise - n.lift;
+        const half = n.crit ? 22 : 16; // half the glyph height at scale 1
+        const oy = Math.max(((1 - v.y) / 2) * h, barBottom + 28 + half);
+        const sx = ((v.x + 1) / 2) * w + n.jitter, sy = oy - k.rise - n.lift;
+        // Fade as the number's top nears the bar's bottom; gone before it reaches the bar.
+        const clear = barBottom > -1e8 ? Math.min(1, Math.max(0, (sy - half - barBottom) / 18)) : 1;
         n.el.style.transform = `translate3d(${sx.toFixed(1)}px, ${sy.toFixed(1)}px, 0) translate(-50%, -50%) scale(${k.scale.toFixed(3)})`;
-        n.el.style.opacity = k.alpha.toFixed(3);
+        n.el.style.opacity = (k.alpha * clear).toFixed(3);
         n.el.style.zIndex = String(Math.round(n.t0 * 60));
       }
-
-      // Hurt edge vignette: 25 % for 300 ms (off under reduceFlash).
-      const ha = (t - hurtAt) / 0.3;
-      const on = ha >= 0 && ha < 1 && !ctx.settings.get().reduceFlash;
-      vignette.style.opacity = on ? (1 - ha * ha).toFixed(3) : '0';
     },
 
     setQuality(q: Quality) {
@@ -292,7 +294,6 @@ export const createFx: CreateFx = (rig: CameraRig) => {
       sparks.dispose();
       dust.dispose();
       for (const n of nums) n.el.remove();
-      vignette.remove();
     },
   };
 };

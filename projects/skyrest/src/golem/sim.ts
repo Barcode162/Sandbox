@@ -107,12 +107,14 @@ export function pickAttack(s: SimState, d: number): number {
   for (let i = 0; i < ATTACKS.length; i++) if (inRange(s, ATTACKS[i]!, d)) total += i === gx(s.golem).lastAttack ? GOLEM.repeatWeight : 1;
   if (total === 0) return -1;
   let r = rand(s) * total;
+  let lastIn = -1;
   for (let i = 0; i < ATTACKS.length; i++) {
     if (!inRange(s, ATTACKS[i]!, d)) continue;
+    lastIn = i;
     r -= i === gx(s.golem).lastAttack ? GOLEM.repeatWeight : 1;
     if (r <= 0) return i;
   }
-  return ATTACKS.length - 1;
+  return lastIn; // float residue: the last attack that was actually in range
 }
 
 /** Slam centre: `ahead` m along the golem's facing. */

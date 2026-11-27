@@ -61,9 +61,9 @@ export const createUi: CreateUi = () => {
   let rollHintDone = false, skillHintDone = false, nearBridge = false;
   let restartArmedUntil = -1;
   let fightStart = -1, lastPaused = false, bestWave = 1;
-  let now = 0, prevNow = 0;
+  let now = 0, prevNow = 0, flyN = 0, heartShaking = false;
   const pill = { x: 0, y: 0, w: 0, h: 0, coinX: 0, coinY: 0 };
-  let plateW = 180, plateH = 44;
+  let plateW = 180, plateH = 44, bannerTop = 0, bannerBottom = 0, bannerOn = false;
   const v3 = new THREE.Vector3();
   const coinP = { x: 0, y: 0, z: 0 };
   const scratchBurst: CoinBurst = { count: 0, amount: 0, up: 0, out: 0, handoff: 0 };
@@ -83,6 +83,9 @@ export const createUi: CreateUi = () => {
     pill.coinX = c.left - base.left + c.width / 2;
     pill.coinY = c.top - base.top + c.height / 2;
     plateW = plate.offsetWidth || plateW;
+    const bs = banner.firstElementChild!.getBoundingClientRect();
+    bannerBottom = bs.bottom - base.top;
+    bannerTop = bs.top - base.top;
     plateH = plate.offsetHeight || plateH;
   }
 
@@ -116,7 +119,7 @@ export const createUi: CreateUi = () => {
          <button class="gear" type="button" aria-label="Pause and settings" data-testid="pause">${ICON.gear}</button>
        </div>
        <div class="hint" aria-live="polite"></div>
-       <div class="banner" aria-live="polite">${COPY.kindles}</div>
+       <div class="banner" aria-live="polite"><span>${COPY.kindles}</span></div>
        <div class="legend">${COPY.legend}</div>
        <div class="fly-layer" aria-hidden="true">${coinsFly}</div>
        <div class="title-card" data-testid="title">
@@ -247,7 +250,7 @@ export const createUi: CreateUi = () => {
           if (restartArmedUntil > 0 && performance.now() < restartArmedUntil) {
             restartArmedUntil = -1;
             restartLabel.textContent = 'Restart fight';
-            control.setPaused(false);
+            // Stay paused under the veil: retry() unpauses at the instant the new attempt begins.
             underVeil(() => control.retry());
           } else {
             restartArmedUntil = performance.now() + UI.confirmS * 1000;
@@ -302,6 +305,20 @@ export const createUi: CreateUi = () => {
     requestAnimationFrame(measure);
   }
 
+  /** One coin's screen-space flight to the pill (hoisted: no per-frame closure). */
+  function flyOne(b: CoinBurst, i: number, ox: number, oz: number, t: number): void {
+    const t0 = handoffTime(b, i);
+    if (t < t0 || t >= arrivalTime(b, i) || flyN >= fly.length) return;
+    coinWorld(b, i, ox, oz, t0, coinP);
+    project(coinP.x, coinP.y, coinP.z, scr);
+    const p = easeInCubic(clamp01((t - t0) / COIN_FLY_S));
+    const x = scr.x + (pill.coinX - scr.x) * p;
+    const y = scr.y + (pill.coinY - scr.y) * p - Math.sin(Math.PI * p) * Math.min(160, vh * 0.18);
+    const el = fly[flyN++]!;
+    el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${(0.75 + 0.25 * p).toFixed(3)})`;
+    el.style.opacity = '1';
+  }
+
   function updateCoins(f: FrameInfo): void {
     const s = f.state;
     const shown = s.coins - unarrived(s, scratchBurst);
@@ -320,19 +337,7 @@ export const createUi: CreateUi = () => {
     }
     coinLast.classList.toggle('flash', now < flashUntil);
     // Coins in flight: from where each coin was handed off (projected) to the pill's coin, on a screen arc.
-    let n = 0;
-    const flyOne = (b: CoinBurst, i: number, ox: number, oz: number, t: number) => {
-      const t0 = handoffTime(b, i);
-      if (t < t0 || t >= arrivalTime(b, i) || n >= fly.length) return;
-      coinWorld(b, i, ox, oz, t0, coinP);
-      project(coinP.x, coinP.y, coinP.z, scr);
-      const p = easeInCubic(clamp01((t - t0) / COIN_FLY_S));
-      const x = scr.x + (pill.coinX - scr.x) * p;
-      const y = scr.y + (pill.coinY - scr.y) * p - Math.sin(Math.PI * p) * Math.min(160, vh * 0.18);
-      const el = fly[n++]!;
-      el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${(0.75 + 0.25 * p).toFixed(3)})`;
-      el.style.opacity = '1';
-    };
+    flyN = 0;
     const tg = golemBurstTime(s.golem, f.alpha);
     if (tg >= 0) {
       const b = golemBurst(s, scratchBurst);
@@ -343,7 +348,7 @@ export const createUi: CreateUi = () => {
       const tm = minionBurstTime(mn, f.alpha);
       if (tm >= 0 && tm < 3) for (let i = 0; i < MINION_BURST.count; i++) flyOne(MINION_BURST, i, mn.pos.x, mn.pos.z, tm);
     }
-    for (let i = n; i < fly.length; i++) {
+    for (let i = flyN; i < fly.length; i++) {
       const el = fly[i]!;
       if (el.style.opacity !== '0') el.style.opacity = '0';
     }
@@ -366,7 +371,13 @@ export const createUi: CreateUi = () => {
       }
     }
     const st = now - heartShakeAt;
-    heartsEl.style.transform = st < 0.2 ? `translateX(${(Math.sin(st * 90) * 3).toFixed(1)}px)` : '';
+    if (st < 0.2) {
+      heartsEl.style.transform = `translateX(${(Math.sin(st * 90) * 3).toFixed(1)}px)`;
+      heartShaking = true;
+    } else if (heartShaking) {
+      heartsEl.style.transform = '';
+      heartShaking = false;
+    }
   }
 
   function updatePlate(f: FrameInfo): void {
@@ -434,6 +445,8 @@ export const createUi: CreateUi = () => {
     const overlapX = x < pill.x + pill.w + 8 && x + plateW > pill.x - 8;
     const overlapY = y < pill.y + pill.h + 8;
     if (overlapX && overlapY) y = pill.y + pill.h + 10;
+    // While the phase-2 banner is up the nameplate steps below it instead of under it.
+    if (bannerOn && y + plateH > bannerTop - 4 && y < bannerBottom + 4) y = bannerBottom + 8;
     plate.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
   }
 
@@ -453,7 +466,12 @@ export const createUi: CreateUi = () => {
       hint.classList.toggle('bridge', showBridge);
     }
     // The banner lasts exactly as long as the roar (1.2 s).
-    banner.classList.toggle('show', s.golem.enraged && (s.golem.ext.roar ?? 0) > 0);
+    const bOn = s.golem.enraged && (s.golem.ext.roar ?? 0) > 0;
+    if (bOn !== bannerOn) {
+      bannerOn = bOn;
+      banner.classList.toggle('show', bOn);
+      if (bOn) measure();
+    }
     const vt = simT - vignetteAt;
     const vOn = vt < UI.vignetteS && !control.settings.get().reduceFlash && !reducedMotion;
     vignette.style.opacity = vOn ? (0.25 * (1 - vt / UI.vignetteS)).toFixed(3) : '0';
@@ -514,8 +532,8 @@ export const createUi: CreateUi = () => {
       if (root.dataset.quality !== ctx.renderer.quality) root.dataset.quality = ctx.renderer.quality;
       updateCoins(f);
       updateHearts(f);
+      updateHints(f); // first: the banner state moves the nameplate
       updatePlate(f);
-      updateHints(f);
     },
     dispose() {
       root.textContent = '';

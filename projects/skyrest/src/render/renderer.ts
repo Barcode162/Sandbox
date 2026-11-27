@@ -108,6 +108,23 @@ export const createRenderer: CreateRenderer = (canvas, settings) => {
   };
   apply();
 
+  // Context loss (iOS drops contexts under memory pressure after backgrounding): stop drawing while lost; on
+  // restore three re-initialises its GL state and re-uploads resources, and we rebuild the post chain.
+  // canvas[data-context] exposes the state; pausing the fight on 'webglcontextlost' belongs to app/game.ts.
+  let lost = false;
+  canvas.dataset.context = 'ok';
+  canvas.addEventListener('webglcontextlost', (e) => {
+    e.preventDefault(); // allow restoration
+    lost = true;
+    canvas.dataset.context = 'lost';
+  });
+  canvas.addEventListener('webglcontextrestored', () => {
+    lost = false;
+    dropComposer();
+    apply();
+    canvas.dataset.context = 'ok';
+  });
+
   const stats: RenderStats = { drawCalls: 0, triangles: 0, geometries: 0, textures: 0, fps: 0 };
   let frames = 0, lastFps = performance.now(), lastFrame = 0;
   return {
@@ -116,6 +133,7 @@ export const createRenderer: CreateRenderer = (canvas, settings) => {
       return quality;
     },
     render(scene, camera) {
+      if (lost) return;
       renderer.info.reset();
       if (quality === 'high') {
         if (!composer) {

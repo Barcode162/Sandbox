@@ -18,6 +18,8 @@ const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2
 /** Title: slow orbit around the vista anchor (8, 2, −18) at 0.02 rad/s. */
 const TITLE = { cx: 8, cy: 2, cz: -18, radius: 27, height: 7.5, phase0: -0.62, rate: 0.02, lookUp: 3.2, pitchDeg: 4, fov: 55 } as const;
 const GLIDE_S = 1.6;
+/** Temple centre on the ground plane (experience.md §4.4). */
+const TEMPLE_XZ = { x: 26, z: -47 } as const;
 
 export const createCameraRig: CreateCameraRig = () => {
   let ctx!: RenderContext;
@@ -77,7 +79,9 @@ export const createCameraRig: CreateCameraRig = () => {
     look.x += (lx - look.x) * kl;
     look.z += (lz - look.z) * kl;
 
-    const tx = hx + look.x, tz = hz + look.z;
+    const liftK = Math.min(1, Math.max(0, (0.875 - cam.aspect) / (0.875 - 0.46)));
+    const lift = FOLLOW.portraitLiftM * liftK; // portrait: hero rides above the thumb zone (polish F-020)
+    const tx = hx + look.x - Math.sin(base) * lift, tz = hz + look.z + Math.cos(base) * lift;
     const ty = groundHeight(hx, hz);
     if (snap) target.set(tx, ty, tz);
     else {
@@ -98,6 +102,12 @@ export const createCameraRig: CreateCameraRig = () => {
       }
     }
     bias = snap ? want : bias + (want - bias) * hl(life, sdt);
+    // The temple stays in view (§4.3; polish F-015): the bias may not turn it past 80 % of the half-FOV.
+    const hHalf = Math.atan(Math.tan((fr.vfovDeg * DEG) / 2) * cam.aspect) * 0.8;
+    const tf = facingOf(TEMPLE_XZ.x - tx, TEMPLE_XZ.z - tz);
+    const off = wrapAngle(tf - (base + bias));
+    if (off > hHalf) bias += off - hHalf;
+    else if (off < -hHalf) bias += off + hHalf;
 
     // Manual orbit: drag / right-mouse / Q-E / RS, clamped ±40°, springs back after 2 s idle.
     const now = performance.now();

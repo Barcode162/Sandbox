@@ -1,4 +1,4 @@
-// src/hero/ribbon.ts — owned by WO-003. Additive gradient ribbon: the slash crescent, the Gale Crescent wave and the
+// src/hero/ribbon.ts — owned by WO-003. Gradient ribbon (normal-blended, premultiplied; polish F-013): the slash crescent, the Gale Crescent wave and the
 // finisher's ground crescent. Two rows of vertices (inner/outer) per sample; colour runs trail-deep → trail → white at
 // the outer edge, alpha by per-sample weight. Emissive ×2.2 so bloom (High) picks it up; untonemapped.
 import * as THREE from 'three';
@@ -21,18 +21,19 @@ uniform float uOpacity;
 varying vec2 vUv;
 varying float vAlpha;
 void main() {
-  float v = vUv.y;
-  vec3 c = mix(uDeep, uMid, smoothstep(0.0, 0.6, v));
-  c = mix(c, uEdge, smoothstep(0.72, 0.96, v));
-  // Faint toward the hilt, a bright leading band at the outer edge: reads as a crescent, not a disc.
-  float body = smoothstep(0.15, 0.7, v) * 0.38 + smoothstep(0.68, 0.94, v) * 0.85;
-  float rim = 1.0 - smoothstep(0.965, 1.0, v);
-  float a = clamp(vAlpha * body * rim * uOpacity, 0.0, 1.0);
-  gl_FragColor = vec4(c * uIntensity, a);
+  float v = vUv.y; // 0 = inner edge, 1 = leading (outer) edge
+  vec3 c = mix(uDeep, uMid, smoothstep(0.0, 0.55, v));
+  c = mix(c, uEdge, smoothstep(0.6, 0.92, v));
+  // Opaque-ish band, soft on both edges. NORMAL blending, premultiplied: over yellow-green grass it stays cyan
+  // (additive turned it lime). Values > 1 at the core let bloom (High) catch it.
+  float a = smoothstep(0.0, 0.3, v) * (1.0 - smoothstep(0.93, 1.0, v)) * 0.9;
+  a = clamp(a * vAlpha * uOpacity, 0.0, 1.0);
+  vec3 col = c * mix(1.0, uIntensity, smoothstep(0.6, 0.95, v));
+  gl_FragColor = vec4(col * a, a);
   #include <colorspace_fragment>
 }`;
 
-export const TRAIL_COLORS = { deep: 0x2a9df4, mid: 0x7fe9ff, edge: 0xffffff } as const;
+export const TRAIL_COLORS = { deep: 0x2a9df4, mid: 0x7fe9ff, edge: 0xe8fdff } as const;
 
 export class Ribbon {
   readonly mesh: THREE.Mesh;
@@ -42,7 +43,7 @@ export class Ribbon {
   private readonly geo: THREE.BufferGeometry;
   readonly material: THREE.ShaderMaterial;
 
-  constructor(samples: number, intensity = 2.2) {
+  constructor(samples: number, intensity = 1.35) {
     this.n = samples;
     const n = samples;
     this.pos = new Float32Array(n * 2 * 3);
@@ -72,7 +73,7 @@ export class Ribbon {
         uIntensity: { value: intensity },
         uOpacity: { value: 1 },
       },
-      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false,
+      transparent: true, premultipliedAlpha: true, depthWrite: false, blending: THREE.NormalBlending, side: THREE.DoubleSide, toneMapped: false,
     });
     this.mesh = new THREE.Mesh(g, this.material);
     this.mesh.frustumCulled = false;

@@ -62,3 +62,25 @@ for (const [label, size] of [['portrait', { width: 430, height: 932 }], ['deskto
     }
   });
 }
+
+test('[HE3] audio comes back after an interruption outside the fight (iOS lock/app switch): the next tap resumes it', async ({ page }) => {
+  test.setTimeout(90_000);
+  // Test-only: keep a handle on the page's AudioContext.
+  await page.addInitScript(() => {
+    const Real = window.AudioContext;
+    window.AudioContext = class extends Real {
+      constructor(o?: AudioContextOptions) {
+        super(o);
+        (window as unknown as { __ac: AudioContext }).__ac = this;
+      }
+    } as typeof AudioContext;
+  });
+  await boot(page);
+  await page.mouse.click(640, 400); // first gesture: unlock (title)
+  await page.waitForFunction(() => (window as unknown as { __ac?: AudioContext }).__ac?.state === 'running');
+  // Simulate the interruption on the title (no auto-pause there).
+  await page.evaluate(() => (window as unknown as { __ac: AudioContext }).__ac.suspend());
+  expect(await page.evaluate(() => (window as unknown as { __ac: AudioContext }).__ac.state)).toBe('suspended');
+  await page.keyboard.press('KeyX');
+  await page.waitForFunction(() => (window as unknown as { __ac: AudioContext }).__ac.state === 'running', undefined, { timeout: 10_000 });
+});

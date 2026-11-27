@@ -99,9 +99,11 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #bfe4ff; tou
   transition: opacity 160ms ease-in, transform 160ms ease-in; }
 .hint.show { opacity: 1; transform: none; transition: opacity 220ms var(--out-cubic), transform 220ms var(--enter); }
 .hint.bridge { top: 54%; font-size: 17px; font-weight: 700; font-style: italic; color: #f2f6ff; }
-.banner { position: absolute; left: 0; right: 0; top: 21%; transform: translateY(-50%) scale(0.9); text-align: center; font-size: clamp(28px, 6vw, 40px); font-weight: 800;
+.banner { position: absolute; left: 0; right: 0; top: 30%; transform: translateY(-50%) scale(0.9); text-align: center; font-size: clamp(28px, 6vw, 40px); font-weight: 800;
   color: #fff4e0; letter-spacing: 0.02em; opacity: 0; transition: opacity 300ms ease-in, transform 300ms ease-in;
   text-shadow: 0 0 2px #7a2408, 0 2px 0 #7a2408, 0 0 18px rgba(255, 110, 40, 0.8), 0 0 40px rgba(255, 90, 30, 0.45); }
+.banner span { display: inline-block; padding: 6px 22px 8px; border-radius: 16px; background: rgba(24, 14, 10, 0.4);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .banner.show { opacity: 1; transform: translateY(-50%) scale(1); transition: opacity 220ms var(--out-cubic), transform 380ms var(--back); }
 .legend { position: absolute; left: 50%; bottom: var(--safe-b); transform: translateX(-50%); font-size: 12px; font-weight: 600; color: #f4f7fb;
   padding: 5px 12px; border-radius: 12px; background: rgba(28, 32, 38, 0.45); white-space: nowrap; opacity: 0; transition: opacity 600ms ease; }
@@ -178,3 +180,5 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #bfe4ff; tou
 [data-moment] .panel, [data-moment] .card { animation: none !important; }
 [data-moment] .hud, [data-moment] .hud > *, [data-moment] .title-card, [data-moment] .veil, [data-moment] .hint,
 [data-moment] .banner, [data-moment] .scrim, [data-moment] .legend { transition: none !important; }
+/* The desktop key legend is an onboarding aid (fades after 8 s); frame-table stills leave it out. */
+[data-moment] .legend { display: none; }

@@ -1,5 +1,5 @@
 // src/hero/model.ts — owned by WO-003. Builds "Aster" (experience.md §4.5): chibi 1 : 1.3 head:body, 1.25 m,
-// 13 swept-back spikes + bangs, crystal sword, spring cape. Every bone is ONE merged, vertex-coloured mesh on the
+// swept flat hair locks + bangs, crystal sword, spring cape (shown at ×1.3, see HERO_SCALE). Every bone is ONE merged, vertex-coloured mesh on the
 // shared SoftToon material (few draw calls), plus a screen-space ink outline (constant ~1.6 px).
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -41,6 +41,17 @@ function merge(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
   g.computeBoundingSphere();
   return g;
 }
+/** Repaint hair vertices: hair-shade on the underside, hair on top (head-local height). */
+function hairShade(g: THREE.BufferGeometry): THREE.BufferGeometry {
+  const pos = g.attributes.position!, col = g.attributes.color!;
+  const lit = new THREE.Color(C.hair), shade = new THREE.Color(C.hairShade);
+  for (let i = 0; i < pos.count; i++) {
+    const k = Math.min(1, Math.max(0, (pos.getY(i) + 0.02) / 0.3));
+    tmpC.copy(shade).lerp(lit, k);
+    col.setXYZ(i, tmpC.r, tmpC.g, tmpC.b);
+  }
+  return g;
+}
 /** Cone whose BASE sits at the origin and that points +y. */
 function spike(r: number, h: number): THREE.BufferGeometry {
   return new THREE.ConeGeometry(r, h, 9, 2).translate(0, h / 2, 0);
@@ -50,19 +61,24 @@ function headGeo(): THREE.BufferGeometry {
   const P: THREE.BufferGeometry[] = [];
   P.push(part(new THREE.SphereGeometry(0.27, 28, 20), C.skin));
   const hc: [number, number, number] = [0, 0.04, -0.045];
-  P.push(part(new THREE.SphereGeometry(0.28, 28, 20), C.hair, hc, undefined, [1.04, 1, 1.05]));
-  // 13 spikes, swept back-up (the silhouette read from behind): [dir x, y, z, length, base radius].
-  const spikes: [number, number, number, number, number][] = [
-    [0, 1, 0.1, 0.3, 0.12], [0.45, 0.85, -0.15, 0.3, 0.12], [-0.45, 0.85, -0.15, 0.3, 0.12],
-    [0, 0.7, -0.7, 0.34, 0.13], [0.55, 0.55, -0.6, 0.3, 0.12], [-0.55, 0.55, -0.6, 0.3, 0.12],
-    [0.9, 0.4, -0.1, 0.24, 0.1], [-0.9, 0.4, -0.1, 0.24, 0.1], [0.35, 0.05, -0.95, 0.28, 0.115],
-    [-0.35, 0.05, -0.95, 0.28, 0.115], [0, -0.3, -0.95, 0.22, 0.1], [0.75, -0.1, -0.6, 0.2, 0.095], [-0.75, -0.1, -0.6, 0.2, 0.095],
+  P.push(hairShade(part(new THREE.SphereGeometry(0.28, 28, 20), C.hair, hc, undefined, [1.04, 1, 1.05])));
+  // Swept anime hair (polish F-011): flat locks rooted toward the front/top of the skull, lying back along it and
+  // flaring past the back silhouette, so from the chase camera you see layered shingles with pointed tips, never a
+  // ball of radial spikes. Two tufts over the ears and a crown cowlick read at three-quarter angles.
+  // [root dir xyz, lock axis xyz, length, root radius]
+  const locks: [number, number, number, number, number, number, number, number][] = [
+    [0, 1, 0.3, 0, 0.8, -0.6, 0.55, 0.15],
+    [0.35, 0.9, 0.2, 0.42, 0.7, -0.6, 0.5, 0.14], [-0.35, 0.9, 0.2, -0.42, 0.7, -0.6, 0.5, 0.14],
+    [0.62, 0.6, 0, 0.65, 0.45, -0.62, 0.42, 0.125], [-0.62, 0.6, 0, -0.65, 0.45, -0.62, 0.42, 0.125],
+    [0, 0.6, -0.6, 0, 0.45, -0.9, 0.4, 0.125],
+    [0.4, 0.2, -0.8, 0.55, 0.2, -0.8, 0.32, 0.105], [-0.4, 0.2, -0.8, -0.55, 0.2, -0.8, 0.32, 0.105],
+    [0.85, 0.2, 0.1, 0.85, 0.4, -0.35, 0.2, 0.08], [-0.85, 0.2, 0.1, -0.85, 0.4, -0.35, 0.2, 0.08],
+    [0.1, 1, -0.2, 0.2, 0.95, -0.25, 0.26, 0.075],
   ];
-  for (const [x, y, z, h, r] of spikes) {
+  for (const [x, y, z, ax, ay, az, h, r] of locks) {
     const d = v3.set(x, y, z).normalize();
-    const bx = hc[0] + d.x * 0.17, by = hc[1] + d.y * 0.17, bz = hc[2] + d.z * 0.17;
-    const ax = d.x * 0.9, ay = d.y + 0.55, az = d.z - 0.45;
-    P.push(part(spike(r, h + 0.1), C.hair, [bx, by, bz], [ax, ay, az]));
+    const bx = hc[0] + d.x * 0.2, by = hc[1] + d.y * 0.2, bz = hc[2] + d.z * 0.2;
+    P.push(hairShade(part(spike(r, h), C.hair, [bx, by, bz], [ax, ay, az], [1, 1, 0.4])));
   }
   // Bangs over the forehead.
   for (const [x, h] of [[0, 0.15], [0.11, 0.13], [-0.11, 0.13]] as const) {
@@ -115,7 +131,7 @@ function hiltGeo(): THREE.BufferGeometry {
 
 /** Crystal blade: diamond cross-section, widening then tapering to a point (grip origin, +y). */
 function bladeGeo(): THREE.BufferGeometry {
-  const rings: [number, number, number][] = [[0.12, 0.03, 0.012], [0.2, 0.04, 0.014], [0.68, 0.042, 0.014], [0.84, 0, 0]];
+  const rings: [number, number, number][] = [[0.12, 0.03, 0.012], [0.2, 0.046, 0.015], [0.86, 0.05, 0.015], [1.04, 0, 0]]; // 0.9 m blade
   const pos: number[] = [];
   const ring = (y: number, w: number, t: number) => [[w, y, 0], [0, y, t], [-w, y, 0], [0, y, -t]];
   for (let r = 0; r < rings.length - 1; r++) {
@@ -199,6 +215,8 @@ export function outlineMaterial(): THREE.ShaderMaterial {
 }
 
 export const CAPE_COLS = 6, CAPE_ROWS = 8;
+/** Display scale (polish F-011: reads at the reference's ~150 px at 802×917). Sim radius is unchanged. */
+export const HERO_SCALE = 1.3;
 
 export interface HeroModel {
   root: THREE.Group;
@@ -244,7 +262,7 @@ export function buildHero(ghost?: THREE.Material): HeroModel {
   capeOuter.side = THREE.BackSide;
   const capeInner = toonMaterial(C.lining, { shade: 0xaab4cf }) as THREE.MeshLambertMaterial;
   capeInner.side = THREE.FrontSide;
-  const bladeMat = emissiveMaterial(C.blade, 1.8);
+  const bladeMat = emissiveMaterial(C.blade, 2.2);
   const outline = outlineMaterial();
   const meshes: THREE.Mesh[] = [];
   const mesh = (g: THREE.BufferGeometry, m: THREE.Material, parent: THREE.Object3D, ink = true) => {
@@ -261,6 +279,7 @@ export function buildHero(ghost?: THREE.Material): HeroModel {
   };
   const root = new THREE.Group();
   root.name = ghost ? 'hero-ghost' : 'hero';
+  root.scale.setScalar(HERO_SCALE);
   const hop = new THREE.Group();
   hop.position.y = PIVOT_Y;
   const pivot = new THREE.Group();
@@ -295,8 +314,9 @@ export function buildHero(ghost?: THREE.Material): HeroModel {
   hips.add(sword);
   mesh(G.hilt, body, sword);
   mesh(G.blade, bladeMat, sword, false);
-  const halo = glowSprite(C.blade, 0.9, 0.5);
-  halo.position.y = 0.5;
+  const halo = glowSprite(0x58b8ff, 0.9, 0.32); // bluer + fainter: additive cyan over grass read lime (F-013)
+  halo.position.y = 0.6;
+  halo.scale.set(0.7, 1.3, 1);
   if (!ghost) sword.add(halo);
   const capeAnchor = new THREE.Group();
   capeAnchor.position.set(0, 0.34, -0.1);

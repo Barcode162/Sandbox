@@ -48,12 +48,12 @@ test('[W2] arena rim follows R(θ) = 15 + 1.4·n1 + 0.6·n2 and walkable = R −
 test('[W3] groundHeight is pure, gently domed and continuous', () => {
   assert.equal(groundHeight(1.234, -5.6), groundHeight(1.234, -5.6));
   const centre = groundHeight(0, 0);
-  assert.ok(centre > 0.15 && centre < 0.55, `dome top ≈ 0.35 ± 0.15 (${centre})`);
+  assert.ok(centre > 0 && centre < 0.25, `flat meadow, top ≈ 0.12 ± 0.1 (${centre})`);
   for (let i = 0; i < 3000; i++) {
     const a = (i * 2.399) % TAU, r = (i % 97) / 97 * 18;
     const x = Math.sin(a) * r, z = -Math.cos(a) * r;
     const y = groundHeight(x, z);
-    assert.ok(Number.isFinite(y) && y > -0.2 && y < 0.55, `height bounded at (${x}, ${z}): ${y}`);
+    assert.ok(Number.isFinite(y) && y > -0.4 && y < 0.25, `height bounded at (${x}, ${z}): ${y}`);
     assert.ok(Math.abs(groundHeight(x + 0.01, z) - y) < 0.01 && Math.abs(groundHeight(x, z + 0.01) - y) < 0.01, 'continuous');
   }
   // Every collider's centre and both spawns sit inside the walkable disc.

@@ -56,6 +56,8 @@ export interface ToonExtra {
   noCloudShadow?: boolean;
   side?: THREE.Side;
   transparent?: boolean;
+  /** Multiplies the fog factor (the temple keeps its white through the haze: 0.4). */
+  fogScale?: number;
 }
 
 const VERT_PARS = /* glsl */ `
@@ -186,6 +188,21 @@ const FRAG_DITHER = /* glsl */ `
 #endif
 `;
 
+// Fog with an optional per-material scale (TOON_FOG_SCALE).
+const FRAG_FOG = /* glsl */ `
+#ifdef USE_FOG
+  #ifdef FOG_EXP2
+  float fogFactor = 1.0 - exp( - fogDensity * fogDensity * vFogDepth * vFogDepth );
+  #else
+  float fogFactor = smoothstep( fogNear, fogFar, vFogDepth );
+  #endif
+  #ifdef TOON_FOG_SCALE
+  fogFactor *= TOON_FOG_SCALE;
+  #endif
+  gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
+#endif
+`;
+
 // The gust band darkens grass tips (§6) so wind visibly crosses the meadow.
 const FRAG_GUST = /* glsl */ `
 #include <color_fragment>
@@ -235,6 +252,7 @@ export function softToon(color: THREE.ColorRepresentation, opts: ToonOpts = {}, 
   if (opts.sway) defines.push('TOON_SWAY');
   if (extra.gust) defines.push('TOON_GUST');
   if (extra.noCloudShadow) defines.push('TOON_NO_CLOUD');
+  if (extra.fogScale !== undefined) defines.push(`TOON_FOG_SCALE ${extra.fogScale.toFixed(3)}`);
   const canopyN = extra.canopy && extra.canopyFade ? extra.canopyFade.value.length : 0;
   if (canopyN) defines.push('TOON_CANOPY');
   const header = defines.map((d) => `#define ${d}\n`).join('') + (canopyN ? `#define TOON_CANOPY_N ${canopyN}\n` : '');
@@ -254,7 +272,8 @@ export function softToon(color: THREE.ColorRepresentation, opts: ToonOpts = {}, 
       .replace('#include <lights_lambert_pars_fragment>', FRAG_PARS)
       .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n' + FRAG_DITHER)
       .replace('#include <color_fragment>', FRAG_GUST)
-      .replace('#include <lights_fragment_end>', FRAG_RIM);
+      .replace('#include <lights_fragment_end>', FRAG_RIM)
+      .replace('#include <fog_fragment>', FRAG_FOG);
   };
   mat.customProgramCacheKey = () => 'softtoon:' + header;
   mat.userData.shadeTint = tint;

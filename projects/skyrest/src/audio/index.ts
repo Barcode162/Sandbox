@@ -410,22 +410,24 @@ export const createAudio: CreateAudio = (bus, settings) => {
     log,
     dispose() {
       clearInterval(sched);
-      removeEventListener('pointerdown', gesture, true);
-      removeEventListener('keydown', gesture, true);
+      for (const ev of ['pointerdown', 'touchend', 'keydown'] as const) removeEventListener(ev, gesture, true);
+      document.removeEventListener('visibilitychange', onVisible);
       void ac?.close();
     },
   };
 
-  // Unlock on the first gesture anywhere (iOS Safari requires it inside the event).
+  // Unlock on the first gesture anywhere, and keep listening: iOS Safari moves the context to 'interrupted' /
+  // 'suspended' on lock screen, app switch or a call, and only a gesture may resume it (review F-002). Any tap or key
+  // while not paused brings sound back, in every phase (title, intro, victory, defeat included).
   const gesture = () => {
-    void engine.unlock();
-    if (unlocked) {
-      removeEventListener('pointerdown', gesture, true);
-      removeEventListener('keydown', gesture, true);
-    }
+    if (!ac) void engine.unlock();
+    else if (ac.state !== 'running' && ac.state !== 'closed' && !paused) void ac.resume().catch(() => undefined);
   };
-  addEventListener('pointerdown', gesture, true);
-  addEventListener('keydown', gesture, true);
+  const onVisible = () => {
+    if (document.visibilityState === 'visible' && ac && ac.state !== 'running' && ac.state !== 'closed' && !paused) void ac.resume().catch(() => undefined);
+  };
+  for (const ev of ['pointerdown', 'touchend', 'keydown'] as const) addEventListener(ev, gesture, true);
+  document.addEventListener('visibilitychange', onVisible);
   settings.subscribe(() => applyVolume());
 
   // ───────── event → sound map ─────────

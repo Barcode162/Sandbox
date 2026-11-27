@@ -31,7 +31,9 @@ export const LIGHT = {
   groundColor: 0x7a9a52,
   hemiIntensity: 1.15,
   fogColor: 0xcfe3f8,
-  fogDensity: 0.0085,
+  /** Spec 0.0085 washed the far plane to haze (F-008); the temple also takes only 40 % of it. */
+  fogDensity: 0.0045,
+  templeFogScale: 0.4,
   /** Warm rim on characters and trees. */
   rimColor: 0xfff4dc,
   rimStrength: 0.35,
@@ -76,7 +78,7 @@ export const AUTO_QUALITY = { windowMs: 2000, maxFrameMs: 22, pixelRatioStep: 0.
 export const HALO = { sizeScale: 1.6, opacity: 0.55, texSize: 64 } as const;
 
 export interface Vec3 { x: number; y: number; z: number }
-export interface TreeSpec { id: string; kind: 'round' | 'blossom' | 'bush' | 'cypress'; x: number; z: number; y?: number; canopyY: number; canopyR: number; puffs: number }
+export interface TreeSpec { id: string; kind: 'round' | 'blossom' | 'bush' | 'cypress'; x: number; z: number; y?: number; canopyY: number; canopyR: number; puffs: number; leanZ?: number }
 export interface BoulderSpec { x: number; z: number; y?: number; r: number }
 export interface IsleSpec { x: number; y: number; z: number; r: number; depth: number; strata: number; roots: number; seed: number }
 export interface FallSpec { x: number; y: number; z: number; width: number; dirX: number; dirZ: number; drop: number }
@@ -94,7 +96,9 @@ export const SCENERY = {
   arenaOverhang: 0.3,
   trees: [
     { id: 'A', kind: 'round', x: -4.2, z: 0.5, canopyY: 3.8, canopyR: 2.0, puffs: 7 },
-    { id: 'B', kind: 'blossom', x: -3.6, z: 6.0, canopyY: 2.6, canopyR: 1.8, puffs: 5 },
+    // F-012: smaller, 9 small clumps, canopy leaning away from the camera so the trunk shows. The trunk stays
+    // within 0.45 m of the frozen ARENA collider (−3.6, 6.0).
+    { id: 'B', kind: 'blossom', x: -4.0, z: 5.8, canopyY: 2.8, canopyR: 1.3, puffs: 9, leanZ: -1.1 },
     { id: 'C', kind: 'bush', x: 2.2, z: 6.9, canopyY: 1.5, canopyR: 1.6, puffs: 4 },
     { id: 'F', kind: 'round', x: -8.5, z: -2.5, canopyY: 4.2, canopyR: 2.6, puffs: 7 },
     { id: 'G', kind: 'round', x: 7.8, z: 2.0, canopyY: 3.4, canopyR: 2.0, puffs: 5 },
@@ -104,6 +108,10 @@ export const SCENERY = {
     { id: 'T1', kind: 'round', x: 19.5, z: -40.5, y: 3.5, canopyY: 2.2, canopyR: 1.3, puffs: 4 },
     { id: 'T2', kind: 'round', x: 31.5, z: -44.5, y: 3.5, canopyY: 2.4, canopyR: 1.4, puffs: 4 },
     { id: 'T3', kind: 'bush', x: 21, z: -48.5, y: 3.5, canopyY: 1.4, canopyR: 1.1, puffs: 4 },
+    // F-018: one tree on each nearer distant islet.
+    { id: 'D1', kind: 'round', x: -59, z: -91, y: -3.65, canopyY: 2.8, canopyR: 1.6, puffs: 4 },
+    { id: 'D2', kind: 'round', x: -34, z: -129, y: 6.35, canopyY: 2.6, canopyR: 1.4, puffs: 4 },
+    { id: 'D3', kind: 'round', x: 71, z: -111, y: -7.65, canopyY: 3.0, canopyR: 1.8, puffs: 4 },
     { id: 'S1', kind: 'cypress', x: 18.0, z: -63.6, y: 9, canopyY: 2.6, canopyR: 0.75, puffs: 1 },
     { id: 'S2', kind: 'cypress', x: 20.0, z: -64.8, y: 9, canopyY: 2.1, canopyR: 0.6, puffs: 1 },
   ] as readonly TreeSpec[],
@@ -126,8 +134,8 @@ export const SCENERY = {
   /** Waterfalls: top point, width, outward direction, drop to the cloud sea. */
   falls: [
     // W1/W2 pour off the temple isle's camera-facing lip, so the cliff sits behind them (the reference's read).
-    { x: 15.0, y: 3.3, z: -39.6, width: 2.4, dirX: -0.9, dirZ: 0.44, drop: 30 },
-    { x: 31.5, y: 3.3, z: -37.4, width: 3.0, dirX: 0.75, dirZ: 0.66, drop: 30 },
+    { x: 15.0, y: 3.3, z: -39.6, width: 3.6, dirX: -0.9, dirZ: 0.44, drop: 30 },
+    { x: 31.5, y: 3.3, z: -37.4, width: 4.5, dirX: 0.75, dirZ: 0.66, drop: 30 },
     { x: 18.6, y: 8.5, z: -61.4, width: 1.2, dirX: -0.4, dirZ: 1, drop: 36 },
     { x: -3, y: -0.2, z: -15.4, width: 1.0, dirX: -0.15, dirZ: -1, drop: 26 },
   ] as readonly FallSpec[],
@@ -138,7 +146,8 @@ export const SCENERY = {
 export const BRIDGE = { planks: 84, plankW: 1.4, plankH: 0.08, plankD: 0.26, sag: 0.7, railH: 0.9, railSag: 0.35, postPairs: 5, jitterDeg: 3 } as const;
 
 /** §4.4 temple. */
-export const TEMPLE = { steps: 3, stepH: 0.4, facadeW: 8, facadeH: 7, towerH: 9, portalW: 1.6, portalH: 3.0, emblemR: 0.55, emblemSpinDeg: 6, banners: 4, bannerW: 0.9, bannerH: 3.2 } as const;
+/** F-009 (polish critic, against the reference): a wide white hall, flat crenellated towers, a 2 m emblem. */
+export const TEMPLE = { steps: 5, stepH: 0.3, facadeW: 12, facadeH: 7, towerH: 6.5, portalW: 1.8, portalH: 3.2, emblemR: 1.0, emblemIntensity: 2.6, emblemSpinDeg: 6, banners: 4, bannerW: 1.2, bannerH: 3.8 } as const;
 
 /** §6 ambient life. */
 export const AMBIENT = {

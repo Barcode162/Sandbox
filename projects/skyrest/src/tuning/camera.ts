@@ -11,10 +11,10 @@ export interface Framing { aspect: number; vfovDeg: number; pitchDeg: number; ba
  *  frame height). Solved numerically for hero/golem/temple screen positions; a steeper pitch pushes the temple
  *  out of the top edge (the horizon sits at sy ≈ 0.5 − tan p / (2 tan(fov/2))), so the look-down comes from a higher camera and a wider lens (66° at the reference aspect), not more pitch. */
 export const PRESETS: readonly Framing[] = [
-  { aspect: 0.46, vfovDeg: 70, pitchDeg: 21, back: 7.0, up: 7.0, yawDeg: 12 }, // phone portrait
+  { aspect: 0.46, vfovDeg: 70, pitchDeg: 17, back: 7.0, up: 7.0, yawDeg: 12 }, // phone portrait
   { aspect: 0.875, vfovDeg: 66, pitchDeg: 25, back: 6.0, up: 8.0, yawDeg: -3 }, // the reference frame
-  { aspect: 1.78, vfovDeg: 58, pitchDeg: 23, back: 9.0, up: 8.5, yawDeg: 6 }, // desktop / landscape
-  { aspect: 2.16, vfovDeg: 50, pitchDeg: 22, back: 9.5, up: 8.0, yawDeg: 6 }, // phone landscape
+  { aspect: 1.78, vfovDeg: 48, pitchDeg: 20, back: 11.5, up: 9.5, yawDeg: 6 }, // desktop / landscape
+  { aspect: 2.16, vfovDeg: 44, pitchDeg: 21, back: 11.5, up: 9.0, yawDeg: 6 }, // phone landscape
 ];
 
 export const CLIP = { near: 0.1, far: 600 } as const;

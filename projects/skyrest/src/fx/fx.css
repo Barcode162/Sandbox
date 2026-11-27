@@ -1,4 +1,4 @@
-/* src/fx/fx.css — owned by WO-003. Damage numbers (experience.md §4.6/§4.7) and the hurt edge vignette. */
+/* src/fx/fx.css — owned by WO-003. Damage numbers (experience.md §4.6/§4.7). */
 .fx-num {
   position: absolute; left: 0; top: 0; will-change: transform, opacity; pointer-events: none;
   font-family: ui-rounded, 'SF Pro Rounded', 'Nunito', system-ui, sans-serif; font-weight: 800;
@@ -17,8 +17,4 @@
     radial-gradient(circle, #fff 0 18%, rgba(255, 230, 140, 0.7) 30%, transparent 62%);
   -webkit-mask: radial-gradient(circle, #000 0 30%, rgba(0, 0, 0, 0.9) 45%, transparent 72%);
   mask: radial-gradient(circle, #000 0 30%, rgba(0, 0, 0, 0.9) 45%, transparent 72%);
-}
-.fx-vignette {
-  position: absolute; inset: 0; pointer-events: none; opacity: 0;
-  background: radial-gradient(ellipse at center, transparent 55%, rgba(255, 59, 59, 0.25) 82%, rgba(255, 59, 59, 0.45) 100%);
 }
