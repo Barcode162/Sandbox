@@ -69,3 +69,27 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-27T20:38:51Z` **engineer** — F-021 resolved: projects/skyrest/src/style.css:102-105 banner top 30% with rgba(24,14,10,.4) backing; ui/index.ts:478 legend hides after UI.legendS — projects/skyrest/evidence/screens/moments/F8-desktop.jpg, F13-landscape.jpg
 - `2026-11-27T20:39:00Z` **ceo** — New chat: WO-004 remediation was already in code (WIP checkpoints, never logged). CEO logged F-001/003/005/006/007/010/021 resolved after reading code and screenshots. Verify: typecheck/unit/build/size PASS; e2e 48/49 (LP2 failed once under load, passed rerun alone). Owner budget question denied: staying at 8; director-vision (8th) verifies all fixes and votes.
 - `2026-11-27T20:39:00Z` **ceo** — Convened 1× director-vision — verify r1 fixes + ship vote
+- `2026-11-27T20:40:53Z` **director-vision** — F-001 verified: verified
+- `2026-11-27T20:40:53Z` **director-vision** — F-002 verified: verified
+- `2026-11-27T20:40:53Z` **director-vision** — F-003 verified: verified
+- `2026-11-27T20:40:53Z` **director-vision** — F-004 verified: verified
+- `2026-11-27T20:40:53Z` **director-vision** — F-005 verified: verified
+- `2026-11-27T20:40:53Z` **director-vision** — F-006 verified: verified
+- `2026-11-27T20:40:53Z` **director-vision** — F-007 verified: verified
+- `2026-11-27T20:40:53Z` **director-vision** — F-008 verified: verified
+- `2026-11-27T20:40:53Z` **director-vision** — F-009 verified: verified
+- `2026-11-27T20:40:53Z` **director-vision** — F-010 verified: verified
+- `2026-11-27T20:40:53Z` **director-vision** — F-012 verified: verified
+- `2026-11-27T20:40:54Z` **director-vision** — F-013 verified: verified
+- `2026-11-27T20:40:54Z` **director-vision** — F-014 verified: verified
+- `2026-11-27T20:40:54Z` **director-vision** — F-015 verified: verified
+- `2026-11-27T20:40:54Z` **director-vision** — F-017 verified: verified
+- `2026-11-27T20:40:54Z` **director-vision** — F-018 verified: verified
+- `2026-11-27T20:40:54Z` **director-vision** — F-019 verified: verified
+- `2026-11-27T20:40:54Z` **director-vision** — F-020 verified: verified
+- `2026-11-27T20:40:54Z` **director-vision** — F-021 verified: verified
+- `2026-11-27T20:41:03Z` **director-vision** — F-011 open: From behind the head is still a grey radially-spiked sphere (a mace): moments/F2-reference.jpg crop 320,680-480,870, F2/F3/F4/F6 desktop; the swept locks don't read at play distance. Need: from the chase camera, hair silhouette sweeps back/down with bangs-free crown, white not mid-grey, no spikes past the skull outline on the sides/top.
+- `2026-11-27T20:41:04Z` **director-vision** — F-016 open: Desktop opening still reads as a tiny planet: arena rim arcs from y~500 at the frame edges to y~330 at centre (moments/F2-desktop.jpg, F4, F9, F1). Break the arc (rim rocks/bushes/cliff lip, flatter outer dome) so no single unbroken arc spans >50% of frame width.
+- `2026-11-27T20:41:04Z` **director-vision** — F-022 [S2] filed: Canopy occlusion dither exposes a dark skeletal trunk/branch over the hero and the Attack button
+- `2026-11-27T20:41:04Z` **director-vision** — F-023 [S3] filed: Resolution evidence cites screenshots that do not exist
+- `2026-11-27T20:41:04Z` **director-vision** — F-024 [S3] filed: LP2 flakes under load: val-shake empty after reload

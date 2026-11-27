@@ -40,3 +40,27 @@
 {"ev": "resolve", "id": "F-007", "by": "engineer", "evidence": "projects/skyrest/src/golem/sim.ts:104-118 returns lastIn (last in-range attack) on float residue; unit [G9] in projects/skyrest/tests/unit/golem.test.ts:218 passes", "at": "2026-11-27T20:38:51Z"}
 {"ev": "resolve", "id": "F-010", "by": "engineer", "evidence": "projects/skyrest/src/golem/parts-data.ts moss only torso 0.4 + shoulders 0.65; per-part material flash (view.ts:226), capped rune emissive (view.ts:379), crisp rune-edge outline (parts.ts:163), warm grey stone (parts.ts:22) — projects/skyrest/evidence/screens/moments/F3-desktop.jpg, F8-desktop.jpg", "at": "2026-11-27T20:38:51Z"}
 {"ev": "resolve", "id": "F-021", "by": "engineer", "evidence": "projects/skyrest/src/style.css:102-105 banner top 30% with rgba(24,14,10,.4) backing; ui/index.ts:478 legend hides after UI.legendS — projects/skyrest/evidence/screens/moments/F8-desktop.jpg, F13-landscape.jpg", "at": "2026-11-27T20:38:51Z"}
+{"ev": "verify", "id": "F-001", "by": "director-vision", "note": "verified", "at": "2026-11-27T20:40:53Z"}
+{"ev": "verify", "id": "F-002", "by": "director-vision", "note": "verified", "at": "2026-11-27T20:40:53Z"}
+{"ev": "verify", "id": "F-003", "by": "director-vision", "note": "verified", "at": "2026-11-27T20:40:53Z"}
+{"ev": "verify", "id": "F-004", "by": "director-vision", "note": "verified", "at": "2026-11-27T20:40:53Z"}
+{"ev": "verify", "id": "F-005", "by": "director-vision", "note": "verified", "at": "2026-11-27T20:40:53Z"}
+{"ev": "verify", "id": "F-006", "by": "director-vision", "note": "verified", "at": "2026-11-27T20:40:53Z"}
+{"ev": "verify", "id": "F-007", "by": "director-vision", "note": "verified", "at": "2026-11-27T20:40:53Z"}
+{"ev": "verify", "id": "F-008", "by": "director-vision", "note": "verified", "at": "2026-11-27T20:40:53Z"}
+{"ev": "verify", "id": "F-009", "by": "director-vision", "note": "verified", "at": "2026-11-27T20:40:53Z"}
+{"ev": "verify", "id": "F-010", "by": "director-vision", "note": "verified", "at": "2026-11-27T20:40:53Z"}
+{"ev": "verify", "id": "F-012", "by": "director-vision", "note": "verified", "at": "2026-11-27T20:40:53Z"}
+{"ev": "verify", "id": "F-013", "by": "director-vision", "note": "verified", "at": "2026-11-27T20:40:54Z"}
+{"ev": "verify", "id": "F-014", "by": "director-vision", "note": "verified", "at": "2026-11-27T20:40:54Z"}
+{"ev": "verify", "id": "F-015", "by": "director-vision", "note": "verified", "at": "2026-11-27T20:40:54Z"}
+{"ev": "verify", "id": "F-017", "by": "director-vision", "note": "verified", "at": "2026-11-27T20:40:54Z"}
+{"ev": "verify", "id": "F-018", "by": "director-vision", "note": "verified", "at": "2026-11-27T20:40:54Z"}
+{"ev": "verify", "id": "F-019", "by": "director-vision", "note": "verified", "at": "2026-11-27T20:40:54Z"}
+{"ev": "verify", "id": "F-020", "by": "director-vision", "note": "verified", "at": "2026-11-27T20:40:54Z"}
+{"ev": "verify", "id": "F-021", "by": "director-vision", "note": "verified", "at": "2026-11-27T20:40:54Z"}
+{"ev": "reopen", "id": "F-011", "by": "director-vision", "reason": "From behind the head is still a grey radially-spiked sphere (a mace): moments/F2-reference.jpg crop 320,680-480,870, F2/F3/F4/F6 desktop; the swept locks don't read at play distance. Need: from the chase camera, hair silhouette sweeps back/down with bangs-free crown, white not mid-grey, no spikes past the skull outline on the sides/top.", "at": "2026-11-27T20:41:03Z"}
+{"ev": "reopen", "id": "F-016", "by": "director-vision", "reason": "Desktop opening still reads as a tiny planet: arena rim arcs from y~500 at the frame edges to y~330 at centre (moments/F2-desktop.jpg, F4, F9, F1). Break the arc (rim rocks/bushes/cliff lip, flatter outer dome) so no single unbroken arc spans >50% of frame width.", "at": "2026-11-27T20:41:04Z"}
+{"ev": "add", "id": "F-022", "sev": "S2", "by": "director-vision", "title": "Canopy occlusion dither exposes a dark skeletal trunk/branch over the hero and the Attack button", "where": "projects/skyrest/evidence/wo-003/touch-portrait.jpg, touch-landscape.jpg; src/world/view.ts:47", "detail": "When a near canopy dithers to 35%, the bare forked trunk stays opaque and crosses the hero (landscape) or the Attack button (portrait), reading as a dead stick. Fade the trunk/branches with the canopy, or dither only canopies, and hide branch geometry that is meant to be inside the canopy.", "wo": "", "at": "2026-11-27T20:41:04Z"}
+{"ev": "add", "id": "F-023", "sev": "S3", "by": "director-vision", "title": "Resolution evidence cites screenshots that do not exist", "where": "projects/skyrest/evidence/wo-002/*.jpg, evidence/wo-003/r1/", "detail": "F-008/9/11/12/13/14/15/16/17/18/19/20 cite wo-002/F2-side-by-side.jpg, F2ref-high.jpg, wo-003/r1/*.jpg; none are on disk (ls evidence/wo-002 shows only json). Verified instead from moments/ taken 15:50. Re-point evidence or regenerate.", "wo": "", "at": "2026-11-27T20:41:04Z"}
+{"ev": "add", "id": "F-024", "sev": "S3", "by": "director-vision", "title": "LP2 flakes under load: val-shake empty after reload", "where": "projects/skyrest/tests/e2e/loop.spec.ts:157", "detail": "Failed once in the full run, passed alone. Wait for the settings panel render before asserting the value text (expect.poll or wait for data-ready), so verify is deterministic.", "wo": "", "at": "2026-11-27T20:41:04Z"}
