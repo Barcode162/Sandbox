@@ -22,3 +22,4 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-26T20:17:51Z` **ceo** — Convened 1× code-reviewer — ship review
 - `2026-11-26T20:17:51Z` **ceo** — Convened 1× polish-critic — ship review, frame table F1-F13
 - `2026-11-26T20:18:12Z` **ceo** — Join verify GREEN (47/47 e2e). CEO filed WO-001 report from architect's return. Review wave: code-reviewer + polish-critic (headcount 7/8; director-vision is the 8th, for the ship vote).
+- `2026-11-27T04:24:10Z` **ceo** — Reviewers stopped by usage limit; resumed after reset on Owner's 'Resume'.
