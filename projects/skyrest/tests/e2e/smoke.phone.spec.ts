@@ -19,3 +19,35 @@ test('[SP1] portrait + landscape opening frames are probed', async ({ page, shot
     await shot(`SP1-opening-${label}`);
   }
 });
+
+test('[SP2] the page never zooms: double tap and pinch are cancelled, a second tap still presses a button', async ({ page }) => {
+  await boot(page);
+  const r = await page.evaluate(() => {
+    const fire = (type: string, target: EventTarget, touches = 0) => {
+      const list = Array.from({ length: touches }, (_, i) => new Touch({ identifier: i, target, clientX: 100 + i * 40, clientY: 300 }));
+      const e = new TouchEvent(type, { bubbles: true, cancelable: true, touches: list, changedTouches: list.length ? list : [new Touch({ identifier: 9, target, clientX: 100, clientY: 300 })] });
+      target.dispatchEvent(e);
+      return e.defaultPrevented;
+    };
+    const canvas = document.querySelector('canvas')!;
+    const first = fire('touchend', canvas);
+    const second = fire('touchend', canvas);
+    const pinch = fire('touchmove', canvas, 2);
+    const g = new Event('gesturestart', { bubbles: true, cancelable: true });
+    document.dispatchEvent(g);
+    // A quick second tap on a button still counts as a press.
+    const btn = document.querySelector<HTMLButtonElement>('[data-testid="start"]')!;
+    let clicks = 0;
+    btn.addEventListener('click', () => clicks++);
+    fire('touchend', btn);
+    return { first, second, pinch, gesture: g.defaultPrevented, clicks, scale: visualViewport?.scale ?? 1 };
+  });
+  expect(r.first, 'a single tap is left alone').toBe(false);
+  expect(r.second, 'the double tap is cancelled').toBe(true);
+  expect(r.pinch, 'two-finger move is cancelled').toBe(true);
+  expect(r.gesture, 'Safari pinch gesture is cancelled').toBe(true);
+  expect(r.clicks, 'the second tap still pressed the button').toBe(1);
+  await page.touchscreen.tap(200, 500);
+  await page.touchscreen.tap(200, 500);
+  expect(await page.evaluate(() => visualViewport?.scale ?? 1)).toBe(1);
+});

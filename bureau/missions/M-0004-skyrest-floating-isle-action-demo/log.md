@@ -113,3 +113,4 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-27T21:30:29Z` **ceo** — ship gate PASSED (round 2)
 - `2026-11-27T21:30:29Z` **ceo** — Phase ship-review → **delivery**
 - `2026-11-27T21:31:37Z` **ceo** — Ship gate PASS r2 (director-vision APPROVE 8.1). Published to gh-pages /skyrest/ (4ca6210); live page loads, title frame drawn, no errors on a clean load. Headcount 9 (1 over budget, Owner-approved). Owed: real-iPhone check; LP2 flaky at 4 workers.
+- `2026-11-27T21:45:44Z` **ceo** — Owner: double tap must never zoom. Added src/input/nozoom.ts (double-tap touchend, pinch gesture*/two-finger touchmove, dblclick cancelled; second tap on a button still clicks) + e2e [SP2]; phone specs 5/5. Republished /skyrest/.
