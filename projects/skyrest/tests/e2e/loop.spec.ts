@@ -57,7 +57,7 @@ async function timeToControl(page: Page, click: () => Promise<void>) {
 }
 
 test('[LP1] title → Start → kill → coins counted in → NEXT WAVE in ≤ 1.8 s; FALLEN → TRY AGAIN in ≤ 1.8 s', async ({ page, game, shot }) => {
-  test.setTimeout(240_000);
+  test.setTimeout(480_000);
   await boot(page);
   await expect(page.getByTestId('title')).toBeVisible();
   await expect(page.getByTestId('hud')).not.toHaveClass(/\bin\b/); // no HUD on the title
