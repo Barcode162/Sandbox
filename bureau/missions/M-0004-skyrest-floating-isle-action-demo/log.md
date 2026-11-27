@@ -104,3 +104,12 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-27T21:29:07Z` **engineer** — F-023 resolved: tests/e2e/evidence.spec.ts re-shoots every path cited in findings.jsonl (13/13 pass): projects/skyrest/evidence/wo-002/{F2ref-high,F2desk-high,F13-high,F2-side-by-side}.jpg, projects/skyrest/evidence/wo-003/r1/{F2-802x917,F2-430x932,F4-1280x720,F7-1280x720,F6-1280x720-crop,F12-430x932}.jpg; bare names cited by F-010/F-021 are projects/skyrest/evidence/screens/moments/F8-desktop.jpg and F13-landscape.jpg. moments.spec now shoots F12-portrait and F13-landscape in an iPhone touch context (controls visible, asserted); moments 28/28
 - `2026-11-27T21:29:07Z` **engineer** — F-024 resolved: Cause: while paused the game redrew the identical High-tier frame (bloom, shadows) every rAF; on SwiftShader under load that starved the main thread, LP2 hit its 120 s budget mid-expect and Playwright reported Received '' (session closed). Fix: src/app/game.ts draws while paused only when the picture can change (pause entry, settings, resize, context restore), views/UI still sync. LP2 now asserts 0 GL draws while paused. Stress (LP2 x8, 4 workers): 0/8 -> 6/8 pass; x6 at the suite's 2 workers 6/6; desktop e2e 18/18
 - `2026-11-27T21:29:43Z` **ceo** — Phase remediation → **ship-review**
+- `2026-11-27T21:30:06Z` **director-vision** — F-011 verified: verified
+- `2026-11-27T21:30:06Z` **director-vision** — F-016 verified: verified
+- `2026-11-27T21:30:06Z` **director-vision** — F-022 verified: verified
+- `2026-11-27T21:30:06Z` **director-vision** — F-023 verified: verified
+- `2026-11-27T21:30:06Z` **director-vision** — F-024 verified: verified
+- `2026-11-27T21:30:23Z` **director-vision** — ship gate r2: APPROVE (8.1)
+- `2026-11-27T21:30:29Z` **ceo** — ship gate PASSED (round 2)
+- `2026-11-27T21:30:29Z` **ceo** — Phase ship-review → **delivery**
+- `2026-11-27T21:31:37Z` **ceo** — Ship gate PASS r2 (director-vision APPROVE 8.1). Published to gh-pages /skyrest/ (4ca6210); live page loads, title frame drawn, no errors on a clean load. Headcount 9 (1 over budget, Owner-approved). Owed: real-iPhone check; LP2 flaky at 4 workers.

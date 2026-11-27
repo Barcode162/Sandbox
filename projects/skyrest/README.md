@@ -3,6 +3,8 @@
 A stylized floating-isle action demo: a chibi swordsman versus the Stone Guardian. Three.js (WebGL2) +
 TypeScript + Vite; all art, sound and code original and procedural. Plays on iPhone Safari (touch) and desktop.
 
+Live: https://barcode162.github.io/Sandbox/skyrest/
+
 ```sh
 npm install
 npm run dev        # play at http://127.0.0.1:5176

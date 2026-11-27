@@ -5,7 +5,7 @@
   "tier": 2,
   "domain": "game",
   "output": "projects/skyrest",
-  "phase": "ship-review",
+  "phase": "delivery",
   "created": "2026-11-25T20:50:35Z",
   "rounds": {
     "plan": 1,
@@ -16,6 +16,11 @@
       "passed": true,
       "round": 1,
       "at": "2026-11-25T21:10:44Z"
+    },
+    "ship": {
+      "passed": true,
+      "round": 2,
+      "at": "2026-11-27T21:30:29Z"
     }
   },
   "headcount": {
@@ -61,9 +66,13 @@
     {
       "phase": "ship-review",
       "at": "2026-11-27T21:29:43Z"
+    },
+    {
+      "phase": "delivery",
+      "at": "2026-11-27T21:30:29Z"
     }
   ],
-  "updated": "2026-11-27T21:29:43Z",
+  "updated": "2026-11-27T21:30:29Z",
   "budget_overrides": [
     {
       "n": 1,
