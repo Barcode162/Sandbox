@@ -127,6 +127,22 @@ test('[LP2] pause via the gear and Esc freezes the sim; settings persist; QUALIT
   const f1 = await page.evaluate(() => window.__skyrest!.snapshot().frame);
   await page.waitForTimeout(600);
   expect(await page.evaluate(() => window.__skyrest!.snapshot().frame), 'frozen while paused').toBe(f1);
+  // F-024: paused, the frozen picture is not redrawn (identical High-tier frames starved the main thread under
+  // load). Let the pause's own redraws land (each rAF follows a finished tick), then count GL draws over 4 more.
+  const pausedDraws = await page.evaluate(async () => {
+    const raf = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
+    for (let i = 0; i < 4; i++) await raf();
+    const gl = (document.querySelector('canvas.stage') as HTMLCanvasElement).getContext('webgl2')!;
+    let n = 0;
+    const de = gl.drawElements, da = gl.drawArrays;
+    gl.drawElements = function (this: WebGL2RenderingContext, ...a: Parameters<typeof de>) { n++; return de.apply(this, a); };
+    gl.drawArrays = function (this: WebGL2RenderingContext, ...a: Parameters<typeof da>) { n++; return da.apply(this, a); };
+    for (let i = 0; i < 4; i++) await raf();
+    gl.drawElements = de;
+    gl.drawArrays = da;
+    return n;
+  });
+  expect(pausedDraws, 'no GL draws while paused and unchanged').toBe(0);
   await shot('loop/pause');
   // QUALITY cycles Auto → High → Low and the renderer follows.
   const ui = page.locator('.ui');

@@ -1,9 +1,10 @@
 // src/world/rocks.ts — owned by WO-002. Mossy boulders (§4.4: dodecahedron detail 1, noise ±15 %, y-scale 0.75,
-// sunk 25 %, mossy tops, vertex AO) plus small rim stones, all merged into one shadow-casting mesh.
+// sunk 25 %, mossy tops, vertex AO) plus the rim's rock clusters (world/rim.ts), all merged into one shadow-casting mesh.
 import * as THREE from 'three';
 import { makeRng } from '../core/rng.ts';
 import { PALETTE, SCENERY } from '../tuning/world.ts';
-import { arenaRimRadius, groundHeight } from './ground.ts';
+import { groundHeight } from './ground.ts';
+import { rimProps } from './rim.ts';
 import { lumpy, merge, mixRGB, paint, place, rgbOf, type RGB } from './geo.ts';
 import { noise2 } from './noise.ts';
 
@@ -38,14 +39,15 @@ export function buildRocks(): THREE.BufferGeometry {
       parts.push(boulder(px, pz, (b.y ?? groundHeight(px, pz)) - 0.04, b.r * (0.18 + rnd() * 0.15), 40 + i * 3 + k, false));
     }
   });
-  // Stones along the arena rim (the reference's edge rocks), skipping the bridge mouth.
-  const rnd = makeRng(88);
-  for (let i = 0; i < 16; i++) {
-    const th = (i / 16) * Math.PI * 2 + rnd() * 0.3;
-    const R = arenaRimRadius(th) - 0.4 - rnd() * 0.6;
-    const x = Math.sin(th) * R, z = -Math.cos(th) * R;
-    if (Math.hypot(x - 6.5, z + 9) < 3) continue;
-    parts.push(boulder(x, z, groundHeight(x, z) - 0.05, 0.25 + rnd() * 0.35, 60 + i));
+  // Rock clusters along the arena rim (the reference's edge rocks; F-016: big enough to break the far rim's
+  // silhouette), from the shared rim layout that leaves the bridge mouth and the arena fall clear.
+  for (const p of rimProps()) {
+    if (p.kind !== 'rock') continue;
+    const rnd = makeRng(p.seed);
+    parts.push(boulder(p.x, p.z, groundHeight(p.x, p.z) - 0.08, p.size, p.seed % 97));
+    const a = rnd() * 6.28, d = p.size * (0.9 + rnd() * 0.3);
+    const px = p.x + Math.cos(a) * d, pz = p.z + Math.sin(a) * d;
+    parts.push(boulder(px, pz, groundHeight(px, pz) - 0.05, p.size * (0.35 + rnd() * 0.2), (p.seed + 7) % 97, false));
   }
   return merge(parts);
 }

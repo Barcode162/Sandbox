@@ -72,6 +72,11 @@ export function bootGame(root: HTMLElement): GameInternals {
   const stepper = createFixedStepper();
   const log: SimEvent[] = [];
   let paused = false, manual = false, pendingConfirm = false, alpha = 1, time = 0, last = performance.now();
+  /** Frames still to draw while paused (see tick): set by anything that changes the paused picture. */
+  let pausedDraws = 0;
+  const redraw = () => {
+    pausedDraws = 2;
+  };
   const frame: FrameInfo = { state: sim, alpha: 1, dt: 0, time: 0, paused: false };
 
   const drain = () => {
@@ -131,6 +136,7 @@ export function bootGame(root: HTMLElement): GameInternals {
     },
     setPaused(p) {
       paused = p;
+      redraw();
       audio.setPaused(p);
       stepper.reset();
     },
@@ -149,6 +155,7 @@ export function bootGame(root: HTMLElement): GameInternals {
     for (const v of views) v.setQuality(quality);
   };
   settings.subscribe((s) => {
+    redraw();
     renderer.setQuality(s.quality);
     audio.setVolume(s.volume, s.music);
     syncQuality();
@@ -159,6 +166,7 @@ export function bootGame(root: HTMLElement): GameInternals {
     renderer.resize(w, h);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
+    redraw();
   };
   addEventListener('resize', resize);
   resize();
@@ -206,9 +214,18 @@ export function bootGame(root: HTMLElement): GameInternals {
         }
       }
     }
-    renderFrame(dt);
+    // Paused, the picture is frozen (sim, ambient clock and camera all stop), so the 3D frame is drawn only when it
+    // can change; the views and the UI still sync every frame. Redrawing an identical High-tier frame (bloom,
+    // shadows) 60×/s burned the phone's battery behind the pause panel and, on a software GPU under load, starved
+    // the page's main thread so test actions timed out (F-024).
+    if (paused && !manual && pausedDraws <= 0) syncViews(dt);
+    else {
+      if (paused) pausedDraws--;
+      renderFrame(dt);
+    }
     requestAnimationFrame(tick);
   };
+  canvas.addEventListener('webglcontextrestored', redraw);
   // A lost WebGL context (iOS backgrounding, GPU reset): the renderer stops drawing and rebuilds on restore;
   // the fight must not run blind meanwhile, so it pauses (the player resumes from the panel).
   canvas.addEventListener('webglcontextlost', () => {

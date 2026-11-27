@@ -9,7 +9,7 @@
   "created": "2026-11-25T20:50:35Z",
   "rounds": {
     "plan": 1,
-    "ship": 1
+    "ship": 2
   },
   "gates": {
     "plan": {
@@ -21,7 +21,7 @@
   "headcount": {
     "experience-designer": 1,
     "architect": 1,
-    "engineer": 3,
+    "engineer": 4,
     "code-reviewer": 1,
     "polish-critic": 1,
     "director-vision": 1
@@ -53,7 +53,18 @@
     {
       "phase": "remediation",
       "at": "2026-11-27T04:25:55Z"
+    },
+    {
+      "phase": "remediation",
+      "at": "2026-11-27T20:41:45Z"
     }
   ],
-  "updated": "2026-11-27T20:39:00Z"
+  "updated": "2026-11-27T20:41:46Z",
+  "budget_overrides": [
+    {
+      "n": 1,
+      "owner": "My bad I meant you get to do whatever went Want",
+      "at": "2026-11-27T20:41:46Z"
+    }
+  ]
 }

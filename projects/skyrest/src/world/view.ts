@@ -10,8 +10,9 @@ import { ARENA } from '../tuning/arena.ts';
 import { softToon, TOON_SHARED } from '../render/materials.ts';
 import { rgbOf } from './geo.ts';
 import { groundHeight } from './ground.ts';
+import { segSegDist2 } from './occlusion.ts';
 import { buildIslands } from './islands.ts';
-import { buildTrees, flowerGeometry, petalPose, scatterFlowers, scatterTufts, seedPetals, tuftGeometry } from './foliage.ts';
+import { buildRimBushes, buildTrees, flowerGeometry, petalPose, scatterFlowers, scatterTufts, seedPetals, tuftGeometry } from './foliage.ts';
 import { buildRocks } from './rocks.ts';
 import { buildBridge, signTexture } from './bridge.ts';
 import { buildTemple } from './temple.ts';
@@ -36,7 +37,7 @@ export const createWorldView: CreateWorldView = () => {
   let sky!: ReturnType<typeof buildSky>, water!: ReturnType<typeof buildWater>, temple!: ReturnType<typeof buildTemple>;
   let tufts!: THREE.InstancedMesh, flowers!: THREE.InstancedMesh, petals!: THREE.InstancedMesh;
   let petalState!: ReturnType<typeof seedPetals>;
-  let canopies!: { x: number; y: number; z: number; r: number }[];
+  let canopies!: ReturnType<typeof buildTrees>['canopies'];
   const canopyFade = { value: [] as number[] };
   const pose = { x: 0, y: 0, z: 0, rx: 0, ry: 0, s: 0 };
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3();
@@ -44,8 +45,9 @@ export const createWorldView: CreateWorldView = () => {
   // Light-space rotation (sun direction is fixed): world → light via the inverse, back via the rotation.
   const lastCam = new THREE.Vector3(Infinity, 0, 0);
   let fadeDt = 0;
-  /** A canopy sphere crossing camera → hero dithers to 35 % in 180 ms and restores in 300 ms (§4.3, §12 item 15).
-   *  A camera cut (> 3 m jump: snap, retry, moments) snaps the fades instead of easing from a stale view. */
+  /** A tree whose canopy sphere OR trunk capsule crosses camera → hero dithers to 35 % in 180 ms and restores in
+   *  300 ms (§4.3, §12 item 15); its trunk dithers with it (F-022). A camera cut (> 3 m jump: snap, retry, moments)
+   *  snaps the fades instead of easing from a stale view. */
   const updateCanopyFade = (camera: THREE.Camera) => {
     const cut = camera.position.distanceToSquared(lastCam) > 9;
     lastCam.copy(camera.position);
@@ -57,7 +59,10 @@ export const createWorldView: CreateWorldView = () => {
       toC.set(c.x - camera.position.x, c.y - camera.position.y, c.z - camera.position.z);
       const along = toC.dot(seg);
       const d2 = toC.lengthSq() - along * along;
-      const goal = along > -c.r && along < len && d2 < c.r * c.r ? AMBIENT.canopyDitherOpacity : 1;
+      const hitCanopy = along > -c.r && along < len && d2 < c.r * c.r;
+      // The sight line stops 0.6 m short of the hero so a trunk standing just BEHIND him never fades.
+      const hitTrunk = !hitCanopy && segSegDist2(camera.position, seg, Math.max(0, len - 0.6), c) < c.tr * c.tr;
+      const goal = hitCanopy || hitTrunk ? AMBIENT.canopyDitherOpacity : 1;
       const cur = canopyFade.value[i]!;
       const ms = goal < cur ? AMBIENT.canopyDitherInMs : AMBIENT.canopyDitherOutMs;
       canopyFade.value[i] = cut ? goal : cur + (goal - cur) * Math.min(1, (fadeDt * 1000) / ms);
@@ -125,7 +130,7 @@ export const createWorldView: CreateWorldView = () => {
       const trees = buildTrees();
       canopies = trees.canopies;
       canopyFade.value = canopies.map(() => 1);
-      const trunkMat = softToon(PALETTE.trunk, { vertexColors: true, rim: true, shade: PALETTE.trunkShade });
+      const trunkMat = softToon(PALETTE.trunk, { vertexColors: true, rim: true, shade: PALETTE.trunkShade }, { canopy: true, canopyFade, canopyStill: true });
       const leafTex = leafTexture();
       const leafMat = softToon(PALETTE.leafLit, { vertexColors: true, rim: true, map: leafTex, shade: PALETTE.leafShade }, { canopy: true, canopyFade });
       const blossomMat = softToon(PALETTE.blossomLit, { vertexColors: true, rim: true, shade: PALETTE.blossomShade },
@@ -135,6 +140,11 @@ export const createWorldView: CreateWorldView = () => {
         mesh.castShadow = mesh.receiveShadow = true;
         root.add(mesh);
       }
+
+      // Rim bushes (F-016): same leaf look, static, no occlusion dither (they sit on the far lip).
+      const rimBush = new THREE.Mesh(buildRimBushes(), softToon(PALETTE.leafLit, { vertexColors: true, rim: true, map: leafTex, shade: PALETTE.leafShade }));
+      rimBush.castShadow = rimBush.receiveShadow = true;
+      root.add(rimBush);
 
       // Rocks.
       const rocks = new THREE.Mesh(buildRocks(), softToon(PALETTE.boulderLit, { vertexColors: true, shade: PALETTE.boulderShade }));

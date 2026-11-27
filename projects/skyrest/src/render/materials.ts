@@ -52,6 +52,9 @@ export interface ToonExtra {
   canopy?: boolean;
   /** Uniform array of per-tree opacity for the occlusion screen-door dither (length = canopy count). */
   canopyFade?: { value: number[] };
+  /** With `canopy`: dither only, no breathing/sway (trunks). The fade is squared, so at the canopy's 35 % the trunk
+   *  keeps ≈ 12 %: a dark limb must never sit over the hero or a button (F-022). */
+  canopyStill?: boolean;
   /** Skip the cloud-shadow multiply (far scenery that lies outside the noise field). */
   noCloudShadow?: boolean;
   side?: THREE.Side;
@@ -85,6 +88,8 @@ vec3 transformed = vec3( position );
   #endif
   #ifdef TOON_CANOPY
   vTree = aPivot.w;
+  #endif
+  #if defined(TOON_CANOPY) && !defined(TOON_CANOPY_STILL)
   float ph = aPivot.w * 1.7;
   float breath = 1.0 + ${AMBIENT.canopyBreath.toFixed(4)} * sin(6.2831853 * ${AMBIENT.canopyBreathHz.toFixed(3)} * uToonTime + ph);
   vec3 rel = (position - aPivot.xyz) * breath;
@@ -178,6 +183,9 @@ const FRAG_DITHER = /* glsl */ `
 {
   float fadeA = 1.0;
   for (int i = 0; i < TOON_CANOPY_N; i++) if (abs(float(i) - vTree) < 0.5) fadeA = uCanopyFade[i];
+  #ifdef TOON_CANOPY_STILL
+  fadeA *= fadeA;
+  #endif
   if (fadeA < 0.999) {
     const float B[16] = float[16](0., 8., 2., 10., 12., 4., 14., 6., 3., 11., 1., 9., 15., 7., 13., 5.);
     ivec2 c = ivec2(mod(floor(gl_FragCoord.xy), 4.0));
@@ -255,6 +263,7 @@ export function softToon(color: THREE.ColorRepresentation, opts: ToonOpts = {}, 
   if (extra.fogScale !== undefined) defines.push(`TOON_FOG_SCALE ${extra.fogScale.toFixed(3)}`);
   const canopyN = extra.canopy && extra.canopyFade ? extra.canopyFade.value.length : 0;
   if (canopyN) defines.push('TOON_CANOPY');
+  if (canopyN && extra.canopyStill) defines.push('TOON_CANOPY_STILL');
   const header = defines.map((d) => `#define ${d}\n`).join('') + (canopyN ? `#define TOON_CANOPY_N ${canopyN}\n` : '');
   const sway = { value: opts.sway ?? 0 };
   const rimColor = new THREE.Color(LIGHT.rimColor);

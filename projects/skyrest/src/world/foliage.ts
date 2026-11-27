@@ -8,6 +8,7 @@ import { ARENA } from '../tuning/arena.ts';
 import { groundHeight, walkableRadius } from './ground.ts';
 import { lumpy, merge, mixRGB, paint, pivot, place, rgbOf, transferNormals, type RGB } from './geo.ts';
 import { noise2 } from './noise.ts';
+import { rimProps } from './rim.ts';
 
 const LEAF_LIT = rgbOf(PALETTE.leafLit), LEAF_MID = rgbOf(PALETTE.leafMid), GRASS_TIP = rgbOf(PALETTE.grassTip);
 const BL_LIT = rgbOf(PALETTE.blossomLit), BL_MID = rgbOf(PALETTE.blossomMid), BL_SHADE = rgbOf(PALETTE.blossomShade), PETAL = rgbOf(PALETTE.petal);
@@ -34,8 +35,10 @@ export interface TreesBuild {
   trunks: THREE.BufferGeometry;
   leaves: THREE.BufferGeometry;
   blossom: THREE.BufferGeometry;
-  /** Canopy spheres (centre + radius) in tree order, for the occlusion dither. */
-  canopies: { x: number; y: number; z: number; r: number }[];
+  /** Canopy spheres (centre + radius) in tree order, for the occlusion dither, plus each tree's trunk as a capsule
+   *  from its base (bx, by, bz) up to the canopy centre with radius tr (F-022: a trunk between camera and hero fades
+   *  too, with its canopy). */
+  canopies: { x: number; y: number; z: number; r: number; bx: number; by: number; bz: number; tr: number }[];
 }
 
 export function buildTrees(): TreesBuild {
@@ -47,7 +50,9 @@ export function buildTrees(): TreesBuild {
     const cy = by + t.canopyY, R = t.canopyR;
     // Canopy centre z: a lean (−z = away from the camera) lets the trunk show below the canopy (blossom B, F-012).
     const cz = t.z + (t.leanZ ?? 0);
-    canopies.push({ x: t.x, y: cy, z: cz, r: R * 1.2 }); // the outer puffs reach ≈ 1.2–1.3 R
+    // The outer puffs reach ≈ 1.2–1.3 R; the trunk capsule covers the trunk, its forks and the root flare.
+    const trunkR = t.kind === 'cypress' ? 0.3 : t.kind === 'bush' ? 0.45 : 0.25 + 0.55 * (t.canopyR / 2.4 + 0.35);
+    canopies.push({ x: t.x, y: cy, z: cz, r: R * 1.2, bx: t.x, by, bz: t.z, tr: trunkR });
     if (t.kind === 'cypress') {
       const cone = lumpy(new THREE.IcosahedronGeometry(1, 3), 0.1, 2.2, ti);
       place(cone, t.x, by + t.canopyY * 0.55 + 0.3, t.z, 0, 0, 0, R, t.canopyY * 0.75, R);
@@ -55,7 +60,7 @@ export function buildTrees(): TreesBuild {
       leaves.push(pivot(cone, t.x, cy, t.z, ti));
       const stub = new THREE.CylinderGeometry(0.1, 0.14, 0.6, 6);
       place(stub, t.x, by + 0.3, t.z);
-      trunks.push(paint(stub, () => [1, 1, 1]));
+      trunks.push(pivot(paint(stub, () => [1, 1, 1]), t.x, cy, t.z, ti));
       return;
     }
     // Trunk: tapered, leaning, with two forks reaching into the canopy and a flared root collar.
@@ -83,14 +88,15 @@ export function buildTrees(): TreesBuild {
       place(root, t.x + Math.cos(a) * 0.25 * scaleR, by + 0.12, t.z + Math.sin(a) * 0.25 * scaleR, Math.sin(a) * 1.25, 0, -Math.cos(a) * 1.25);
       pieces.push(root);
     }
+    // Each trunk piece carries its tree's index (aPivot.w) so it dithers with its canopy (F-022).
     for (const p of pieces)
-      trunks.push(paint(p, (_x, y) => {
+      trunks.push(pivot(paint(p, (_x, y) => {
         const hy = (y - by) / Math.max(h, 0.1);
         // Vertex AO: 22 % darker in the lowest quarter, plus bark mottling.
         const ao = hy < 0.25 ? 0.78 + 0.88 * hy : 1;
         const a = mixRGB(TRUNK_SHADE, TRUNK, 0.65 + 0.35 * noise2(_x * 6, y * 3, ti));
         return div(a, TRUNK).map((v) => v * ao) as RGB;
-      }));
+      }), t.x, cy, cz, ti));
     const isBlossom = t.kind === 'blossom';
     // Canopy: puffs (detail-2 icospheres, ±12 % noise, radii 0.45–0.7 × R) around a centre one.
     const dirs = puffDirs(t.puffs - 1, 300 + ti);
@@ -149,6 +155,37 @@ export function buildTrees(): TreesBuild {
     }
   });
   return { trunks: merge(trunks), leaves: merge(leaves), blossom: merge(blossom), canopies };
+}
+
+// ── Rim bushes (F-016) ──────────────────────────────────────────────────────────────────────────────────
+/** Leafy clumps (2–4 puffs, 0.7–1.1 m) on the arena lip from world/rim.ts: with the rim rocks they break the far
+ *  edge's silhouette into bumps, so the arena reads as an island's ragged edge rather than one smooth curve.
+ *  Static (no sway pivot): they sit low and far, merged into one mesh on the leaf material. */
+export function buildRimBushes(): THREE.BufferGeometry {
+  const parts: THREE.BufferGeometry[] = [];
+  for (const b of rimProps()) {
+    if (b.kind !== 'bush') continue;
+    const rnd = makeRng(b.seed);
+    const by = groundHeight(b.x, b.z) - 0.12;
+    const n = 2 + Math.floor(rnd() * 3);
+    // Tangent along the rim, so a clump stretches along the edge (a hedge), not into the arena.
+    const tx = Math.cos(b.theta), tz = Math.sin(b.theta);
+    for (let k = 0; k < n; k++) {
+      const off = (k - (n - 1) / 2) * b.size * 0.9 + (rnd() - 0.5) * 0.2;
+      const pr = b.size * (k === Math.floor(n / 2) ? 1 : 0.7 + rnd() * 0.25);
+      const x = b.x + tx * off, z = b.z + tz * off;
+      const g = lumpy(new THREE.IcosahedronGeometry(1, 2), 0.14, 2.6, b.seed + k);
+      place(g, x, by + pr * 0.7, z, 0, rnd() * 6, 0, pr, pr * 0.85, pr);
+      paint(g, (px, py, pz) => {
+        const hy = Math.min(1, Math.max(0, (py - by) / (pr * 1.6)));
+        let c = mixRGB(LEAF_MID, LEAF_LIT, 0.3 + hy * 0.7);
+        c = mixRGB(c, GRASS_TIP, Math.max(0, hy - 0.75) * 0.8 * (0.5 + 0.5 * noise2(px * 1.7, pz * 1.7, b.seed)));
+        return div(c, LEAF_LIT);
+      });
+      parts.push(g);
+    }
+  }
+  return merge(parts);
 }
 
 // ── Grass tufts ─────────────────────────────────────────────────────────────────────────────────────────

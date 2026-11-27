@@ -309,10 +309,10 @@ export const createHeroView: CreateHeroView = () => {
       const half = grace && Math.floor((s.frame + a) / (60 * 0.06)) % 2 === 0;
       if (grace !== flickering) {
         flickering = grace;
-        for (const m of [M.body, M.capeOuter, M.capeInner, M.bladeMat]) m.transparent = grace;
+        for (const m of [M.body, M.hair, M.capeOuter, M.capeInner, M.bladeMat]) m.transparent = grace;
       }
       const op = half ? 0.5 : 1;
-      M.body.opacity = M.capeOuter.opacity = M.capeInner.opacity = M.bladeMat.opacity = op;
+      M.body.opacity = M.hair.opacity = M.capeOuter.opacity = M.capeInner.opacity = M.bladeMat.opacity = op;
 
       // Blade glow breathes; brighter while swinging.
       const swinging = pose.sweep > 0;
