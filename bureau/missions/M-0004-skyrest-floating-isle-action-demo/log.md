@@ -44,3 +44,5 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-27T04:25:20Z` **polish-critic** — F-019 [S2] filed: Cape flips above the head as a blue panel during roll
 - `2026-11-27T04:25:20Z` **polish-critic** — F-020 [S2] filed: Portrait: hero spans into the control zone
 - `2026-11-27T04:25:20Z` **polish-critic** — F-021 [S3] filed: Small copy/HUD polish
+- `2026-11-27T04:25:55Z` **ceo** — Phase review → **remediation**
+- `2026-11-27T04:26:19Z` **ceo** — Review r1: code-reviewer PASS w/ findings (3 S2, 4 S3); polish-critic FAIL (7 S1, 6 S2, 1 S3). Remediation: resumed WO-002 (F-004,008,009,012,016,017,018), WO-003 (F-002,011,013,014,015,019,020), WO-004 (F-001,003,005,006,007,010,021).
