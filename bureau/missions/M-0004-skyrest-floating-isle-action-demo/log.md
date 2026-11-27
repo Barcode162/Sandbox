@@ -23,3 +23,24 @@ Chronological record kept by `bureau`. Append with `python3 bureau/bin/bureau lo
 - `2026-11-26T20:17:51Z` **ceo** — Convened 1× polish-critic — ship review, frame table F1-F13
 - `2026-11-26T20:18:12Z` **ceo** — Join verify GREEN (47/47 e2e). CEO filed WO-001 report from architect's return. Review wave: code-reviewer + polish-critic (headcount 7/8; director-vision is the 8th, for the ship vote).
 - `2026-11-27T04:24:10Z` **ceo** — Reviewers stopped by usage limit; resumed after reset on Owner's 'Resume'.
+- `2026-11-27T04:24:58Z` **code-reviewer** — F-001 [S2] filed: Pausing mid-step leaves interpolation alpha at -1: paused frame shows entities one step back
+- `2026-11-27T04:24:58Z` **code-reviewer** — F-002 [S2] filed: iOS audio stays silent after an interruption outside the fight
+- `2026-11-27T04:24:58Z` **code-reviewer** — F-003 [S2] filed: Restart fight unpauses 150 ms before the reset: the fight runs live under the veil
+- `2026-11-27T04:24:58Z` **code-reviewer** — F-004 [S3] filed: No WebGL context-loss handling or test
+- `2026-11-27T04:24:58Z` **code-reviewer** — F-005 [S3] filed: Test hooks with cheat flags ship in the public build
+- `2026-11-27T04:24:58Z` **code-reviewer** — F-006 [S3] filed: Per-frame closure and redundant style writes in the HUD loop
+- `2026-11-27T04:24:58Z` **code-reviewer** — F-007 [S3] filed: pickAttack fallback can return doubleSlam when it is out of range or before enrage
+- `2026-11-27T04:25:19Z` **polish-critic** — F-008 [S1] filed: Sky and far plane wash out to pale haze; reference is saturated blue with crisp white cumulus
+- `2026-11-27T04:25:19Z` **polish-critic** — F-009 [S1] filed: Temple reads as a tall grey castle with cone spires, not the reference's wide white hall with a big round emblem
+- `2026-11-27T04:25:19Z` **polish-critic** — F-010 [S1] filed: Golem reads green, soft and blobby; hit flash and bloom white out the whole body
+- `2026-11-27T04:25:19Z` **polish-critic** — F-011 [S1] filed: Hero hair reads as a white spiked ball (mace) from behind; hero too small vs reference
+- `2026-11-27T04:25:19Z` **polish-critic** — F-012 [S1] filed: Blossom tree B is a giant trunkless pink blob filling the lower-left
+- `2026-11-27T04:25:19Z` **polish-critic** — F-013 [S1] filed: Slash trail reads lime/mint, not bright cyan
+- `2026-11-27T04:25:19Z` **polish-critic** — F-014 [S1] filed: Damage numbers collide with each other and the boss bar
+- `2026-11-27T04:25:20Z` **polish-critic** — F-015 [S2] filed: Player hurt: hero becomes a white bloom blob, camera swings the temple out, vignette reads pink
+- `2026-11-27T04:25:20Z` **polish-critic** — F-016 [S2] filed: Arena reads as a tiny planet: visible curved horizon
+- `2026-11-27T04:25:20Z` **polish-critic** — F-017 [S2] filed: Waterfalls thin and faint; temple cliff flat slate without moss drapes
+- `2026-11-27T04:25:20Z` **polish-critic** — F-018 [S2] filed: Distant islets are flat untextured inverted cones
+- `2026-11-27T04:25:20Z` **polish-critic** — F-019 [S2] filed: Cape flips above the head as a blue panel during roll
+- `2026-11-27T04:25:20Z` **polish-critic** — F-020 [S2] filed: Portrait: hero spans into the control zone
+- `2026-11-27T04:25:20Z` **polish-critic** — F-021 [S3] filed: Small copy/HUD polish
