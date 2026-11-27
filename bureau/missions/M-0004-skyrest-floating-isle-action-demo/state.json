@@ -5,7 +5,7 @@
   "tier": 2,
   "domain": "game",
   "output": "projects/skyrest",
-  "phase": "remediation",
+  "phase": "ship-review",
   "created": "2026-11-25T20:50:35Z",
   "rounds": {
     "plan": 1,
@@ -57,9 +57,13 @@
     {
       "phase": "remediation",
       "at": "2026-11-27T20:41:45Z"
+    },
+    {
+      "phase": "ship-review",
+      "at": "2026-11-27T21:29:43Z"
     }
   ],
-  "updated": "2026-11-27T20:41:46Z",
+  "updated": "2026-11-27T21:29:43Z",
   "budget_overrides": [
     {
       "n": 1,
